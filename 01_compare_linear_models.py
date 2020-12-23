@@ -4,6 +4,7 @@ Which linear models are optimal?
 
 import numpy as np
 import pandas as pd
+import os
 from scipy.io import arff
 from sklearn.svm import SVC
 from sklearn.linear_model import RidgeClassifier, LogisticRegression
@@ -24,18 +25,21 @@ database = pd.read_json("database.json").T
 # which means we are just going to be using each feature as continuous even though it
 # may not be
 database = database[database.mv == 0]
-database = database[databaes.nrow >= 50]
+database = database[database.nrow >= 50]
 
 
 def load_data(data_name):
-    data, meta = arff.loadarff(f"datasets/{data_name}.arff")
-    df = pd.DataFrame(data).apply(lambda x: pd.to_numeric(x, errors="ignore"))
-    X = pd.get_dummies(df.loc[:, df.columns != "Class"]).values
-    unique_labels = df["Class"].unique()
-    labels_dict = dict(zip(unique_labels, range(len(unique_labels))))
-    df.loc[:, "Class"] = df.applymap(lambda s: labels_dict.get(s) if s in labels_dict else s)
-    y = df["Class"].values
-    return X, y
+    file_path = f"datasets/{data_name}.arff"
+    if os.path.exists(file_path):
+        data, meta = arff.loadarff(file_path)
+        df = pd.DataFrame(data).apply(lambda x: pd.to_numeric(x, errors="ignore"))
+        X = pd.get_dummies(df.loc[:, df.columns != "Class"]).values
+        unique_labels = df["Class"].unique()
+        labels_dict = dict(zip(unique_labels, range(len(unique_labels))))
+        df.loc[:, "Class"] = df.applymap(lambda s: labels_dict.get(s) if s in labels_dict else s)
+        y = df["Class"].values
+        return X, y
+    return [], []
 
 
 def evaluate_pipeline_helper(X, y, pipeline, p_grid, random_state=0):
@@ -49,6 +53,7 @@ def evaluate_pipeline_helper(X, y, pipeline, p_grid, random_state=0):
 
 
 def define_and_evaluate_pipelines(X, y, random_state=0):
+    # SVC
     pipeline1 = Pipeline(
         [("scaler", MinMaxScaler()), ("svc", SVC(kernel="linear", probability=True, random_state=random_state))]
     )
@@ -56,6 +61,7 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
         "svc__C": np.logspace(-7, 2, 10),
     }
 
+    # logistic regression
     pipeline2 = Pipeline(
         [
             ("scaler", MinMaxScaler()),
@@ -66,8 +72,9 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
         "logistic__C": np.logspace(-7, 2, 10),
     }
 
+    # ridge has no predict_proba, but can become probabalistic with bagging classifier
     pipeline3 = BaggingClassifier(
-        Pipeline([("scaler", MinMaxScaler()), ("ridge", RidgeClassifier(solver="saga", random_state=random_state)),])
+        Pipeline([("scaler", MinMaxScaler()), ("ridge", RidgeClassifier(random_state=random_state)),])
     )
     param_grid3 = {
         "base_estimator__ridge__alpha": np.logspace(-7, 2, 10),
@@ -87,15 +94,17 @@ results3 = []
 evaluated_datasets = []
 for i, dataset_name in enumerate(database.index.values):
     X, y = load_data(dataset_name)
-    numpy.random.seed(0)
-    if len(y) > 10000:
-        # subset to 10000
-        random_idx = np.random.choice(len(y), 10000 replace=False)
-        X = X[random_idx, :]
-        y = y[random_idx]
-    print(i, dataset_name, len(y))
-    nested_scores1, nested_scores2, nested_scores3 = define_and_evaluate_pipelines(X, y)
-    results1.append(nested_scores1)
-    results2.append(nested_scores2)
-    results3.append(nested_scores3)
-    evaluated_datasets.append(dataset_name)
+    # datasets might have too few samples overall or per class
+    if len(y) > 50 and len(pd.value_counts(y) > 16):
+        np.random.seed(0)
+        if len(y) > 10000:
+            # subset to 10000
+            random_idx = np.random.choice(len(y), 10000, replace=False)
+            X = X[random_idx, :]
+            y = y[random_idx]
+        print(i, dataset_name, len(y))
+        nested_scores1, nested_scores2, nested_scores3 = define_and_evaluate_pipelines(X, y)
+        results1.append(nested_scores1)
+        results2.append(nested_scores2)
+        results3.append(nested_scores3)
+        evaluated_datasets.append(dataset_name)
