@@ -2,10 +2,11 @@
 Which linear models are optimal?
 """
 
-import numpy as np
-import pandas as pd
 import os
 import time
+import pickle
+import numpy as np
+import pandas as pd
 from scipy.io import arff
 from sklearn.svm import SVC
 from sklearn.linear_model import RidgeClassifier, LogisticRegression
@@ -55,7 +56,9 @@ def evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=0):
 
 def define_and_evaluate_pipelines(X, y, random_state=0):
     # LinearSVC
-    pipeline1 = Pipeline([("scaler", MinMaxScaler()), ("svc", SVC(kernel="linear", probability=True, random_state=random_state))])
+    pipeline1 = Pipeline(
+        [("scaler", MinMaxScaler()), ("svc", SVC(kernel="linear", probability=True, random_state=random_state))]
+    )
     param_grid1 = {
         "svc__C": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
     }
@@ -90,7 +93,6 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
 results1 = []
 results2 = []
 results3 = []
-results4 = []
 evaluated_datasets = []
 times = []
 for i, dataset_name in enumerate(database.index.values):
@@ -114,3 +116,4 @@ for i, dataset_name in enumerate(database.index.values):
             evaluated_datasets.append(dataset_name)
             times.append(elapsed)
             print("done. elapsed:", elapsed)
+
