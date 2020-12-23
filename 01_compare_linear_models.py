@@ -42,11 +42,11 @@ def load_data(data_name):
     return [], []
 
 
-def evaluate_pipeline_helper(X, y, pipeline, p_grid, random_state=0):
+def evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=0):
     inner_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
     outer_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
     clf = GridSearchCV(
-        estimator=pipeline, param_grid=p_grid, cv=inner_cv, scoring="roc_auc_ovr_weighted", n_jobs=N_JOBS
+        estimator=pipeline, param_grid=param_grid, cv=inner_cv, scoring="roc_auc_ovr_weighted", n_jobs=N_JOBS
     )
     nested_score = cross_val_score(clf, X=X, y=y, cv=outer_cv, scoring="roc_auc_ovr_weighted", n_jobs=N_JOBS)
     return nested_score
@@ -93,18 +93,19 @@ results2 = []
 results3 = []
 evaluated_datasets = []
 for i, dataset_name in enumerate(database.index.values):
-    X, y = load_data(dataset_name)
-    # datasets might have too few samples per class
-    if np.sum(pd.value_counts(y) <= 15) == 0:
-        np.random.seed(0)
-        if len(y) > 10000:
-            # subset to 10000
-            random_idx = np.random.choice(len(y), 10000, replace=False)
-            X = X[random_idx, :]
-            y = y[random_idx]
-        print(i, dataset_name, len(y))
-        nested_scores1, nested_scores2, nested_scores3 = define_and_evaluate_pipelines(X, y)
-        results1.append(nested_scores1)
-        results2.append(nested_scores2)
-        results3.append(nested_scores3)
-        evaluated_datasets.append(dataset_name)
+    if dataset_name not in evaluated_datasets:
+        X, y = load_data(dataset_name)
+        # datasets might have too few samples per class
+        if len(y) > 0 and np.sum(pd.value_counts(y) <= 15) == 0:
+            np.random.seed(0)
+            if len(y) > 10000:
+                # subset to 10000
+                random_idx = np.random.choice(len(y), 10000, replace=False)
+                X = X[random_idx, :]
+                y = y[random_idx]
+            print(i, dataset_name, len(y))
+            nested_scores1, nested_scores2, nested_scores3 = define_and_evaluate_pipelines(X, y)
+            results1.append(nested_scores1)
+            results2.append(nested_scores2)
+            results3.append(nested_scores3)
+            evaluated_datasets.append(dataset_name)
