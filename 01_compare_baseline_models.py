@@ -9,7 +9,8 @@ import numpy as np
 import pandas as pd
 from scipy.io import arff
 from sklearn.svm import SVC
-from sklearn.linear_model import RidgeClassifier, LogisticRegression
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, cross_val_score, StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import BaggingClassifier
@@ -74,12 +75,10 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
         "logistic__C": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
     }
 
-    # bagged ridge
-    pipeline3 = BaggingClassifier(
-        Pipeline([("scaler", MinMaxScaler()), ("ridge", RidgeClassifier(random_state=random_state)),])
-    )
+    # random forest
+    pipeline3 = RandomForestClassifier(random_state=random_state)
     param_grid3 = {
-        "base_estimator__ridge__alpha": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
+        "max_depth": [1, 2, 4, 8, 16, 32, None],
     }
 
     nested_scores1 = evaluate_pipeline_helper(X, y, pipeline1, param_grid1, random_state=random_state)
@@ -116,4 +115,21 @@ for i, dataset_name in enumerate(database.index.values):
             evaluated_datasets.append(dataset_name)
             times.append(elapsed)
             print("done. elapsed:", elapsed)
+
+#
+results1 = np.array(results1)
+results2 = np.array(results2)
+results3 = np.array(results3)
+evaluated_datasets = np.array(evaluated_datasets)
+times = np.array(times)
+
+# remove things with exactly 1.0 score as it means it's not interesting
+
+
+# save everything to disk so we can make plots elsewhere
+with open("results/01_compare_baseline_models.pickle", "wb") as f:
+    pickle.dump((results1, results2, results3, evaluated_datasets, times), f)
+
+
+# find all the datasets
 
