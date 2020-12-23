@@ -94,8 +94,8 @@ results3 = []
 evaluated_datasets = []
 for i, dataset_name in enumerate(database.index.values):
     X, y = load_data(dataset_name)
-    # datasets might have too few samples overall or per class
-    if len(y) > 50 and len(pd.value_counts(y) > 16):
+    # datasets might have too few samples per class
+    if np.sum(pd.value_counts(y) <= 15) == 0:
         np.random.seed(0)
         if len(y) > 10000:
             # subset to 10000
