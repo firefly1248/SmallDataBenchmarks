@@ -5,6 +5,7 @@ Which linear models are optimal?
 import numpy as np
 import pandas as pd
 import os
+import time
 from scipy.io import arff
 from sklearn.svm import SVC
 from sklearn.linear_model import RidgeClassifier, LogisticRegression
@@ -12,10 +13,10 @@ from sklearn.model_selection import GridSearchCV, cross_val_score, StratifiedKFo
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import BaggingClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.calibration import CalibratedClassifierCV
+from sklearn.svm import SVC
 
 
-N_JOBS = 24
+N_JOBS = 4 * 4 * 9
 
 
 database = pd.read_json("database.json").T
@@ -53,12 +54,10 @@ def evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=0):
 
 
 def define_and_evaluate_pipelines(X, y, random_state=0):
-    # SVC
-    pipeline1 = Pipeline(
-        [("scaler", MinMaxScaler()), ("svc", SVC(kernel="linear", probability=True, random_state=random_state))]
-    )
+    # LinearSVC
+    pipeline1 = Pipeline([("scaler", MinMaxScaler()), ("svc", SVC(kernel="linear", probability=True, random_state=random_state))])
     param_grid1 = {
-        "svc__C": np.logspace(-7, 2, 10),
+        "svc__C": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
     }
 
     # logistic regression
@@ -69,15 +68,15 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
         ]
     )
     param_grid2 = {
-        "logistic__C": np.logspace(-7, 2, 10),
+        "logistic__C": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
     }
 
-    # ridge has no predict_proba, but can become probabalistic with bagging classifier
+    # bagged ridge
     pipeline3 = BaggingClassifier(
         Pipeline([("scaler", MinMaxScaler()), ("ridge", RidgeClassifier(random_state=random_state)),])
     )
     param_grid3 = {
-        "base_estimator__ridge__alpha": np.logspace(-7, 2, 10),
+        "base_estimator__ridge__alpha": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
     }
 
     nested_scores1 = evaluate_pipeline_helper(X, y, pipeline1, param_grid1, random_state=random_state)
@@ -91,7 +90,9 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
 results1 = []
 results2 = []
 results3 = []
+results4 = []
 evaluated_datasets = []
+times = []
 for i, dataset_name in enumerate(database.index.values):
     if dataset_name not in evaluated_datasets:
         X, y = load_data(dataset_name)
@@ -99,13 +100,17 @@ for i, dataset_name in enumerate(database.index.values):
         if len(y) > 0 and np.sum(pd.value_counts(y) <= 15) == 0:
             np.random.seed(0)
             if len(y) > 10000:
-                # subset to 10000
+                # subset to 10000 if too large
                 random_idx = np.random.choice(len(y), 10000, replace=False)
                 X = X[random_idx, :]
                 y = y[random_idx]
-            print(i, dataset_name, len(y))
+            print("starting:", dataset_name, X.shape)
+            start = time.time()
             nested_scores1, nested_scores2, nested_scores3 = define_and_evaluate_pipelines(X, y)
             results1.append(nested_scores1)
             results2.append(nested_scores2)
             results3.append(nested_scores3)
+            elapsed = time.time() - start
             evaluated_datasets.append(dataset_name)
+            times.append(elapsed)
+            print("done. elapsed:", elapsed)
