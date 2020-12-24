@@ -22,12 +22,9 @@ N_JOBS = 4 * 4 * 9
 
 
 database = pd.read_json("database.json").T
-# note: for now we will ignore those with missing values
-# there are very few of them
 # note: this meta-dataset has swallowed information about what's categorical and what isn't
 # which means we are just going to be using each feature as continuous even though it
 # may not be
-database = database[database.mv == 0]
 database = database[database.nrow >= 50]
 
 
@@ -123,13 +120,6 @@ results3 = np.array(results3)
 evaluated_datasets = np.array(evaluated_datasets)
 times = np.array(times)
 
-# remove things with exactly 1.0 score as it means it's not interesting
-
-
 # save everything to disk so we can make plots elsewhere
 with open("results/01_compare_baseline_models.pickle", "wb") as f:
     pickle.dump((results1, results2, results3, evaluated_datasets, times), f)
-
-
-# find all the datasets
-
