@@ -35,7 +35,7 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
     if len(set(y)) == 2:
         pipeline = lgb.LGBMClassifier(
             objective="binary",
-            num_iterations=500,
+            n_estimators=500,
             metric="auc",
             verbose=-1,
             tree_learner="feature",
@@ -45,7 +45,7 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
     else:
         pipeline = lgb.LGBMClassifier(
             objective="multiclass",
-            num_iterations=500,
+            n_estimators=500,
             metric="auc_mu",
             verbose=-1,
             tree_learner="feature",
