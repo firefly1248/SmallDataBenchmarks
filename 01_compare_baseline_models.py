@@ -1,13 +1,11 @@
 """
-Which linear models are optimal?
+Which baseline models are best?
 """
 
-import os
 import time
 import pickle
 import numpy as np
 import pandas as pd
-from scipy.io import arff
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -16,6 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import BaggingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
+from utils import load_data
 
 
 N_JOBS = 4 * 4 * 9
@@ -26,20 +25,6 @@ database = pd.read_json("database.json").T
 # which means we are just going to be using each feature as continuous even though it
 # may not be
 database = database[database.nrow >= 50]
-
-
-def load_data(data_name):
-    file_path = f"datasets/{data_name}.arff"
-    if os.path.exists(file_path):
-        data, meta = arff.loadarff(file_path)
-        df = pd.DataFrame(data).apply(lambda x: pd.to_numeric(x, errors="ignore"))
-        X = pd.get_dummies(df.loc[:, df.columns != "Class"]).values
-        unique_labels = df["Class"].unique()
-        labels_dict = dict(zip(unique_labels, range(len(unique_labels))))
-        df.loc[:, "Class"] = df.applymap(lambda s: labels_dict.get(s) if s in labels_dict else s)
-        y = df["Class"].values
-        return X, y
-    return [], []
 
 
 def evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=0):
@@ -58,7 +43,7 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
         [("scaler", MinMaxScaler()), ("svc", SVC(kernel="linear", probability=True, random_state=random_state))]
     )
     param_grid1 = {
-        "svc__C": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
+        "svc__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2],
     }
 
     # logistic regression
@@ -69,7 +54,7 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
         ]
     )
     param_grid2 = {
-        "logistic__C": [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 1e1, 1e2],
+        "logistic__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2],
     }
 
     # random forest
