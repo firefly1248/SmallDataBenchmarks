@@ -132,6 +132,7 @@ dmypy.json
 .pyre/
 
 .vscode
+.autogluon_temp
 foo-*
 *.dat
 *.cpp

@@ -1,4 +1,8 @@
+numpy
 scipy
 pandas
-scikit-learn
+scikit-learn>=0.24
+lightgbm>=3.1.1
 seaborn
+mxnet_cu101  # or mxnet if don't have a gpu
+autogluon
