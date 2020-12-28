@@ -21,13 +21,17 @@ def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
     for train_inds, test_inds in outer_cv.split(X, y):
         data_df_train = data_df.iloc[train_inds, :]
         data_df_test = data_df.iloc[test_inds, :]
+        if len((set(y))) == 2:
+            eval_metric = 'roc_auc'
+        else:
+            eval_metric = 'f1_weighted'  # no multiclass auroc in autogluon
         predictor = task.fit(
             data_df_train,
             "y",
             time_limits=SEC,
             auto_stack=True,
             output_directory=".autogluon_temp",
-            eval_metric="f1_weighted",
+            eval_metric=eval_metric,
             verbosity=0,
         )
         y_pred = predictor.predict_proba(data_df.iloc[test_inds, :])
@@ -58,7 +62,7 @@ for i, dataset_name in enumerate(evaluated_datasets):
     elapsed = time.time() - start
     times.append(elapsed)
     print("done. elapsed:", elapsed)
-    print(f"AutoGluone score: {np.mean(nested_scores)}, Random Forest score: {np.mean(random_forest_results[i])}")
+    print(f"AutoGluon score: {np.mean(nested_scores)}, Random Forest score: {np.mean(random_forest_results[i])}")
 
 #
 results = np.array(results)
