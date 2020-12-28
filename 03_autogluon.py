@@ -9,7 +9,6 @@ from sklearn.metrics import roc_auc_score
 from utils import load_data
 
 
-N_JOBS = 4 * 4 * 9
 SEC = 60
 
 
