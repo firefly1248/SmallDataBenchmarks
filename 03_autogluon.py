@@ -9,8 +9,7 @@ from sklearn.metrics import roc_auc_score
 from utils import load_data
 
 
-SEC = 60
-
+SEC = 120
 
 def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
     # autogluon dataframes
@@ -23,8 +22,10 @@ def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
         data_df_test = data_df.iloc[test_inds, :]
         if len((set(y))) == 2:
             eval_metric = 'roc_auc'
+            problem_type = 'binary'
         else:
             eval_metric = 'f1_weighted'  # no multiclass auroc in autogluon
+            problem_type = 'multiclass'
         predictor = task.fit(
             data_df_train,
             "y",
@@ -32,6 +33,7 @@ def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
             auto_stack=True,
             output_directory=".autogluon_temp",
             eval_metric=eval_metric,
+            problem_type=problem_type,
             verbosity=0,
         )
         y_pred = predictor.predict_proba(data_df.iloc[test_inds, :])
@@ -69,5 +71,5 @@ results = np.array(results)
 times = np.array(times)
 
 # save everything to disk so we can make plots elsewhere
-with open(f"results/03_autoglun_sec_{SEC}.pickle", "wb") as f:
+with open(f"results/03_autogluon_NN_sec_{SEC}.pickle", "wb") as f:
     pickle.dump((results, times), f)
