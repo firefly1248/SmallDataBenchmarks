@@ -11,6 +11,7 @@ from utils import load_data
 
 SEC = 120
 
+
 def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
     # autogluon dataframes
     data_df = pd.DataFrame(X)
@@ -21,11 +22,11 @@ def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
         data_df_train = data_df.iloc[train_inds, :]
         data_df_test = data_df.iloc[test_inds, :]
         if len((set(y))) == 2:
-            eval_metric = 'roc_auc'
-            problem_type = 'binary'
+            eval_metric = "roc_auc"
+            problem_type = "binary"
         else:
-            eval_metric = 'f1_weighted'  # no multiclass auroc in autogluon
-            problem_type = 'multiclass'
+            eval_metric = "f1_weighted"  # no multiclass auroc in autogluon
+            problem_type = "multiclass"
         predictor = task.fit(
             data_df_train,
             "y",
@@ -71,5 +72,5 @@ results = np.array(results)
 times = np.array(times)
 
 # save everything to disk so we can make plots elsewhere
-with open(f"results/03_autogluon_NN_sec_{SEC}.pickle", "wb") as f:
+with open(f"results/03_autogluon_sec_{SEC}.pickle", "wb") as f:
     pickle.dump((results, times), f)
