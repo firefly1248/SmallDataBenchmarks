@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import autogluon as ag
 from autogluon import TabularPrediction as task
-from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score
 from utils import load_data
 

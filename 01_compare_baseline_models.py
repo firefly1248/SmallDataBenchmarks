@@ -11,9 +11,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, cross_val_score, StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.ensemble import BaggingClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 from utils import load_data
 
 
@@ -27,20 +26,24 @@ database = pd.read_json("database.json").T
 database = database[database.nrow >= 50]
 
 
-def evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=0):
+def evaluate_pipeline_helper(X, y, pipeline, param_grid, scoring="roc_auc_ovr_weighted", random_state=0):
     inner_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
     outer_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
-    clf = GridSearchCV(
-        estimator=pipeline, param_grid=param_grid, cv=inner_cv, scoring="roc_auc_ovr_weighted", n_jobs=N_JOBS
-    )
-    nested_score = cross_val_score(clf, X=X, y=y, cv=outer_cv, scoring="roc_auc_ovr_weighted", n_jobs=N_JOBS)
+    clf = GridSearchCV(estimator=pipeline, param_grid=param_grid, cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)
+    nested_score = cross_val_score(clf, X=X, y=y, cv=outer_cv, scoring=scoring, n_jobs=N_JOBS)
     return nested_score
 
 
 def define_and_evaluate_pipelines(X, y, random_state=0):
     # LinearSVC
     pipeline1 = Pipeline(
-        [("scaler", MinMaxScaler()), ("svc", SVC(kernel="linear", probability=True, random_state=random_state))]
+        [
+            ("scaler", MinMaxScaler()),
+            (
+                "svc",
+                SVC(kernel="linear", class_weight="balanced", probability=True, tol=1e-4, random_state=random_state),
+            ),
+        ]
     )
     param_grid1 = {
         "svc__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2],
@@ -97,6 +100,7 @@ for i, dataset_name in enumerate(database.index.values):
             evaluated_datasets.append(dataset_name)
             times.append(elapsed)
             print("done. elapsed:", elapsed)
+            print("scores:", np.mean(nested_scores1), np.mean(nested_scores2), np.mean(nested_scores3))
 
 #
 results1 = np.array(results1)
