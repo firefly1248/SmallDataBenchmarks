@@ -6,23 +6,21 @@ import time
 import pickle
 import numpy as np
 import lightgbm as lgb
-from skopt import BayesSearchCV
-from skopt.space import Real, Categorical, Integer
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from utils import load_data
 
-N_JOBS = 4 * 4
+N_JOBS = 4 * 4 * 9
 N_ITER = 25  # budget for hyperparam search
 
 
 def evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=0):
     inner_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
     outer_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
-    clf = BayesSearchCV(
+    clf = RandomizedSearchCV(
         estimator=pipeline,
-        search_spaces=param_grid,
+        param_distributions=param_grid,
         n_iter=N_ITER,
-        n_points=3,
         cv=inner_cv,
         scoring="roc_auc_ovr_weighted",
         n_jobs=N_JOBS,
@@ -37,7 +35,7 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
     if len(set(y)) == 2:
         pipeline = lgb.LGBMClassifier(
             objective="binary",
-            n_estimators=1000,
+            n_estimators=500,
             metric="auc",
             verbose=-1,
             tree_learner="feature",
@@ -47,7 +45,7 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
     else:
         pipeline = lgb.LGBMClassifier(
             objective="multiclass",
-            n_estimators=1000,
+            n_estimators=500,
             metric="auc_mu",
             verbose=-1,
             tree_learner="feature",
@@ -55,15 +53,15 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
             silent=True,
         )
     param_grid = {
-        "learning_rate": Real(1e-7, 1e+0, prior='log-uniform'), #[1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "num_leaves": Categorical([1, 3, 15, 31, 63, 127]),  # 2**depth - 1
-        "colsample_bytree": Categorical([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]),
-        "subsample": Categorical([0.5, 0.6, 0.7, 0.8, 0.9, 1.0]),
-        "min_child_samples": Categorical([1, 2, 4, 8, 16, 32, 64, 128, 256]),
-        "min_child_weight": Real(1e-7, 1e+0, prior='log-uniform'), # [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "reg_alpha": Real(1e-7, 1e+0, prior='log-uniform'), # [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "reg_lambda": Real(1e-7, 1e+0, prior='log-uniform'), # [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "max_depth": [1, 2, 4, 8, 16, -1],
+        "learning_rate": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
+        "num_leaves": [2, 4, 8, 16, 32, 64],
+        "colsample_bytree": [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        "subsample": [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        "min_child_samples": [2, 4, 8, 16, 32, 64, 128, 256],
+        "min_child_weight": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
+        "reg_alpha": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
+        "reg_lambda": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
+        "max_depth": [1, 2, 4, 8, 16, 32, -1],
     }
     nested_scores = evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=random_state)
     return nested_scores
