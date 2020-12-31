@@ -9,7 +9,7 @@ from sklearn.metrics import roc_auc_score
 from utils import load_data
 
 
-SEC = 120
+SEC = 60 * 5
 
 
 def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
@@ -31,7 +31,7 @@ def define_and_evaluate_autogluon_pipeline(X, y, random_state=0):
             data_df_train,
             "y",
             time_limits=SEC,
-            auto_stack=True,
+            presets="best_quality",
             output_directory=".autogluon_temp",
             eval_metric=eval_metric,
             problem_type=problem_type,
