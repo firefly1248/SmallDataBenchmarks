@@ -6,34 +6,35 @@ import time
 import pickle
 import numpy as np
 import lightgbm as lgb
+from functools import partial
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
+from hyperopt import hp, fmin, tpe, Trials, space_eval
+from hyperopt.pyll import scope
 from utils import load_data
 
 N_JOBS = 4 * 4 * 9
 N_ITER = 25  # budget for hyperparam search
 
 
-def evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=0):
-    inner_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
-    outer_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
-    clf = RandomizedSearchCV(
-        estimator=pipeline,
-        param_distributions=param_grid,
-        n_iter=N_ITER,
-        cv=inner_cv,
-        scoring="roc_auc_ovr_weighted",
-        n_jobs=N_JOBS,
-        random_state=random_state,
-        verbose=-1,
-    )
-    nested_score = cross_val_score(clf, X=X, y=y, cv=outer_cv, scoring="roc_auc_ovr_weighted", n_jobs=N_JOBS)
-    return nested_score
+HYPEROPT_SPACE = {
+    "learning_rate": hp.choice("learning_rate", [0.1, 0.05, 0.01, 0.005, 0.001]),
+    "num_leaves": scope.int(2 ** hp.quniform("num_leaves", 2, 7, 1)),
+    "colsample_bytree": hp.quniform("colsample_bytree", 0.4, 1, 0.1),
+    "subsample": hp.quniform("subsample", 0.4, 1, 0.1),
+    "min_child_samples": scope.int(2 ** hp.quniform("min_child_samples", 0, 7, 1)),
+    "min_child_weight": 10 ** hp.quniform("min_child_weight", -6, 0, 1),
+    "reg_alpha": hp.choice("reg_alpha", [0, 10 ** hp.quniform("reg_alpha_pos", -6, 1, 1)]),
+    "reg_lambda": hp.choice("reg_lambda", [0, 10 ** hp.quniform("reg_lambda_pos", -6, 1, 1)]),
+    "max_depth": scope.int(hp.choice("max_depth", [-1, 2 ** hp.quniform("max_depth_pos", 1, 4, 1)])),
+}
 
 
 def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
-    if len(set(y)) == 2:
-        pipeline = lgb.LGBMClassifier(
+    binary = len(set(y)) == 2
+    if binary:
+        lgb_model = lgb.LGBMClassifier(
             objective="binary",
             n_estimators=500,
             metric="auc",
@@ -43,7 +44,7 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
             silent=True,
         )
     else:
-        pipeline = lgb.LGBMClassifier(
+        lgb_model = lgb.LGBMClassifier(
             objective="multiclass",
             n_estimators=500,
             metric="auc_mu",
@@ -52,18 +53,40 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
             random_state=random_state,
             silent=True,
         )
-    param_grid = {
-        "learning_rate": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "num_leaves": [2, 4, 8, 16, 32, 64],
-        "colsample_bytree": [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-        "subsample": [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-        "min_child_samples": [2, 4, 8, 16, 32, 64, 128, 256],
-        "min_child_weight": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "reg_alpha": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "reg_lambda": [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0],
-        "max_depth": [1, 2, 4, 8, 16, 32, -1],
-    }
-    nested_scores = evaluate_pipeline_helper(X, y, pipeline, param_grid, random_state=random_state)
+    nested_scores = []
+    outer_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
+    for train_inds, test_inds in outer_cv.split(X, y):
+        X_train, y_train = X[train_inds, :], y[train_inds]
+        X_test, y_test = X[test_inds, :], y[test_inds]
+
+        def obj(params):
+            lgb_model.set_params(**params)
+            inner_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
+            scores = cross_val_score(
+                lgb_model, X=X_train, y=y_train, cv=inner_cv, scoring="roc_auc_ovr_weighted", n_jobs=N_JOBS
+            )
+            return -np.mean(scores)
+
+        trials = Trials()
+        _ = fmin(
+            fn=obj,
+            space=HYPEROPT_SPACE,
+            algo=partial(tpe.suggest, n_startup_jobs=5),
+            max_evals=N_ITER,
+            trials=trials,
+            rstate=np.random.RandomState(random_state),
+        )
+        # hyperopt has some problems with hp.choice so we need to do this:
+        best_params = space_eval(HYPEROPT_SPACE, trials.argmin)
+        lgb_model.set_params(**best_params)
+        lgb_model.fit(X_train, y_train)
+        y_pred = lgb_model.predict_proba(X_test)
+        # same as roc_auc_ovr_weighted
+        if binary:
+            score = roc_auc_score(y_test, y_pred[:, 1], average="weighted", multi_class="ovr")
+        else:
+            score = roc_auc_score(y_test, y_pred, average="weighted", multi_class="ovr")
+        nested_scores.append(score)
     return nested_scores
 
 
