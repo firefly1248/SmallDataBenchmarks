@@ -12,7 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, cross_val_score, StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline
-from sklearn.svm import SVC, LinearSVC
+from sklearn.svm import SVC
 from utils import load_data
 
 
@@ -53,7 +53,12 @@ def define_and_evaluate_pipelines(X, y, random_state=0):
     pipeline2 = Pipeline(
         [
             ("scaler", MinMaxScaler()),
-            ("logistic", LogisticRegression(solver="saga", max_iter=10000, random_state=random_state)),
+            (
+                "logistic",
+                LogisticRegression(
+                    solver="saga", max_iter=10000, penalty="elasticnet", l1_ratio=0.1, random_state=random_state
+                ),  # without elasticnet penalty, LR can get pretty bad sometimes
+            ),
         ]
     )
     param_grid2 = {

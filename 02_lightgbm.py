@@ -15,8 +15,8 @@ from hyperopt.pyll import scope
 from utils import load_data
 
 N_JOBS = 4 * 4 * 9
-N_ITER = 25  # budget for hyperparam search
-
+N_ITER = 50  # budget for hyperparam search
+N_STARTUP_JOBS = 20  # hyperopt does a bunch of random jobs first
 
 HYPEROPT_SPACE = {
     "learning_rate": hp.choice("learning_rate", [0.1, 0.05, 0.01, 0.005, 0.001]),
@@ -71,7 +71,7 @@ def define_and_evaluate_lightgbm_pipeline(X, y, random_state=0):
         _ = fmin(
             fn=obj,
             space=HYPEROPT_SPACE,
-            algo=partial(tpe.suggest, n_startup_jobs=5),
+            algo=partial(tpe.suggest, n_startup_jobs=N_STARTUP_JOBS),
             max_evals=N_ITER,
             trials=trials,
             rstate=np.random.RandomState(random_state),
