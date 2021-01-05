@@ -12,26 +12,25 @@ SEC = 60 * 5
 
 
 def define_and_evaluate_mljar_pipeline(X, y, random_state=0):
-    # autogluon dataframes
-    data_df = pd.DataFrame(X)
-    x_cols = data_df.columns
-    data_df["y"] = y
+    
     outer_cv = StratifiedKFold(n_splits=4, shuffle=True, random_state=random_state)
     nested_scores = []
     for train_inds, test_inds in outer_cv.split(X, y):
-        data_df_train = data_df.iloc[train_inds, :]
-        data_df_test = data_df.iloc[test_inds, :]
+        
+        X_train, y_train = X[train_inds, :], y[train_inds]
+        X_test, y_test = X[test_inds, :], y[test_inds]
+
         if len((set(y))) == 2:
             eval_metric = "auc"
         else:
             eval_metric = "logloss"  # no multiclass auroc in mljar
 
         automl = AutoML(mode="Compete", eval_metric=eval_metric, total_time_limit=SEC)
-        automl.fit(data_df_train[x_cols], data_df_train["y"])
-        y_pred = automl.predict_proba(data_df.iloc[test_inds, :])
+        automl.fit(X_train, y_train)
+        y_pred = automl.predict_proba(X_test)
 
         # same as roc_auc_ovr_weighted
-        score = roc_auc_score(data_df_test["y"], y_pred, average="weighted", multi_class="ovr")
+        score = roc_auc_score(y_test, y_pred, average="weighted", multi_class="ovr")
         nested_scores.append(score)
     return nested_scores
 
