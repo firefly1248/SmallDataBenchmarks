@@ -20,17 +20,18 @@ def define_and_evaluate_mljar_pipeline(X, y, random_state=0):
         X_train, y_train = X[train_inds, :], y[train_inds]
         X_test, y_test = X[test_inds, :], y[test_inds]
 
-        if len((set(y))) == 2:
-            eval_metric = "auc"
-        else:
-            eval_metric = "logloss"  # no multiclass auroc in mljar
+        binary = len((set(y))) == 2
+        eval_metric = "auc" if binary else "logloss" 
 
         automl = AutoML(mode="Compete", eval_metric=eval_metric, total_time_limit=SEC)
         automl.fit(X_train, y_train)
         y_pred = automl.predict_proba(X_test)
 
         # same as roc_auc_ovr_weighted
-        score = roc_auc_score(y_test, y_pred, average="weighted", multi_class="ovr")
+        if binary:
+            score = roc_auc_score(y_test, y_pred[:, 1], average="weighted", multi_class="ovr")
+        else:
+            score = roc_auc_score(y_test, y_pred, average="weighted", multi_class="ovr")
         nested_scores.append(score)
     return nested_scores
 
@@ -42,6 +43,8 @@ with open("results/01_compare_baseline_models.pickle", "rb") as f:
 results = []
 times = []
 for i, dataset_name in enumerate(evaluated_datasets):
+    if dataset_name != "appendicitis":
+        continue
     X, y = load_data(dataset_name)
     np.random.seed(0)
     if len(y) > 10000:
