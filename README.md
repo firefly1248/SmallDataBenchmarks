@@ -1,6 +1,6 @@
 SmallDatasetBenchmarks
 ======================
-This repo is for testing machine learnign models on small (classification) datasets.
+This repo is for testing machine learnign models on small (classification) datasets. There is a blog post that summarizes the experiments here: https://www.data-cowboys.com/blog/which-models-are-best-for-small-datasets
 
 The relevant figures are produced in `figures.ipynb`. The actual experimental set-up is in files that start with `01_*`, `02_*`, etc. Nested cross-validation is used to get unbiased estimates of generalization performance. The splits are stratified random with fixed seeds, so the conclusions of these experiments are unlikely to hold for "real" data where test/production data is not IID with the training data. 
 
