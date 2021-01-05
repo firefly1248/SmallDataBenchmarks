@@ -43,8 +43,6 @@ with open("results/01_compare_baseline_models.pickle", "rb") as f:
 results = []
 times = []
 for i, dataset_name in enumerate(evaluated_datasets):
-    if dataset_name != "appendicitis":
-        continue
     X, y = load_data(dataset_name)
     np.random.seed(0)
     if len(y) > 10000:
