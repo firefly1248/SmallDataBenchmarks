@@ -16,7 +16,7 @@ from utils import load_data
 
 N_JOBS = 4 * 4 * 9
 N_ITER = 50  # budget for hyperparam search
-N_STARTUP_JOBS = 20  # hyperopt does a bunch of random jobs first
+N_STARTUP_JOBS = 20  # hyperopt does a bunch of random evals first
 
 HYPEROPT_SPACE = {
     "learning_rate": hp.choice("learning_rate", [0.1, 0.05, 0.01, 0.005, 0.001]),
