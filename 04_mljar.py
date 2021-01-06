@@ -22,8 +22,9 @@ def define_and_evaluate_mljar_pipeline(X, y, random_state=0):
 
         binary = len((set(y))) == 2
         eval_metric = "auc" if binary else "logloss" 
+        ml_task = "binary_classification" if binary else "multiclass_classifcation"
 
-        automl = AutoML(mode="Compete", eval_metric=eval_metric, total_time_limit=SEC)
+        automl = AutoML(mode="Compete", eval_metric=eval_metric, total_time_limit=SEC, ml_task=ml_task)
         automl.fit(X_train, y_train)
         y_pred = automl.predict_proba(X_test)
 
