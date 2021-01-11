@@ -1,11 +1,11 @@
 SmallDatasetBenchmarks
 ======================
-This repo is for testing machine learnign models on small (classification) datasets. There is a blog post that summarizes the experiments here: https://www.data-cowboys.com/blog/which-models-are-best-for-small-datasets
+This repo is for testing machine learning models on small (classification) datasets. There is a blog post that summarizes the experiments here: https://www.data-cowboys.com/blog/which-models-are-best-for-small-datasets
 
 The relevant figures are produced in `figures.ipynb`. The actual experimental set-up is in files that start with `01_*`, `02_*`, etc. Nested cross-validation is used to get unbiased estimates of generalization performance. The splits are stratified random with fixed seeds, so the conclusions of these experiments are unlikely to hold for "real" data where test/production data is not IID with the training data. 
 
 All that said, here are some observations:
-- Non-linear models are better than linear ones, even for datas with < 100 samples. 
+- Non-linear models are better than linear ones, even for datasets with < 100 samples. 
 - SVM and Logistic Regression do similarly, but there are two datasets where SVM is the only algorithm that does not fail catastrophically. However, logistic regression with `elasticnet` penalty never gets less than 0.5 area under the ROC curve.
 - LightGBM works well. Giving it more hyperparameters to try is a good idea. The `hyperopt` package did better than `scikit-optimize` and `Optuna` (not shown), but it could be user error.
 - AutoGluon works really well and is the best approach for predictive power.  But you need to give it enough time. A 2m budget (per fold) was not enough, but 5m was enough for datasets up to 10k samples.
