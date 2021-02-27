@@ -6,7 +6,7 @@ from supervised import AutoML
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score
 from utils import load_data
-
+import shutil
 
 SEC = 60 * 5
 
@@ -24,7 +24,8 @@ def define_and_evaluate_mljar_pipeline(X, y, random_state=0):
         eval_metric = "auc" if binary else "logloss" 
         ml_task = "binary_classification" if binary else "multiclass_classification"
 
-        automl = AutoML(mode="Compete", eval_metric=eval_metric, total_time_limit=SEC, ml_task=ml_task)
+        shutil.rmtree("AutoML_1", ignore_errors=True)
+        automl = AutoML(results_path="AutoML_1", mode="Compete", eval_metric=eval_metric, total_time_limit=SEC, ml_task=ml_task)
         automl.fit(X_train, y_train)
         y_pred = automl.predict_proba(X_test)
 
@@ -60,10 +61,9 @@ for i, dataset_name in enumerate(evaluated_datasets):
     print("done. elapsed:", elapsed)
     print(f"MLJAR score: {np.mean(nested_scores)}, Random Forest score: {np.mean(random_forest_results[i])}")
 
-#
-results = np.array(results)
-times = np.array(times)
-
-# save everything to disk so we can make plots elsewhere
-with open(f"results/04_mljar_sec_{SEC}.pickle", "wb") as f:
-    pickle.dump((results, times), f)
+    
+    results2 = np.array(results)
+    times2 = np.array(times)
+    # save everything to disk so we can make plots elsewhere
+    with open(f"results/04_mljar_sec_{SEC}.pickle", "wb") as f:
+        pickle.dump((results2, times2), f)
