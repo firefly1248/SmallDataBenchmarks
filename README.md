@@ -8,7 +8,7 @@ All that said, here are some observations:
 - Non-linear models are better than linear ones, even for datasets with < 100 samples. 
 - SVM and Logistic Regression do similarly, but there are two datasets where SVM is the only algorithm that does not fail catastrophically. However, logistic regression with `elasticnet` penalty never gets less than 0.5 area under the ROC curve.
 - LightGBM works well. Giving it more hyperparameters to try is a good idea. The `hyperopt` package did better than `scikit-optimize` (not shown) and `Optuna` (not shown) and `hpbandster-sklearn` (see open PR), but any of those could be user error.
-- `AutoGluon` amd `mljar` work really well and are the best approach for predictive power.  But you need to give them enough time. A 2m budget (per fold) was not enough, but 5m was enough for datasets up to 10k samples.
+- `AutoGluon` amd `mljar` work really well and are the best approaches for predictive power.  But you need to give them enough time. A 2m budget (per fold) was not enough, but 5m was enough for datasets up to 10k samples.
 
 Data
 ----
