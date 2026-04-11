@@ -1,18 +1,53 @@
 SmallDatasetBenchmarks
 ======================
-This repo is for testing machine learning models on small (classification) datasets. There is a blog post that summarizes the experiments here: https://www.data-cowboys.com/blog/which-models-are-best-for-small-datasets
+Testing machine learning classifiers on small tabular datasets. The original blog post is here: https://www.data-cowboys.com/blog/which-models-are-best-for-small-datasets
 
-The relevant figures are produced in `figures.ipynb`. The actual experimental set-up is in files that start with `01_*`, `02_*`, etc. Nested cross-validation is used to get unbiased estimates of generalization performance. The splits are stratified random with fixed seeds, so the conclusions of these experiments are unlikely to hold for "real" data where test/production data is not IID with the training data. 
+## Setup
 
-All that said, here are some observations:
-- Non-linear models are better than linear ones, even for datasets with < 100 samples. 
-- SVM and Logistic Regression do similarly, but there are two datasets where SVM is the only algorithm that does not fail catastrophically. However, logistic regression with `elasticnet` penalty never gets less than 0.5 area under the ROC curve.
-- LightGBM works well. Giving it more hyperparameters to try is a good idea. The `hyperopt` package did better than `scikit-optimize` (not shown) and `Optuna` (not shown) and `hpbandster-sklearn` (see open PR), but any of those could be user error.
-- `AutoGluon` amd `mljar` work really well and are the best approaches for predictive power.  But you need to give them enough time. A 2m budget (per fold) was not enough, but 5m was enough for datasets up to 10k samples.
+```bash
+uv sync
+```
 
-Data
-----
-The data is subset of this dataset-of-datasets: "UCI++, a huge collection of preprocessed datasets for supervised classification problems in ARFF format
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.13748.svg)](http://dx.doi.org/10.5281/zenodo.13748)"
+## Experiments
 
-Note that UCI++ reuses the same datasets in different configurations and often you can't tell what's a categorical feature. 
+Results are produced in `figures.ipynb` (all models) and `figures_no_automl.ipynb` (non-AutoML models only). Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which is less sensitive to class imbalance than ROC AUC.
+
+| Script | Description |
+|---|---|
+| `compare_baseline_models.py` | SVC, Logistic Regression, Random Forest — tuned with `GridSearchCV` |
+| `optuna_models.py` | SVC, LogReg (GridSearch); RF, XGBoost, SGD, LightGBM, CatBoost (Optuna, 50 trials per fold) |
+| `benchmark_autogluon.py` | AutoGluon with a 1000s wall-clock time budget per fold (`best_quality` preset, 8 CPUs) |
+| `benchmark_mljar.py` | MLJAR Supervised with a 1000s wall-clock time budget per fold (`Compete` mode, `n_jobs=8`) |
+
+To reproduce all results sequentially:
+
+```bash
+python compare_baseline_models.py
+python optuna_models.py
+python benchmark_mljar.py
+python benchmark_autogluon.py   # must use .venv/bin/python, not uv run
+```
+
+### Categorical features
+
+`compare_baseline_models.py` uses one-hot encoding. `optuna_models.py` handles categories properly:
+- **CatBoost** — native `cat_features` support
+- **RF, XGBoost, LightGBM** — ordinal encoding via `category_encoders`
+- **SVC, LogReg, SGD** — encoding strategy is an Optuna hyperparameter (ordinal, target, James–Stein, m-estimate, CatBoost encoder)
+
+AutoGluon and MLJAR handle categorical features internally.
+
+## Data
+
+A subset of UCI++: "a huge collection of preprocessed datasets for supervised classification problems in ARFF format"
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.13748.svg)](http://dx.doi.org/10.5281/zenodo.13748)
+
+146 datasets, up to 10 000 rows each (larger datasets are subsampled). Note that UCI++ reuses the same datasets in different configurations and some categorical features are not clearly labeled.
+
+## Observations
+
+- Non-linear models outperform linear ones even on datasets with fewer than 100 samples.
+- Optuna-tuned XGBoost and CatBoost are the strongest individual models, competitive with AutoML frameworks.
+- AutoGluon and MLJAR show higher median PR AUC, but require a substantial wall-clock budget (1000s/fold used here).
+- Proper categorical feature handling gives a meaningful boost on datasets with string features (~30% of the benchmark).
+- LightGBM with linear trees (`boosting_type="rf"` variant) is a useful addition to the Optuna model set.

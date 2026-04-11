@@ -1,0 +1,48 @@
+[project]
+name = "small-data-benchmarks"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "seaborn",
+    "scikit-learn",
+    "lightgbm",
+    "xgboost",
+    "catboost",
+    "optuna",
+    "matplotlib",
+    "jupyter",
+    "category-encoders>=2.9.0",
+    "autogluon.tabular",
+    "mljar-supervised",
+    "torch",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "integration: requires dataset files on disk (deselect with -m 'not integration')",
+]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["benchmark"]
+omit = ["tests/*"]
