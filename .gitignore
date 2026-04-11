@@ -1,6 +1,15 @@
 datasets/*.processed.arff
 datasets/*.db
 
+# AutoML temp directories
+AutoML_temp/
+catboost_info/
+.autogluon_temp/
+
+# Benchmark checkpoints (intermediate, not final results)
+results/*_ckpt.joblib
+results/*_run.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
