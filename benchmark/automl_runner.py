@@ -2,7 +2,7 @@
 
 Both frameworks follow the same outer loop structure:
 - load evaluated_datasets from compare_baseline_models results
-- positional checkpoint/resume (index-based, not name-based)
+- name-based checkpoint/resume (dict keyed by dataset name)
 - save checkpoint after each dataset
 - write final output when all datasets are done
 """
@@ -17,6 +17,33 @@ import numpy as np
 
 from benchmark.data import load_data
 from config import MAX_DATASET_ROWS, RANDOM_STATE
+
+
+def _load_checkpoint(
+    checkpoint_path: str | Path,
+    evaluated_datasets: np.ndarray,
+) -> dict[str, dict]:
+    """Load checkpoint dict, migrating from old positional tuple format if needed.
+
+    New format: ``{dataset_name: {'scores': list[float], 'time': float}}``
+    Old format: ``(np.ndarray of shape (n, folds), np.ndarray of shape (n,))``
+    """
+    try:
+        saved = joblib.load(checkpoint_path)
+    except FileNotFoundError:
+        return {}
+
+    if isinstance(saved, dict):
+        return saved
+
+    # Old positional format — migrate to name-based dict
+    results_arr, times_arr = saved
+    checkpoint: dict[str, dict] = {}
+    for i, (scores, t) in enumerate(zip(results_arr, times_arr)):
+        name = evaluated_datasets[i]
+        checkpoint[name] = {"scores": list(scores), "time": float(t)}
+    print(f"Migrated checkpoint from positional to name-based format ({len(checkpoint)} datasets).")
+    return checkpoint
 
 
 def run_automl_benchmark(
@@ -42,22 +69,14 @@ def run_automl_benchmark(
     final_output_path
         Path written only when all datasets are complete.
     """
-    results: list = []
-    times: list = []
+    checkpoint = _load_checkpoint(checkpoint_path, evaluated_datasets)
+    if checkpoint:
+        print(f"Resuming from checkpoint: {len(checkpoint)} datasets already done.")
 
-    try:
-        saved = joblib.load(checkpoint_path)
-        results = list(saved[0])
-        times   = list(saved[1])
-        print(f"Resuming from checkpoint: {len(results)} datasets already done.")
-    except FileNotFoundError:
-        pass
-
-    n_done = len(results)
     n_total = len(evaluated_datasets)
 
     for i, dataset_name in enumerate(evaluated_datasets):
-        if i < n_done:
+        if dataset_name in checkpoint:
             print(f"[{i+1}/{n_total}] {dataset_name}  — skipping (done)")
             continue
 
@@ -75,14 +94,16 @@ def run_automl_benchmark(
         nested_scores = evaluate_fn(X, y)
         elapsed = time.time() - start
 
-        results.append(nested_scores)
-        times.append(elapsed)
+        checkpoint[dataset_name] = {"scores": nested_scores, "time": elapsed}
         print(
             f"  done. elapsed={elapsed:.1f}s  "
             f"PR AUC={np.mean(nested_scores):.4f}  "
             f"(RF baseline: {np.mean(rf_results[i]):.4f})"
         )
-        joblib.dump((np.array(results), np.array(times)), checkpoint_path)
+        joblib.dump(checkpoint, checkpoint_path)
 
+    # Build final output in evaluated_datasets order (compatible with figures.ipynb)
+    results = [checkpoint[name]["scores"] for name in evaluated_datasets]
+    times   = [checkpoint[name]["time"]   for name in evaluated_datasets]
     joblib.dump((np.array(results), np.array(times)), final_output_path)
     print(f"\nDone. Results saved to {final_output_path}")

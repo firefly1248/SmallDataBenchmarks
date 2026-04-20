@@ -9,35 +9,14 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 
-from benchmark.encoding import CatFeaturesEncoder, CatBoostNativeWrapper, CAT_STRATEGY_TREE
+from benchmark.encoding import (
+    CAT_STRATEGIES_LINEAR, CAT_STRATEGY_TREE,
+    CatBoostNativeWrapper, CatFeaturesEncoder,
+    IMPUTER_STRATEGIES, SCALERS_LIST,
+    _build_imputer, _build_scaler,
+)
 from benchmark.metrics import PR_AUC_SCORER
 from config import N_JOBS, RANDOM_STATE
-
-# Preprocessing choices for linear models
-CAT_STRATEGIES_LINEAR: list[str] = ["ordinal", "target", "james_stein", "m_estimate", "catboost_enc"]
-IMPUTER_STRATEGIES: list[str] = ["mean", "median", "most_frequent"]
-SCALERS_LIST: list[str] = ["minmax", "standard", "robust", "maxabs", "power_yj"]
-
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import (
-    MaxAbsScaler, MinMaxScaler, PowerTransformer, RobustScaler, StandardScaler,
-)
-
-_SCALERS = {
-    "minmax":   MinMaxScaler,
-    "standard": StandardScaler,
-    "robust":   RobustScaler,
-    "maxabs":   MaxAbsScaler,
-    "power_yj": lambda: PowerTransformer(method="yeo-johnson"),
-}
-
-
-def _build_scaler(name: str):
-    return _SCALERS[name]()
-
-
-def _build_imputer(strategy: str) -> SimpleImputer:
-    return SimpleImputer(strategy=strategy)
 
 
 def rf_objective(trial, X_train, y_train, inner_cv) -> float:
@@ -127,45 +106,27 @@ def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
-def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int) -> float:
+def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
+                   linear_tree: bool = False) -> float:
+    max_leaves = 128 if linear_tree else 256
+    max_child  = 50  if linear_tree else 100
     params = {
         "learning_rate":    trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
         "n_estimators":     trial.suggest_int("n_estimators", 50, 500),
-        "num_leaves":       trial.suggest_int("num_leaves", 8, 256),
-        "min_child_samples":trial.suggest_int("min_child_samples", 5, 100),
+        "num_leaves":       trial.suggest_int("num_leaves", 8, max_leaves),
+        "min_child_samples":trial.suggest_int("min_child_samples", 5, max_child),
         "subsample":        trial.suggest_float("subsample", 0.4, 1.0),
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.4, 1.0),
         "reg_alpha":        trial.suggest_float("reg_alpha", 1e-8, 10.0, log=True),
         "reg_lambda":       trial.suggest_float("reg_lambda", 1e-8, 10.0, log=True),
         "class_weight":     trial.suggest_categorical("class_weight", ["balanced", None]),
     }
+    if linear_tree:
+        params["linear_lambda"] = trial.suggest_float("linear_lambda", 1e-4, 10.0, log=True)
     objective = "binary" if n_classes == 2 else "multiclass"
     model = Pipeline([
         ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("lgbm", LGBMClassifier(**params, objective=objective, subsample_freq=1,
-                                random_state=RANDOM_STATE, n_jobs=1, verbose=-1)),
-    ])
-    return float(np.mean(cross_val_score(model, X_train, y_train,
-                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
-
-
-def lgbm_linear_tree_objective(trial, X_train, y_train, inner_cv, n_classes: int) -> float:
-    params = {
-        "learning_rate":    trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
-        "n_estimators":     trial.suggest_int("n_estimators", 50, 500),
-        "num_leaves":       trial.suggest_int("num_leaves", 8, 128),
-        "min_child_samples":trial.suggest_int("min_child_samples", 5, 50),
-        "subsample":        trial.suggest_float("subsample", 0.4, 1.0),
-        "colsample_bytree": trial.suggest_float("colsample_bytree", 0.4, 1.0),
-        "reg_alpha":        trial.suggest_float("reg_alpha", 1e-8, 10.0, log=True),
-        "reg_lambda":       trial.suggest_float("reg_lambda", 1e-8, 10.0, log=True),
-        "linear_lambda":    trial.suggest_float("linear_lambda", 1e-4, 10.0, log=True),
-        "class_weight":     trial.suggest_categorical("class_weight", ["balanced", None]),
-    }
-    objective = "binary" if n_classes == 2 else "multiclass"
-    model = Pipeline([
-        ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("lgbm", LGBMClassifier(**params, linear_tree=True, objective=objective,
+        ("lgbm", LGBMClassifier(**params, linear_tree=linear_tree, objective=objective,
                                 subsample_freq=1, random_state=RANDOM_STATE,
                                 n_jobs=1, verbose=-1)),
     ])

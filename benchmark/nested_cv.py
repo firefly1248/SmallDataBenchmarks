@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import numpy as np
 import optuna
-from sklearn.metrics import average_precision_score
 from sklearn.model_selection import StratifiedKFold
 
 from benchmark.metrics import pr_auc_score
@@ -11,7 +10,6 @@ from benchmark.models.build import build_final_model
 from benchmark.models.grid_search import GRID_SEARCH_MODELS, build_grid_search
 from benchmark.models.objectives import (
     catboost_objective,
-    lgbm_linear_tree_objective,
     lgbm_objective,
     rf_objective,
     sgd_objective,
@@ -73,8 +71,8 @@ def run_nested_cv(
                                                                inner_cv, n_classes, cat_cols),
                 "lgbm":          lambda t: lgbm_objective(t, X_train, y_train,
                                                            inner_cv, n_classes),
-                "lgbm_linear":   lambda t: lgbm_linear_tree_objective(t, X_train, y_train,
-                                                                        inner_cv, n_classes),
+                "lgbm_linear":   lambda t: lgbm_objective(t, X_train, y_train,
+                                                           inner_cv, n_classes, linear_tree=True),
             }
             study = optuna.create_study(
                 direction="maximize",

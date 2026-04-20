@@ -6,6 +6,10 @@ import pandas as pd
 import category_encoders as ce
 from catboost import CatBoostClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import (
+    MaxAbsScaler, MinMaxScaler, PowerTransformer, RobustScaler, StandardScaler,
+)
 
 
 # Strategies suitable for linear models (support y in fit for target-based)
@@ -19,6 +23,25 @@ CAT_STRATEGIES_LINEAR: list[str] = [
 
 # Tree models handle ordering natively — ordinal encoding is enough
 CAT_STRATEGY_TREE: str = "ordinal"
+
+IMPUTER_STRATEGIES: list[str] = ["mean", "median", "most_frequent"]
+SCALERS_LIST: list[str] = ["minmax", "standard", "robust", "maxabs", "power_yj"]
+
+_SCALERS = {
+    "minmax":   MinMaxScaler,
+    "standard": StandardScaler,
+    "robust":   RobustScaler,
+    "maxabs":   MaxAbsScaler,
+    "power_yj": lambda: PowerTransformer(method="yeo-johnson"),
+}
+
+
+def _build_scaler(name: str):
+    return _SCALERS[name]()
+
+
+def _build_imputer(strategy: str) -> SimpleImputer:
+    return SimpleImputer(strategy=strategy)
 
 
 class CatFeaturesEncoder(BaseEstimator, TransformerMixin):
