@@ -7,8 +7,10 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 
-from benchmark.encoding import CatFeaturesEncoder, CatBoostNativeWrapper, CAT_STRATEGY_TREE
-from benchmark.models.objectives import _build_imputer, _build_scaler
+from benchmark.encoding import (
+    CAT_STRATEGY_TREE, CatBoostNativeWrapper, CatFeaturesEncoder,
+    _build_imputer, _build_scaler,
+)
 from config import N_JOBS, RANDOM_STATE
 
 

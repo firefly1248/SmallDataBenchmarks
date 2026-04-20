@@ -17,13 +17,6 @@ from benchmark.metrics import PR_AUC_SCORER
 from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, N_INNER_FOLDS, MAX_DATASET_ROWS
 
 
-database = pd.read_json("database.json").T
-# note: this meta-dataset has swallowed information about what's categorical and what isn't
-# which means we are just going to be using each feature as continuous even though it
-# may not be
-database = database[database.nrow >= 50]
-
-
 def evaluate_pipeline_helper(X, y, pipeline, param_grid, scoring=PR_AUC_SCORER, random_state=RANDOM_STATE):
     inner_cv = StratifiedKFold(n_splits=N_INNER_FOLDS, shuffle=True, random_state=random_state)
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=random_state)
@@ -79,6 +72,9 @@ def define_and_evaluate_pipelines(X, y, random_state=RANDOM_STATE):
 CHECKPOINT = "results/compare_baseline_models_ckpt.joblib"
 
 if __name__ == "__main__":
+    database = pd.read_json("database.json").T
+    database = database[database.nrow >= 50]
+
     # Resume from checkpoint if available
     results1, results2, results3, evaluated_datasets, times = [], [], [], [], []
     try:

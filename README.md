@@ -10,7 +10,7 @@ uv sync
 
 ## Experiments
 
-Results are produced in `figures.ipynb` (all models) and `figures_no_automl.ipynb` (non-AutoML models only). Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which is less sensitive to class imbalance than ROC AUC.
+Results are produced in `figures.ipynb` (all models including AutoML) and `figures_no_automl.ipynb` (non-AutoML models only). Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which is less sensitive to class imbalance than ROC AUC.
 
 | Script | Description |
 |---|---|
@@ -22,10 +22,9 @@ Results are produced in `figures.ipynb` (all models) and `figures_no_automl.ipyn
 To reproduce all results sequentially:
 
 ```bash
-python compare_baseline_models.py
-python optuna_models.py
-python benchmark_mljar.py
-python benchmark_autogluon.py   # must use .venv/bin/python, not uv run
+uv run python run_all.py
+# AutoGluon must use the venv Python directly (Ray incompatibility with uv run):
+.venv/bin/python benchmark_autogluon.py
 ```
 
 ### Categorical features
@@ -37,12 +36,25 @@ python benchmark_autogluon.py   # must use .venv/bin/python, not uv run
 
 AutoGluon and MLJAR handle categorical features internally.
 
-## Data
+## Results
 
-A subset of UCI++: "a huge collection of preprocessed datasets for supervised classification problems in ARFF format"
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.13748.svg)](http://dx.doi.org/10.5281/zenodo.13748)
+### Model performance relative to Random Forest baseline
 
-146 datasets, up to 10 000 rows each (larger datasets are subsampled). Note that UCI++ reuses the same datasets in different configurations and some categorical features are not clearly labeled.
+Mean PR AUC delta across 146 datasets (positive = better than RF).
+
+![Model performance vs RF baseline](figures/model_performance_vs_rf.png)
+
+### Time–accuracy tradeoff
+
+Wall-clock training time per dataset vs mean PR AUC gain over RF.
+
+![Time-accuracy tradeoff](figures/time_accuracy_tradeoff.png)
+
+### Rank distribution across datasets
+
+How often each model achieves each rank (1 = best on a given dataset).
+
+![Rank distribution](figures/rank_distribution.png)
 
 ## Observations
 
@@ -51,3 +63,10 @@ A subset of UCI++: "a huge collection of preprocessed datasets for supervised cl
 - AutoGluon and MLJAR show higher median PR AUC, but require a substantial wall-clock budget (1000s/fold used here).
 - Proper categorical feature handling gives a meaningful boost on datasets with string features (~30% of the benchmark).
 - LightGBM with linear trees (`boosting_type="rf"` variant) is a useful addition to the Optuna model set.
+
+## Data
+
+A subset of UCI++: "a huge collection of preprocessed datasets for supervised classification problems in ARFF format"
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.13748.svg)](http://dx.doi.org/10.5281/zenodo.13748)
+
+146 datasets, up to 10 000 rows each (larger datasets are subsampled). Note that UCI++ reuses the same datasets in different configurations and some categorical features are not clearly labeled.
