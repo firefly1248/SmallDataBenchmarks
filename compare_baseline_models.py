@@ -12,7 +12,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, cross_val_score, StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline
-from benchmark.data import load_data
+from benchmark.data import load_data  # intentionally not load_data_df: this meta-dataset has swallowed
+                                      # information about what's categorical and what isn't, so we treat
+                                      # every feature as continuous via one-hot encoding
 from benchmark.metrics import PR_AUC_SCORER
 from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, N_INNER_FOLDS, MAX_DATASET_ROWS
 
