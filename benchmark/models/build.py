@@ -9,7 +9,7 @@ from lightgbm import LGBMClassifier
 
 from benchmark.encoding import (
     CAT_STRATEGY_TREE, CatBoostNativeWrapper, CatFeaturesEncoder,
-    _build_imputer, _build_scaler,
+    TabPFNNativeWrapper, _build_imputer, _build_scaler,
 )
 from config import N_JOBS, RANDOM_STATE
 
@@ -74,6 +74,31 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
                                     subsample_freq=1, random_state=RANDOM_STATE,
                                     n_jobs=N_JOBS, verbose=-1)),
         ])
+
+    if model_name == "tabnet":
+        from benchmark.models.torch_wrappers import TabNetNativeWrapper
+        return TabNetNativeWrapper(cat_cols=cat_cols, max_epochs=400, patience=20,
+                                   **{k: v for k, v in best.items() if k != "cat_cols"})
+
+    if model_name == "ft_transformer":
+        from benchmark.models.torch_wrappers import FTTransformerWrapper
+        return FTTransformerWrapper(cat_cols=cat_cols, max_epochs=400, patience=24,
+                                    **{k: v for k, v in best.items() if k != "cat_cols"})
+
+    if model_name == "resnet":
+        from benchmark.models.torch_wrappers import ResNetWrapper
+        return ResNetWrapper(cat_cols=cat_cols, max_epochs=400, patience=24,
+                             **{k: v for k, v in best.items() if k != "cat_cols"})
+
+    if model_name == "tabpfn":
+        tabpfn_params = {k: v for k, v in best.items()
+                         if k not in ("cat_cols",)}
+        return TabPFNNativeWrapper(
+            cat_cols=cat_cols,
+            ignore_pretraining_limits=True,
+            random_state=RANDOM_STATE,
+            **tabpfn_params,
+        )
 
     if model_name == "catboost":
         loss_function = "Logloss" if n_classes == 2 else "MultiClass"

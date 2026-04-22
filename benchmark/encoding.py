@@ -87,6 +87,84 @@ class CatFeaturesEncoder(BaseEstimator, TransformerMixin):
         return X
 
 
+class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
+    """Wrap TabPFNClassifier to resolve categorical column names to indices at fit time.
+
+    Parameters
+    ----------
+    cat_cols : list[str]
+        Categorical column names (resolved to integer indices at fit time).
+    n_estimators : int
+        Ensemble size — higher is more accurate but slower.
+    balance_probabilities : bool
+        Balance predicted class probabilities.
+    **tabpfn_params
+        Forwarded verbatim to ``TabPFNClassifier``.
+    """
+
+    def __init__(
+        self,
+        cat_cols: list[str],
+        n_estimators: int = 4,
+        balance_probabilities: bool = False,
+        **tabpfn_params,
+    ) -> None:
+        self.cat_cols = cat_cols
+        self.n_estimators = n_estimators
+        self.balance_probabilities = balance_probabilities
+        self.tabpfn_params = tabpfn_params
+
+    def _prepare(self, X: pd.DataFrame) -> pd.DataFrame:
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X.copy()
+        for col in self.cat_cols:
+            if col in X.columns:
+                X[col] = X[col].fillna("missing").astype(str)
+        return X
+
+    def _cat_indices(self, X: pd.DataFrame) -> list[int]:
+        cols = list(X.columns)
+        return [cols.index(c) for c in self.cat_cols if c in cols]
+
+    def fit(self, X, y):
+        from tabpfn import TabPFNClassifier
+        X = self._prepare(X)
+        self._model = TabPFNClassifier(
+            n_estimators=self.n_estimators,
+            categorical_features_indices=self._cat_indices(X),
+            balance_probabilities=self.balance_probabilities,
+            ignore_pretraining_limits=True,
+            n_jobs=1,
+            **{k: v for k, v in self.tabpfn_params.items()
+               if k not in ("n_estimators", "balance_probabilities")},
+        )
+        self._model.fit(X, y)
+        self.classes_ = self._model.classes_
+        return self
+
+    def predict_proba(self, X) -> np.ndarray:
+        return self._model.predict_proba(self._prepare(X))
+
+    def predict(self, X) -> np.ndarray:
+        return self._model.predict(self._prepare(X))
+
+    def get_params(self, deep: bool = True) -> dict:
+        params: dict = {
+            "cat_cols": self.cat_cols,
+            "n_estimators": self.n_estimators,
+            "balance_probabilities": self.balance_probabilities,
+        }
+        params.update(self.tabpfn_params)
+        return params
+
+    def set_params(self, **params) -> "TabPFNNativeWrapper":
+        self.cat_cols = params.pop("cat_cols", self.cat_cols)
+        self.n_estimators = params.pop("n_estimators", self.n_estimators)
+        self.balance_probabilities = params.pop("balance_probabilities",
+                                                self.balance_probabilities)
+        self.tabpfn_params.update(params)
+        return self
+
+
 class CatBoostNativeWrapper(ClassifierMixin, BaseEstimator):
     """Wrap CatBoostClassifier to use native ``cat_features`` from DataFrame cols.
 

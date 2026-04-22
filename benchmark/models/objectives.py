@@ -106,6 +106,60 @@ def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
+def tabnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> float:
+    from benchmark.models.torch_wrappers import TabNetNativeWrapper
+    params = {
+        "n_d":           trial.suggest_int("n_d", 8, 64, step=8),
+        "n_a":           trial.suggest_int("n_a", 8, 64, step=8),
+        "n_steps":       trial.suggest_int("n_steps", 3, 10),
+        "gamma":         trial.suggest_float("gamma", 1.0, 2.0),
+        "lambda_sparse": trial.suggest_float("lambda_sparse", 1e-6, 1e-3, log=True),
+        "mask_type":     trial.suggest_categorical("mask_type", ["sparsemax", "entmax"]),
+        "lr":            trial.suggest_float("lr", 1e-3, 1e-1, log=True),
+        "n_independent": trial.suggest_int("n_independent", 1, 4),
+        "n_shared":      trial.suggest_int("n_shared", 1, 4),
+    }
+    model = TabNetNativeWrapper(cat_cols=cat_cols, max_epochs=200, patience=15, **params)
+    # n_jobs=1: avoid nested PyTorch thread parallelism
+    return float(np.mean(cross_val_score(model, X_train, y_train,
+                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+
+
+def ft_transformer_objective(trial, X_train, y_train, inner_cv,
+                              cat_cols: list[str]) -> float:
+    from benchmark.models.torch_wrappers import FTTransformerWrapper
+    d_token = trial.suggest_categorical("d_token", [64, 96, 128, 192, 256])
+    params = {
+        "d_token":            d_token,
+        "n_blocks":           trial.suggest_int("n_blocks", 1, 6),
+        "attention_dropout":  trial.suggest_float("attention_dropout", 0.0, 0.5),
+        "ffn_d_hidden":       trial.suggest_int("ffn_d_hidden", 64, 512, step=32),
+        "ffn_dropout":        trial.suggest_float("ffn_dropout", 0.0, 0.5),
+        "residual_dropout":   trial.suggest_float("residual_dropout", 0.0, 0.3),
+        "lr":                 trial.suggest_float("lr", 1e-5, 1e-3, log=True),
+        "weight_decay":       trial.suggest_float("weight_decay", 1e-6, 1e-3, log=True),
+    }
+    model = FTTransformerWrapper(cat_cols=cat_cols, max_epochs=200, patience=16, **params)
+    return float(np.mean(cross_val_score(model, X_train, y_train,
+                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+
+
+def resnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> float:
+    from benchmark.models.torch_wrappers import ResNetWrapper
+    params = {
+        "n_blocks":        trial.suggest_int("n_blocks", 1, 8),
+        "d_main":          trial.suggest_int("d_main", 64, 512, step=32),
+        "d_hidden":        trial.suggest_int("d_hidden", 64, 512, step=32),
+        "dropout_first":   trial.suggest_float("dropout_first", 0.0, 0.5),
+        "dropout_second":  trial.suggest_float("dropout_second", 0.0, 0.3),
+        "lr":              trial.suggest_float("lr", 1e-5, 1e-3, log=True),
+        "weight_decay":    trial.suggest_float("weight_decay", 1e-6, 1e-3, log=True),
+    }
+    model = ResNetWrapper(cat_cols=cat_cols, max_epochs=200, patience=16, **params)
+    return float(np.mean(cross_val_score(model, X_train, y_train,
+                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+
+
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                    linear_tree: bool = False) -> float:
     max_leaves = 128 if linear_tree else 256

@@ -28,7 +28,8 @@ CHECKPOINT   = "results/optuna_models_ckpt.joblib"
 FINAL_OUTPUT = "results/optuna_models.joblib"
 
 if __name__ == "__main__":
-    ALL_MODELS = ["svc", "logreg", "random_forest", "xgboost", "sgd", "catboost", "lgbm", "lgbm_linear"]
+    ALL_MODELS = ["svc", "logreg", "tabpfn", "random_forest", "xgboost", "sgd", "catboost",
+                  "lgbm", "lgbm_linear", "tabnet", "ft_transformer", "resnet"]
 
     parser = argparse.ArgumentParser(description="Optuna nested CV benchmark")
     group = parser.add_mutually_exclusive_group()

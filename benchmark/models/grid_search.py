@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from benchmark.encoding import CatFeaturesEncoder
+from benchmark.encoding import CatFeaturesEncoder, TabPFNNativeWrapper
 from benchmark.metrics import PR_AUC_SCORER
 from config import N_JOBS, RANDOM_STATE
 
@@ -17,7 +17,7 @@ from config import N_JOBS, RANDOM_STATE
 CAT_STRATEGIES_GRID: list[str] = ["target", "james_stein", "m_estimate", "catboost_enc"]
 
 # Models handled by GridSearchCV (well-understood, small HP spaces)
-GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg"})
+GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg", "tabpfn"})
 
 
 def build_grid_search(
@@ -84,6 +84,13 @@ def build_grid_search(
             "lr__C":            [1e-4, 1e-3, 0.01, 0.1, 1, 10, 100],
             "lr__l1_ratio":     [0.0, 0.5, 1.0],
             "lr__class_weight": ["balanced", None],
+        }
+
+    elif model_name == "tabpfn":
+        pipeline = TabPFNNativeWrapper(cat_cols=cat_cols)
+        param_grid = {
+            "n_estimators":        [4, 8, 16, 32],
+            "balance_probabilities": [True, False],
         }
 
     else:
