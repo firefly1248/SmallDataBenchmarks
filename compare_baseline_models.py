@@ -22,6 +22,8 @@ from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, N_INNER_FOLDS, MAX_DATAS
 def evaluate_pipeline_helper(X, y, pipeline, param_grid, scoring=PR_AUC_SCORER, random_state=RANDOM_STATE):
     inner_cv = StratifiedKFold(n_splits=N_INNER_FOLDS, shuffle=True, random_state=random_state)
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=random_state)
+    # Note: both GridSearchCV and cross_val_score use n_jobs=N_JOBS (legacy script).
+    # This causes N_JOBS² thread contention; acceptable since results are already saved.
     clf = GridSearchCV(estimator=pipeline, param_grid=param_grid, cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)
     nested_score = cross_val_score(clf, X=X, y=y, cv=outer_cv, scoring=scoring, n_jobs=N_JOBS)
     return nested_score
@@ -96,7 +98,7 @@ if __name__ == "__main__":
         if dataset_name not in done_set:
             X, y = load_data(dataset_name)
             # datasets might have too few samples per class
-            if len(y) > 0 and np.sum(pd.value_counts(y) <= 15) == 0:
+            if len(y) > 0 and np.sum(pd.Series(y).value_counts() <= 15) == 0:
                 rng = np.random.default_rng(RANDOM_STATE)
                 if len(y) > MAX_DATASET_ROWS:
                     random_idx = rng.choice(len(y), MAX_DATASET_ROWS, replace=False)

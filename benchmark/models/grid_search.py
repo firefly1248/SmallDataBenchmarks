@@ -33,7 +33,7 @@ def build_grid_search(
 
     Parameters
     ----------
-    model_name : ``"svc"`` or ``"logreg"``
+    model_name : ``"svc"``, ``"logreg"``, or ``"tabpfn"``
     inner_cv   : cross-validation splitter passed to GridSearchCV
     cat_cols   : list of categorical column names in the training data
 
@@ -87,7 +87,7 @@ def build_grid_search(
         }
 
     elif model_name == "tabpfn":
-        pipeline = TabPFNNativeWrapper(cat_cols=cat_cols)
+        pipeline = TabPFNNativeWrapper(cat_cols=cat_cols, random_state=RANDOM_STATE)
         param_grid = {
             "n_estimators":        [4, 8, 16, 32],
             "balance_probabilities": [True, False],
@@ -99,11 +99,15 @@ def build_grid_search(
             f"Expected one of {sorted(GRID_SEARCH_MODELS)}."
         )
 
+    # TabPFN uses PyTorch internally; running GridSearchCV workers in parallel
+    # causes OMP mutex conflicts on macOS — run serial for this model only.
+    gs_n_jobs = 1 if model_name == "tabpfn" else N_JOBS
+
     return GridSearchCV(
         pipeline,
         param_grid,
         cv=inner_cv,
         scoring=PR_AUC_SCORER,
-        n_jobs=N_JOBS,
+        n_jobs=gs_n_jobs,
         refit=True,
     )

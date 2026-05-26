@@ -79,7 +79,13 @@ class _Preprocessor:
 
 # ── shared rtdl training loop ─────────────────────────────────────────────────
 
-def _train_rtdl(
+def _get_device() -> torch.device:
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def _train_rtdl_on_device(
     model: nn.Module,
     forward_fn,
     X_num: np.ndarray,
@@ -92,20 +98,27 @@ def _train_rtdl(
     max_epochs: int,
     batch_size: int,
     patience: int,
+    device: torch.device,
 ) -> nn.Module:
-    """Train with AdamW + early stopping (15 % val split). Returns best model."""
+    # Seed torch RNG: rtdl.make_baseline already constructed the model using the
+    # global torch RNG, but every subsequent stochastic op (dropout, randperm,
+    # AdamW noise) lives here, so seeding here pins per-fit determinism.
+    torch.manual_seed(RANDOM_STATE)
     y = np.asarray(y)
     rng = np.random.default_rng(RANDOM_STATE)
     n = len(y)
+    # ~20 % for n ≤ 100 (more reliable early-stop signal on small data), ~15 % for n ≥ 200.
     val_n = max(int(0.15 * n), min(20, n // 5))
     idx = rng.permutation(n)
     val_idx, tr_idx = idx[:val_n], idx[val_n:]
 
+    model = model.to(device)
+
     def _tensors(i):
         return (
-            torch.from_numpy(X_num[i]),
-            torch.from_numpy(X_cat[i]),
-            torch.from_numpy(y[i].astype(np.int64)),
+            torch.from_numpy(X_num[i]).to(device),
+            torch.from_numpy(X_cat[i]).to(device),
+            torch.from_numpy(y[i].astype(np.int64)).to(device),
         )
 
     Xn_tr, Xc_tr, y_tr = _tensors(tr_idx)
@@ -120,11 +133,13 @@ def _train_rtdl(
         loss_fn = nn.CrossEntropyLoss()
 
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-    best_val, best_state, no_improve = float("inf"), copy.deepcopy(model.state_dict()), 0
+    best_val = float("inf")
+    best_state = {k: v.clone() for k, v in model.state_dict().items()}
+    no_improve = 0
 
     for _ in range(max_epochs):
         model.train()
-        perm = torch.randperm(n_tr)
+        perm = torch.randperm(n_tr, device=device)
         for start in range(0, n_tr, batch_size):
             b = perm[start : start + batch_size]
             logits = forward_fn(model, Xn_tr[b], Xc_tr[b])
@@ -136,8 +151,11 @@ def _train_rtdl(
         with torch.no_grad():
             val_loss = loss_fn(forward_fn(model, Xn_val, Xc_val), y_val).item()
 
-        if val_loss < best_val - 1e-6:
-            best_val, best_state, no_improve = val_loss, copy.deepcopy(model.state_dict()), 0
+        # NaN val_loss (numerical blow-up) should count as no-improvement, not a new best.
+        if np.isfinite(val_loss) and val_loss < best_val - 1e-6:
+            best_val = val_loss
+            best_state = {k: v.clone() for k, v in model.state_dict().items()}
+            no_improve = 0
         else:
             no_improve += 1
             if no_improve >= patience:
@@ -145,6 +163,47 @@ def _train_rtdl(
 
     model.load_state_dict(best_state)
     return model
+
+
+def _train_rtdl(
+    model: nn.Module,
+    forward_fn,
+    X_num: np.ndarray,
+    X_cat: np.ndarray,
+    y: np.ndarray,
+    n_classes: int,
+    *,
+    lr: float,
+    weight_decay: float,
+    max_epochs: int,
+    batch_size: int,
+    patience: int,
+) -> nn.Module:
+    """Train with AdamW + early stopping (15–20 % val split). Returns best model."""
+    device = _get_device()
+    # Skip MPS for extreme feature counts — MPS allocation failures can trigger
+    # macOS jetsam (silent kill) before Python sees the RuntimeError.
+    n_features = X_num.shape[1] + X_cat.shape[1]
+    if n_features > 500 and device.type == "mps":
+        device = torch.device("cpu")
+    kwargs = dict(lr=lr, weight_decay=weight_decay, max_epochs=max_epochs,
+                  batch_size=batch_size, patience=patience)
+    try:
+        return _train_rtdl_on_device(model, forward_fn, X_num, X_cat, y,
+                                     n_classes, device=device, **kwargs)
+    except RuntimeError as exc:
+        err_msg = str(exc).lower()
+        is_oom = "out of memory" in err_msg or "invalid buffer size" in err_msg
+        if not is_oom or device.type == "cpu":
+            raise
+        warnings.warn(f"MPS OOM — retrying on CPU", RuntimeWarning, stacklevel=2)
+        try:
+            torch.mps.empty_cache()
+        except Exception:
+            pass
+        model = model.cpu()
+        return _train_rtdl_on_device(model, forward_fn, X_num, X_cat, y,
+                                     n_classes, device=torch.device("cpu"), **kwargs)
 
 
 def _predict_proba_rtdl(
@@ -155,19 +214,24 @@ def _predict_proba_rtdl(
     n_classes: int,
     batch_size: int = 1024,
 ) -> np.ndarray:
+    device = next(model.parameters()).device
     model.eval()
     chunks = []
     with torch.no_grad():
         for s in range(0, len(X_num), batch_size):
             logits = forward_fn(
                 model,
-                torch.from_numpy(X_num[s : s + batch_size]),
-                torch.from_numpy(X_cat[s : s + batch_size]),
-            ).numpy()
+                torch.from_numpy(X_num[s : s + batch_size]).to(device),
+                torch.from_numpy(X_cat[s : s + batch_size]).to(device),
+            ).cpu().numpy()
             chunks.append(logits)
     logits = np.concatenate(chunks)
     if n_classes == 2:
-        p = 1.0 / (1.0 + np.exp(-logits.ravel()))
+        # Numerically stable sigmoid: avoids overflow when logits are very negative.
+        z = logits.ravel()
+        p = np.where(z >= 0,
+                     1.0 / (1.0 + np.exp(-z)),
+                     np.exp(z) / (1.0 + np.exp(z)))
         return np.column_stack([1 - p, p])
     exp = np.exp(logits - logits.max(1, keepdims=True))
     return exp / exp.sum(1, keepdims=True)
@@ -227,9 +291,11 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
             cat_idxs.append(cols.index(col))
             cat_dims.append(len(cats))
 
-        # Impute numerics
-        self._num_medians = {c: float(X[c].median()) for c in num_cols}
+        # Impute numerics. If a column is entirely NaN, median() is NaN; fall back to 0.
+        self._num_medians = {}
         for c in num_cols:
+            m = X[c].median()
+            self._num_medians[c] = float(m) if pd.notna(m) else 0.0
             X[c] = X[c].fillna(self._num_medians[c])
 
         self._cols = cols
@@ -237,7 +303,7 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
         self._num_cols = num_cols
         X_np = X[cols].values.astype(np.float32)
 
-        # 15 % val split for early stopping
+        # ~20 % for small n, ~15 % for large n — see _train_rtdl for rationale.
         rng = np.random.default_rng(RANDOM_STATE)
         val_n = max(int(0.15 * len(y)), min(20, len(y) // 5))
         idx = rng.permutation(len(y))
@@ -350,6 +416,8 @@ class FTTransformerWrapper(ClassifierMixin, BaseEstimator):
         n_num = X_num.shape[1]
         cat_cards = self._prep.cat_cardinalities_ if self._prep.n_cat > 0 else None
 
+        # Pin weight-init RNG (rtdl uses the global torch RNG inside make_baseline).
+        torch.manual_seed(RANDOM_STATE)
         self._model = rtdl.FTTransformer.make_baseline(
             n_num_features=n_num,
             cat_cardinalities=cat_cards,
@@ -449,6 +517,8 @@ class ResNetWrapper(ClassifierMixin, BaseEstimator):
         X_cat_empty = np.empty((len(X_all), 0), dtype=np.int64)
 
         d_out = 1 if self._n_classes == 2 else self._n_classes
+        # Pin weight-init RNG (rtdl uses the global torch RNG inside make_baseline).
+        torch.manual_seed(RANDOM_STATE)
         self._model = rtdl.ResNet.make_baseline(
             d_in=X_all.shape[1],
             n_blocks=self.n_blocks,

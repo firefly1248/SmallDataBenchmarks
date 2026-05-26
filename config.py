@@ -12,7 +12,7 @@ N_INNER_FOLDS = 4   # inner CV folds (hyperparameter search)
 
 # ── Optuna budget ─────────────────────────────────────────────────────────────
 N_TRIALS    = 50    # Optuna trials per outer fold per model
-N_TRIALS_NN = 20    # fewer trials for neural networks (each trial is much slower)
+N_TRIALS_NN = 50    # Optuna trials for neural networks
 
 # ── AutoML budget ─────────────────────────────────────────────────────────────
 AUTOML_SEC = 1000   # time limit (seconds) per outer fold for AutoGluon / MLJAR
