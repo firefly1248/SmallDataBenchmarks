@@ -33,7 +33,7 @@ def load_data(
         if df[col].dtype == object:
             df[col] = df[col].apply(lambda v: v.decode("utf-8") if isinstance(v, bytes) else v)
 
-    unique_labels = df["Class"].unique()
+    unique_labels = sorted(df["Class"].unique())
     labels_dict = {lbl: i for i, lbl in enumerate(unique_labels)}
     y = df["Class"].map(labels_dict).values.astype(int)
     X = pd.get_dummies(df.drop(columns=["Class"])).values.astype(float)
@@ -70,7 +70,7 @@ def load_data_df(
             df[col] = df[col].apply(lambda v: v.decode("utf-8") if isinstance(v, bytes) else v)
 
     target = df["Class"]
-    unique_labels = target.unique()
+    unique_labels = sorted(target.unique())
     labels_dict = {lbl: i for i, lbl in enumerate(unique_labels)}
     y = target.map(labels_dict).values.astype(int)
 

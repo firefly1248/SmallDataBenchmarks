@@ -1,28 +1,48 @@
 """
-Benchmark: SVC, LogisticRegression, RandomForest, XGBoost, SGDClassifier, CatBoost, LightGBM.
+Benchmark: SVC, LogReg, TabPFN, RandomForest, XGBoost, SGD, CatBoost, LightGBM,
+LightGBM-linear, TabNet, FT-Transformer, ResNet.
 
 Hyperparameter tuning strategy:
-- SVC, LogReg  : GridSearchCV (small, well-understood HP space)
-- All others   : Optuna TPE (50 trials, larger/complex HP space)
+- SVC, LogReg, TabPFN : GridSearchCV (small, well-understood HP space)
+- All others          : Optuna TPE (N_TRIALS / N_TRIALS_NN trials per outer fold)
 
 Categorical handling:
-- CatBoost           : native cat_features (NaN in cat cols filled with "missing")
-- RF, XGBoost, LGBM  : CatFeaturesEncoder with ordinal strategy (NaN handled natively)
-- SVC, LogReg, SGD   : CatFeaturesEncoder(target) + SimpleImputer + StandardScaler
+- CatBoost, TabPFN              : native categorical handling
+- RF, XGBoost, LGBM             : CatFeaturesEncoder(ordinal) (NaN handled natively)
+- SVC, LogReg, SGD              : CatFeaturesEncoder(target/...) + Imputer + Scaler
+- TabNet, FT-Transformer, ResNet: ordinal-encode + impute + StandardScaler in wrapper
 """
 
 import argparse
+import signal
 import time
 import joblib
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 
+DATASET_TIMEOUT = 43_200  # 12 hours — above longest legit run (pendigits ~11h), below hangs (18h+)
+
+
+class _DatasetTimeout(Exception):
+    pass
+
+
+def _alarm_handler(signum, frame):
+    raise _DatasetTimeout()
+
 from benchmark.data import load_data_df
 from benchmark.nested_cv import run_nested_cv
 from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, MAX_DATASET_ROWS, MODELS_TO_RUN
 
 warnings.filterwarnings("ignore")
+
+
+def _timed(fn, *args):
+    """Call fn(*args) and return (result, elapsed_seconds)."""
+    t = time.time()
+    return fn(*args), time.time() - t
+
 
 CHECKPOINT   = "results/optuna_models_ckpt.joblib"
 FINAL_OUTPUT = "results/optuna_models.joblib"
@@ -96,37 +116,56 @@ if __name__ == "__main__":
         if dataset_name not in ckpt_results:
             ckpt_results[dataset_name] = {}
 
-        t_parallel_start = time.time()
-        with ThreadPoolExecutor(max_workers=max(len(models_to_run_par), 1)) as executor:
+        # nullcontext-style: skip thread pool entirely when no parallel models.
+        executor = (ThreadPoolExecutor(max_workers=len(models_to_run_par))
+                    if models_to_run_par else None)
+        try:
             futures = {
-                m: executor.submit(run_nested_cv, X, y, m, cat_cols)
+                m: executor.submit(_timed, run_nested_cv, X, y, m, cat_cols)
                 for m in models_to_run_par
-            }
+            } if executor else {}
 
             for model_name in models_to_run_seq:
                 start = time.time()
+                signal.signal(signal.SIGALRM, _alarm_handler)
+                signal.alarm(DATASET_TIMEOUT)
                 try:
-                    scores = run_nested_cv(X, y, model_name, cat_cols)
+                    scores, preds, labels = run_nested_cv(X, y, model_name, cat_cols)
+                except _DatasetTimeout:
+                    print(f"  {model_name}: TIMEOUT after {DATASET_TIMEOUT // 3600}h")
+                    scores = [np.nan] * N_OUTER_FOLDS
+                    preds = labels = None
                 except Exception as e:
                     print(f"  {model_name}: ERROR — {e}")
                     scores = [np.nan] * N_OUTER_FOLDS
+                    preds = labels = None
+                finally:
+                    signal.alarm(0)
                 elapsed = time.time() - start
-                ckpt_results[dataset_name][model_name] = {"scores": scores, "time": elapsed}
+                ckpt_results[dataset_name][model_name] = {
+                    "scores": scores, "preds": preds, "labels": labels, "time": elapsed,
+                }
                 done_set.add((dataset_name, model_name))
                 print(f"  {model_name}: mean={np.nanmean(scores):.4f}  time={elapsed:.1f}s")
                 save_checkpoint()
 
             for model_name, future in futures.items():
                 try:
-                    scores = future.result()
+                    (scores, preds, labels), elapsed = future.result(timeout=DATASET_TIMEOUT)
                 except Exception as e:
                     print(f"  {model_name}: ERROR — {e}")
                     scores = [np.nan] * N_OUTER_FOLDS
-                elapsed = time.time() - t_parallel_start
-                ckpt_results[dataset_name][model_name] = {"scores": scores, "time": elapsed}
+                    preds = labels = None
+                    elapsed = 0.0
+                ckpt_results[dataset_name][model_name] = {
+                    "scores": scores, "preds": preds, "labels": labels, "time": elapsed,
+                }
                 done_set.add((dataset_name, model_name))
                 print(f"  {model_name}: mean={np.nanmean(scores):.4f}  time={elapsed:.1f}s (parallel)")
                 save_checkpoint()
+        finally:
+            if executor:
+                executor.shutdown(wait=True)
 
     # Convert to positional format for final output (compatible with figures.ipynb)
     all_results = {name: [] for name in MODEL_NAMES}

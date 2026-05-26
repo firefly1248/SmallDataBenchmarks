@@ -7,17 +7,17 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import average_precision_score
 
 from benchmark.automl_runner import run_automl_benchmark
-from config import RANDOM_STATE, N_OUTER_FOLDS, AUTOML_SEC
+from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, AUTOML_SEC
 
 
 SEC = AUTOML_SEC
 AG_PATH = ".autogluon_temp"
 
 
-def evaluate_autogluon(X, y, random_state=RANDOM_STATE):
+def evaluate_autogluon(X, y):
     data_df = pd.DataFrame(X)
     data_df["y"] = y
-    outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=random_state)
+    outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=RANDOM_STATE)
     n_classes = len(np.unique(y))
     problem_type = "binary" if n_classes == 2 else "multiclass"
     nested_scores = []
@@ -31,7 +31,9 @@ def evaluate_autogluon(X, y, random_state=RANDOM_STATE):
             eval_metric="log_loss",
             verbosity=0,
             path=AG_PATH,
-        ).fit(train_df, time_limit=SEC, presets="best_quality", num_cpus=8)
+        ).fit(train_df, time_limit=SEC, presets="best_quality", num_cpus=N_JOBS,
+              dynamic_stacking=False,
+              excluded_model_types=["NeuralNetFastAI", "NeuralNetTorch"])
         y_pred = predictor.predict_proba(test_df.drop(columns=["y"])).values
         y_score = y_pred[:, 1] if n_classes == 2 else y_pred
         score = average_precision_score(test_df["y"], y_score, average="weighted")

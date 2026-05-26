@@ -21,7 +21,8 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
     ----------
     model_name : str
         One of ``"random_forest"``, ``"xgboost"``, ``"sgd"``,
-        ``"lgbm"``, ``"lgbm_linear"``, ``"catboost"``.
+        ``"lgbm"``, ``"lgbm_linear"``, ``"catboost"``,
+        ``"tabnet"``, ``"ft_transformer"``, ``"resnet"``.
     best : dict
         ``study.best_params`` returned by Optuna.
     n_classes : int
@@ -89,16 +90,6 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
         from benchmark.models.torch_wrappers import ResNetWrapper
         return ResNetWrapper(cat_cols=cat_cols, max_epochs=400, patience=24,
                              **{k: v for k, v in best.items() if k != "cat_cols"})
-
-    if model_name == "tabpfn":
-        tabpfn_params = {k: v for k, v in best.items()
-                         if k not in ("cat_cols",)}
-        return TabPFNNativeWrapper(
-            cat_cols=cat_cols,
-            ignore_pretraining_limits=True,
-            random_state=RANDOM_STATE,
-            **tabpfn_params,
-        )
 
     if model_name == "catboost":
         loss_function = "Logloss" if n_classes == 2 else "MultiClass"

@@ -1,6 +1,7 @@
 """Categorical encoding utilities for tabular benchmarks."""
 from __future__ import annotations
 
+import torch  # must precede catboost to win the OpenMP init race
 import numpy as np
 import pandas as pd
 import category_encoders as ce
@@ -125,7 +126,41 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
         cols = list(X.columns)
         return [cols.index(c) for c in self.cat_cols if c in cols]
 
+    @staticmethod
+    def _patch_tabpfn_auth() -> None:
+        """Monkey-patch verify_token to retry on network timeout.
+
+        api.priorlabs.ai/protected/ is occasionally slow; 3 retries with 30s
+        timeout each prevents spurious TabPFNLicenseError in long benchmark runs.
+        """
+        import tabpfn.browser_auth as _ba  # noqa: PLC0415
+
+        if getattr(_ba, "_verify_token_patched", False):
+            return
+
+        _orig = _ba.verify_token
+
+        def _robust_verify(token: str, api_url: str) -> "bool | None":
+            import urllib.request, urllib.error  # noqa: PLC0415
+            url = f"{api_url.rstrip('/')}/protected/"
+            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+            for _ in range(3):
+                try:
+                    with urllib.request.urlopen(req, timeout=30) as resp:
+                        return resp.status == 200
+                except urllib.error.HTTPError as exc:
+                    if exc.code in (401, 403):
+                        return False
+                    return None
+                except Exception:
+                    pass
+            return None
+
+        _ba.verify_token = _robust_verify
+        _ba._verify_token_patched = True  # type: ignore[attr-defined]
+
     def fit(self, X, y):
+        self._patch_tabpfn_auth()
         from tabpfn import TabPFNClassifier
         X = self._prepare(X)
         self._model = TabPFNClassifier(
@@ -133,9 +168,12 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
             categorical_features_indices=self._cat_indices(X),
             balance_probabilities=self.balance_probabilities,
             ignore_pretraining_limits=True,
-            n_jobs=1,
+            n_preprocessing_jobs=1,
+            device="cpu",
             **{k: v for k, v in self.tabpfn_params.items()
-               if k not in ("n_estimators", "balance_probabilities")},
+               if k not in ("n_estimators", "balance_probabilities",
+                            "ignore_pretraining_limits", "n_jobs",
+                            "n_preprocessing_jobs", "device")},
         )
         self._model.fit(X, y)
         self.classes_ = self._model.classes_

@@ -6,15 +6,15 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import average_precision_score
 
 from benchmark.automl_runner import run_automl_benchmark
-from config import RANDOM_STATE, N_OUTER_FOLDS, AUTOML_SEC
+from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, AUTOML_SEC
 
 
 SEC = AUTOML_SEC
 MLJAR_PATH = "AutoML_temp"
 
 
-def evaluate_mljar(X, y, random_state=RANDOM_STATE):
-    outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=random_state)
+def evaluate_mljar(X, y):
+    outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=RANDOM_STATE)
     n_classes = len(np.unique(y))
     ml_task = "binary_classification" if n_classes == 2 else "multiclass_classification"
     nested_scores = []
@@ -28,8 +28,8 @@ def evaluate_mljar(X, y, random_state=RANDOM_STATE):
             ml_task=ml_task,
             eval_metric="logloss",
             total_time_limit=SEC,
-            random_state=random_state,
-            n_jobs=8,
+            random_state=RANDOM_STATE,
+            n_jobs=N_JOBS,
         )
         automl.fit(X_train, y_train)
         y_pred = automl.predict_proba(X_test)

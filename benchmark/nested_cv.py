@@ -30,12 +30,12 @@ def run_nested_cv(
     y: np.ndarray,
     model_name: str,
     cat_cols: list[str],
-) -> list[float]:
-    """Run nested cross-validation for *model_name* and return outer CV scores.
+) -> tuple[list[float], list[np.ndarray], list[np.ndarray]]:
+    """Run nested cross-validation for *model_name*.
 
     Tuning strategy:
-    - ``"svc"``, ``"logreg"`` → GridSearchCV (small HP space)
-    - all others              → Optuna TPE (``N_TRIALS`` trials per outer fold)
+    - ``"svc"``, ``"logreg"``, ``"tabpfn"`` → GridSearchCV (small HP space)
+    - all others                             → Optuna TPE (``N_TRIALS`` trials per outer fold)
 
     Parameters
     ----------
@@ -46,12 +46,16 @@ def run_nested_cv(
 
     Returns
     -------
-    list of float — PR AUC score for each outer fold
+    scores : list of float — PR AUC per outer fold
+    preds  : list of ndarray — predict_proba output per outer fold
+    labels : list of ndarray — true labels per outer fold
     """
     n_classes = int(np.unique(y).size)
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True,
                                random_state=RANDOM_STATE)
     nested_scores: list[float] = []
+    nested_preds: list[np.ndarray] = []
+    nested_labels: list[np.ndarray] = []
 
     for train_idx, test_idx in outer_cv.split(X, y):
         X_train = X.iloc[train_idx].reset_index(drop=True)
@@ -96,5 +100,7 @@ def run_nested_cv(
 
         y_pred = model.predict_proba(X_test)
         nested_scores.append(pr_auc_score(y_test, y_pred))
+        nested_preds.append(y_pred)
+        nested_labels.append(y_test)
 
-    return nested_scores
+    return nested_scores, nested_preds, nested_labels

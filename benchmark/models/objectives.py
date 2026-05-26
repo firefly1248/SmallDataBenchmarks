@@ -62,17 +62,20 @@ def sgd_objective(trial, X_train, y_train, inner_cv) -> float:
     cat_strategy = trial.suggest_categorical("cat_strategy", CAT_STRATEGIES_LINEAR)
     imputer_strategy = trial.suggest_categorical("imputer", IMPUTER_STRATEGIES)
     scaler_name = trial.suggest_categorical("scaler", SCALERS_LIST)
+    penalty = trial.suggest_categorical("penalty", ["l2", "l1", "elasticnet"])
     params = {
         "loss":          trial.suggest_categorical("loss", ["modified_huber", "log_loss"]),
         "alpha":         trial.suggest_float("alpha", 1e-6, 1e2, log=True),
-        "l1_ratio":      trial.suggest_float("l1_ratio", 0.0, 1.0),
-        "penalty":       trial.suggest_categorical("penalty", ["l2", "l1", "elasticnet"]),
+        "penalty":       penalty,
         # 'optimal' removed: produces NaN when alpha is very small
         "learning_rate": trial.suggest_categorical("learning_rate",
                                                    ["constant", "invscaling", "adaptive"]),
         "eta0":          trial.suggest_float("eta0", 1e-4, 1.0, log=True),
         "class_weight":  trial.suggest_categorical("class_weight", ["balanced", None]),
     }
+    # l1_ratio is only meaningful for elasticnet; skip for l1/l2 to avoid polluting the search space
+    if penalty == "elasticnet":
+        params["l1_ratio"] = trial.suggest_float("l1_ratio", 0.0, 1.0)
     model = Pipeline([
         ("cat_enc", CatFeaturesEncoder(strategy=cat_strategy)),
         ("imputer", _build_imputer(imputer_strategy)),
@@ -98,6 +101,8 @@ def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
         "random_strength":    trial.suggest_float("random_strength", 0.0, 10.0),
     }
     loss_function = "Logloss" if n_classes == 2 else "MultiClass"
+    # thread_count=1: cross_val_score(n_jobs=N_JOBS) already runs N_JOBS folds in parallel;
+    # each CatBoost fit uses 1 thread to avoid N_JOBS × N_JOBS over-subscription.
     model = CatBoostNativeWrapper(
         cat_cols=cat_cols, loss_function=loss_function,
         random_state=RANDOM_STATE, verbose=0, thread_count=1, **params,
