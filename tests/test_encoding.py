@@ -13,10 +13,6 @@ from benchmark.encoding import (
 )
 
 
-# ---------------------------------------------------------------------------
-# CatFeaturesEncoder
-# ---------------------------------------------------------------------------
-
 class TestCatFeaturesEncoderNumericPassthrough:
     """Encoder must be a no-op when there are no categorical columns."""
 
@@ -75,7 +71,7 @@ class TestCatFeaturesEncoderWithCategoricals:
         split = len(X) // 2
         enc = CatFeaturesEncoder(strategy="ordinal")
         enc.fit(X.iloc[:split], y[:split])
-        enc.transform(X.iloc[split:])  # must not raise
+        enc.transform(X.iloc[split:])
 
     def test_fit_returns_self(self, mixed_df):
         X, y = mixed_df
@@ -113,10 +109,6 @@ class TestCatStrategyConstants:
         for s in CAT_STRATEGIES_LINEAR:
             assert s in valid, f"{s!r} not in CatFeaturesEncoder._ENCODER_MAP"
 
-
-# ---------------------------------------------------------------------------
-# CatBoostNativeWrapper
-# ---------------------------------------------------------------------------
 
 class TestCatBoostNativeWrapper:
     @pytest.fixture
@@ -161,7 +153,7 @@ class TestCatBoostNativeWrapper:
         X_nan.loc[0, "cat"] = None
         wrapper = CatBoostNativeWrapper(cat_cols=["cat"], iterations=5, verbose=0)
         wrapper.fit(X, y)
-        wrapper.predict_proba(X_nan)  # must not raise
+        wrapper.predict_proba(X_nan)
 
     def test_get_params_contains_cat_cols(self, cat_data):
         wrapper = CatBoostNativeWrapper(cat_cols=["cat"], iterations=5, verbose=0)

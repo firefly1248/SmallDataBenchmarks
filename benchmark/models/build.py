@@ -1,7 +1,7 @@
 """Build final (refitted) models from best Optuna hyperparameters."""
 from __future__ import annotations
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
@@ -21,7 +21,7 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
     ----------
     model_name : str
         One of ``"random_forest"``, ``"xgboost"``, ``"sgd"``,
-        ``"lgbm"``, ``"lgbm_linear"``, ``"catboost"``,
+        ``"lgbm"``, ``"lgbm_linear"``, ``"hgb"``, ``"catboost"``,
         ``"tabnet"``, ``"ft_transformer"``, ``"resnet"``.
     best : dict
         ``study.best_params`` returned by Optuna.
@@ -65,6 +65,12 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
             ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
             ("lgbm", LGBMClassifier(**best, objective=objective, subsample_freq=1,
                                     random_state=RANDOM_STATE, n_jobs=N_JOBS, verbose=-1)),
+        ])
+
+    if model_name == "hgb":
+        return Pipeline([
+            ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
+            ("hgb", HistGradientBoostingClassifier(**best, random_state=RANDOM_STATE)),
         ])
 
     if model_name == "lgbm_linear":

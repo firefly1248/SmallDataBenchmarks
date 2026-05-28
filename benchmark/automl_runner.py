@@ -102,7 +102,6 @@ def run_automl_benchmark(
         )
         joblib.dump(checkpoint, checkpoint_path)
 
-    # Build final output in evaluated_datasets order (compatible with figures.ipynb).
     # Datasets skipped due to empty y are absent from checkpoint — filter them out.
     valid_datasets = [n for n in evaluated_datasets if n in checkpoint]
     results = [checkpoint[name]["scores"] for name in valid_datasets]

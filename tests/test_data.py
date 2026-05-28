@@ -8,10 +8,6 @@ import pytest
 from benchmark.data import load_data, load_data_df
 
 
-# ---------------------------------------------------------------------------
-# load_data
-# ---------------------------------------------------------------------------
-
 class TestLoadData:
     def test_warns_when_file_missing(self):
         with pytest.warns(UserWarning, match="not found"):
@@ -42,13 +38,8 @@ class TestLoadData:
     @pytest.mark.integration
     def test_no_object_columns_after_onehot(self):
         X, _ = load_data("abalone-3class")
-        # one-hot encoding produces a float array — no object dtype
         assert X.dtype != object
 
-
-# ---------------------------------------------------------------------------
-# load_data_df
-# ---------------------------------------------------------------------------
 
 class TestLoadDataDf:
     def test_warns_when_file_missing(self):
@@ -83,7 +74,6 @@ class TestLoadDataDf:
 
     @pytest.mark.integration
     def test_numeric_dataset_has_no_cat_cols(self):
-        # iris has no categorical columns
         X, _, cat_cols = load_data_df("iris")
         assert cat_cols == []
 

@@ -21,7 +21,7 @@ def evaluate_mljar(X, y):
     for train_inds, test_inds in outer_cv.split(X, y):
         X_train, y_train = X[train_inds], y[train_inds]
         X_test,  y_test  = X[test_inds],  y[test_inds]
-        shutil.rmtree(MLJAR_PATH, ignore_errors=True)  # clean before fit
+        shutil.rmtree(MLJAR_PATH, ignore_errors=True)
         automl = AutoML(
             results_path=MLJAR_PATH,
             mode="Compete",

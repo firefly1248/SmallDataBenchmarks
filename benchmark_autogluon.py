@@ -24,7 +24,7 @@ def evaluate_autogluon(X, y):
     for train_inds, test_inds in outer_cv.split(X, y):
         train_df = data_df.iloc[train_inds]
         test_df  = data_df.iloc[test_inds]
-        shutil.rmtree(AG_PATH, ignore_errors=True)  # clean before fit
+        shutil.rmtree(AG_PATH, ignore_errors=True)
         predictor = TabularPredictor(
             label="y",
             problem_type=problem_type,

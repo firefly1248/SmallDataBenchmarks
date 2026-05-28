@@ -280,7 +280,6 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
         cat_present = [c for c in self.cat_cols if c in cols]
         num_cols = [c for c in cols if c not in cat_present]
 
-        # Ordinal-encode cats and record per-col maps
         self._cat_maps: dict = {}
         cat_idxs, cat_dims = [], []
         for col in cat_present:

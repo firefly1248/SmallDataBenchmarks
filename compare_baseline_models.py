@@ -79,7 +79,6 @@ if __name__ == "__main__":
     database = pd.read_json("database.json").T
     database = database[database.nrow >= 50]
 
-    # Resume from checkpoint if available
     results1, results2, results3, evaluated_datasets, times = [], [], [], [], []
     try:
         results1, results2, results3, evaluated_datasets, times = joblib.load(CHECKPOINT)
@@ -116,7 +115,6 @@ if __name__ == "__main__":
                 times.append(elapsed)
                 print("done. elapsed:", elapsed)
                 print("scores:", np.mean(nested_scores1), np.mean(nested_scores2), np.mean(nested_scores3))
-                # checkpoint after each dataset
                 joblib.dump(
                     (np.array(results1), np.array(results2), np.array(results3),
                      np.array(evaluated_datasets), np.array(times)),
@@ -129,5 +127,4 @@ if __name__ == "__main__":
     evaluated_datasets = np.array(evaluated_datasets)
     times = np.array(times)
 
-    # save everything to disk so we can make plots elsewhere
     joblib.dump((results1, results2, results3, evaluated_datasets, times), "results/compare_baseline_models.joblib")

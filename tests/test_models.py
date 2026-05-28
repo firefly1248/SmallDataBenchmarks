@@ -12,7 +12,7 @@ class TestBuildGridSearch:
     def inner_cv(self):
         return StratifiedKFold(n_splits=2, shuffle=True, random_state=0)
 
-    @pytest.mark.parametrize("model_name", ["svc", "logreg", "tabpfn"])
+    @pytest.mark.parametrize("model_name", ["svc", "logreg", "tabpfn", "tabicl"])
     def test_returns_grid_search_cv(self, model_name, inner_cv):
         gs = build_grid_search(model_name, inner_cv, cat_cols=[])
         assert isinstance(gs, GridSearchCV)
@@ -50,10 +50,11 @@ class TestBuildGridSearch:
         gs = build_grid_search(model_name, inner_cv, cat_cols=[])
         gs.fit(X, y)
         proba = gs.predict_proba(X)
-        assert proba.shape == (len(X), 3)  # iris has 3 classes
+        assert proba.shape == (len(X), 3)
 
     def test_grid_search_models_constant(self):
         assert "svc" in GRID_SEARCH_MODELS
         assert "logreg" in GRID_SEARCH_MODELS
         assert "tabpfn" in GRID_SEARCH_MODELS
+        assert "tabicl" in GRID_SEARCH_MODELS
         assert "random_forest" not in GRID_SEARCH_MODELS
