@@ -9,20 +9,13 @@ import pytest
 from sklearn.datasets import load_iris
 
 
-# ---------------------------------------------------------------------------
 # Make sure tests always run from the project root so relative paths like
 # "datasets/" resolve correctly.
-# ---------------------------------------------------------------------------
-
 @pytest.fixture(autouse=True, scope="session")
 def project_root(tmp_path_factory):
     root = os.path.dirname(os.path.dirname(__file__))
     os.chdir(root)
 
-
-# ---------------------------------------------------------------------------
-# Synthetic data fixtures (no file I/O needed)
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def iris_df() -> tuple[pd.DataFrame, np.ndarray]:

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
@@ -163,6 +163,23 @@ def resnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> 
     model = ResNetWrapper(cat_cols=cat_cols, max_epochs=200, patience=16, **params)
     return float(np.mean(cross_val_score(model, X_train, y_train,
                                           cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+
+
+def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
+    params = {
+        "learning_rate":     trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
+        "max_iter":          trial.suggest_int("max_iter", 50, 500),
+        "max_leaf_nodes":    trial.suggest_int("max_leaf_nodes", 15, 255),
+        "min_samples_leaf":  trial.suggest_int("min_samples_leaf", 1, 50),
+        "l2_regularization": trial.suggest_float("l2_regularization", 1e-8, 10.0, log=True),
+        "class_weight":      trial.suggest_categorical("class_weight", ["balanced", None]),
+    }
+    model = Pipeline([
+        ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
+        ("hgb", HistGradientBoostingClassifier(**params, random_state=RANDOM_STATE)),
+    ])
+    return float(np.mean(cross_val_score(model, X_train, y_train,
+                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,

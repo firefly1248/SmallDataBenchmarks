@@ -13,7 +13,6 @@ from sklearn.preprocessing import (
 )
 
 
-# Strategies suitable for linear models (support y in fit for target-based)
 CAT_STRATEGIES_LINEAR: list[str] = [
     "ordinal",
     "target",
@@ -200,6 +199,96 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
         self.balance_probabilities = params.pop("balance_probabilities",
                                                 self.balance_probabilities)
         self.tabpfn_params.update(params)
+        return self
+
+
+class TabICLNativeWrapper(ClassifierMixin, BaseEstimator):
+    """Wrap TabICLClassifier.
+
+    TabICL has its own internal preprocessor (OrdinalEncoder for cats, imputer
+    for nums); we only forward the DataFrame as-is and let it auto-detect.
+
+    Default device is CPU: MPS crashes (SIGSEGV) when the benchmark runs in a
+    detached background process on Apple Silicon, even though it works fine in
+    interactive sessions. Override with ``device="mps"`` from interactive use.
+
+    Parameters
+    ----------
+    cat_cols : list[str]
+        Unused — kept for signature parity with other native wrappers. TabICL
+        auto-detects categorical columns from pandas dtype.
+    n_estimators : int
+        Ensemble size.
+    softmax_temperature : float
+        Output temperature; <1.0 sharpens, >1.0 softens predicted probabilities.
+    device : str, default ``"cpu"``
+        Forwarded to ``TabICLClassifier``.
+    batch_size : int, default 4
+        Ensemble members processed together. Lower than the TabICL default of 8
+        to cap peak memory on this 24 GB machine (memory is the binding
+        constraint, not compute); does not affect predictions.
+    **tabicl_params
+        Forwarded verbatim to ``TabICLClassifier``.
+    """
+
+    def __init__(
+        self,
+        cat_cols: list[str],
+        n_estimators: int = 8,
+        softmax_temperature: float = 0.9,
+        device: str = "cpu",
+        batch_size: int = 4,
+        **tabicl_params,
+    ) -> None:
+        self.cat_cols = cat_cols
+        self.n_estimators = n_estimators
+        self.softmax_temperature = softmax_temperature
+        self.device = device
+        self.batch_size = batch_size
+        self.tabicl_params = tabicl_params
+
+    def fit(self, X, y):
+        from tabicl import TabICLClassifier
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        self._model = TabICLClassifier(
+            n_estimators=self.n_estimators,
+            softmax_temperature=self.softmax_temperature,
+            device=self.device,
+            batch_size=self.batch_size,
+            **{k: v for k, v in self.tabicl_params.items()
+               if k not in ("n_estimators", "softmax_temperature", "device", "batch_size")},
+        )
+        self._model.fit(X, y)
+        self.classes_ = self._model.classes_
+        return self
+
+    def predict_proba(self, X) -> np.ndarray:
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        return self._model.predict_proba(X)
+
+    def predict(self, X) -> np.ndarray:
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        return self._model.predict(X)
+
+    def get_params(self, deep: bool = True) -> dict:
+        params: dict = {
+            "cat_cols": self.cat_cols,
+            "n_estimators": self.n_estimators,
+            "softmax_temperature": self.softmax_temperature,
+            "device": self.device,
+            "batch_size": self.batch_size,
+        }
+        params.update(self.tabicl_params)
+        return params
+
+    def set_params(self, **params) -> "TabICLNativeWrapper":
+        self.cat_cols = params.pop("cat_cols", self.cat_cols)
+        self.n_estimators = params.pop("n_estimators", self.n_estimators)
+        self.softmax_temperature = params.pop("softmax_temperature",
+                                              self.softmax_temperature)
+        self.device = params.pop("device", self.device)
+        self.batch_size = params.pop("batch_size", self.batch_size)
+        self.tabicl_params.update(params)
         return self
 
 

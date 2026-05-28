@@ -8,16 +8,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from benchmark.encoding import CatFeaturesEncoder, TabPFNNativeWrapper
+from benchmark.encoding import CatFeaturesEncoder, TabICLNativeWrapper, TabPFNNativeWrapper
 from benchmark.metrics import PR_AUC_SCORER
 from config import N_JOBS, RANDOM_STATE
 
 
-# Encoding strategies to search when categorical columns are present
 CAT_STRATEGIES_GRID: list[str] = ["target", "james_stein", "m_estimate", "catboost_enc"]
 
-# Models handled by GridSearchCV (well-understood, small HP spaces)
-GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg", "tabpfn"})
+GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg", "tabpfn", "tabicl"})
 
 
 def build_grid_search(
@@ -33,7 +31,7 @@ def build_grid_search(
 
     Parameters
     ----------
-    model_name : ``"svc"``, ``"logreg"``, or ``"tabpfn"``
+    model_name : ``"svc"``, ``"logreg"``, ``"tabpfn"``, or ``"tabicl"``
     inner_cv   : cross-validation splitter passed to GridSearchCV
     cat_cols   : list of categorical column names in the training data
 
@@ -93,15 +91,22 @@ def build_grid_search(
             "balance_probabilities": [True, False],
         }
 
+    elif model_name == "tabicl":
+        pipeline = TabICLNativeWrapper(cat_cols=cat_cols, random_state=RANDOM_STATE)
+        param_grid = {
+            "n_estimators":        [4, 8, 16],
+            "softmax_temperature": [0.7, 0.9, 1.1],
+        }
+
     else:
         raise ValueError(
             f"model_name={model_name!r} is not a grid-search model. "
             f"Expected one of {sorted(GRID_SEARCH_MODELS)}."
         )
 
-    # TabPFN uses PyTorch internally; running GridSearchCV workers in parallel
-    # causes OMP mutex conflicts on macOS — run serial for this model only.
-    gs_n_jobs = 1 if model_name == "tabpfn" else N_JOBS
+    # TabPFN / TabICL use PyTorch internally; running GridSearchCV workers in
+    # parallel causes OMP mutex conflicts on macOS — run serial for these only.
+    gs_n_jobs = 1 if model_name in ("tabpfn", "tabicl") else N_JOBS
 
     return GridSearchCV(
         pipeline,
