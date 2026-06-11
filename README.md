@@ -10,12 +10,12 @@ uv sync
 
 ## Experiments
 
-Results are produced in `figures.ipynb` (all models including AutoML) and `figures_no_automl.ipynb` (non-AutoML models only). Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which is less sensitive to class imbalance than ROC AUC.
+Results are produced in `figures.ipynb` (all models including AutoML) and `figures_no_automl.ipynb` (non-AutoML models only). A focused three-way comparison of the strongest models lives in `figures_tabicl_vs_tabpfn_vs_catboost.ipynb`. Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which is less sensitive to class imbalance than ROC AUC.
 
 | Script | Description |
 |---|---|
 | `compare_baseline_models.py` | SVC, Logistic Regression, Random Forest — tuned with `GridSearchCV` |
-| `optuna_models.py` | SVC, LogReg (GridSearch); RF, XGBoost, SGD, LightGBM, LightGBM-linear, CatBoost, TabPFN, TabNet, ResNet, FT-Transformer — Optuna TPE, 50 trials per outer fold. FT-Transformer was run on a 67/146 subset only — see [FT_transformer_notes.md](FT_transformer_notes.md) |
+| `optuna_models.py` | SVC, LogReg, TabPFN, TabICL (GridSearch); RF, XGBoost, SGD, LightGBM, LightGBM-linear, CatBoost, HistGradientBoosting, TabNet, ResNet, FT-Transformer (Optuna TPE, 50 trials per outer fold). Notes: TabICL skips datasets with ≥500 features (4 datasets, recorded as NaN) — see [TabICL_notes.md](TabICL_notes.md). FT-Transformer was run on a 67/146 subset only — see [FT_transformer_notes.md](FT_transformer_notes.md). |
 | `benchmark_autogluon.py` | AutoGluon with a 1000s wall-clock time budget per fold (`best_quality` preset, 8 CPUs) |
 | `benchmark_mljar.py` | MLJAR Supervised with a 1000s wall-clock time budget per fold (`Compete` mode, `n_jobs=8`) |
 
@@ -32,10 +32,24 @@ PYTHONUNBUFFERED=1 .venv/bin/python -u benchmark_autogluon.py
 
 `compare_baseline_models.py` uses one-hot encoding. `optuna_models.py` handles categories properly:
 - **CatBoost** — native `cat_features` support
-- **RF, XGBoost, LightGBM** — ordinal encoding via `category_encoders`
+- **TabPFN** — native categorical indices
+- **TabICL** — auto-detects categorical columns from pandas dtype (internal OrdinalEncoder + imputer)
+- **RF, XGBoost, LightGBM, HistGradientBoosting** — ordinal encoding via `category_encoders` (NaN handled natively)
+- **TabNet, FT-Transformer, ResNet** — ordinal-encode + impute + StandardScaler inside the wrapper
 - **SVC, LogReg, SGD** — encoding strategy is an Optuna hyperparameter (ordinal, target, James–Stein, m-estimate, CatBoost encoder)
 
 AutoGluon and MLJAR handle categorical features internally.
+
+### Headline: TabICL is the new default
+
+[TabICL](https://github.com/soda-inria/tabicl) (in-context tabular foundation model, INRIA) is the strongest model in this benchmark and **also fast enough for everyday use** — a rare combination among tabular foundation models. On 107 non-trivial datasets where all three competitive models have valid scores:
+
+- TabICL beats tuned CatBoost on **76%** of datasets (mean ΔPR-AUC **+0.033**, median +0.007).
+- TabICL beats TabPFN on **72%** of datasets (mean Δ +0.050) — and is **4× faster** than TabPFN at median train time.
+- Mean rank 1.51 vs ~2.24 for both TabPFN and CatBoost; TabICL is rank-1 on 62/107 datasets, the others ~22 each.
+- Median train time only **1.3× slower than CatBoost** (190s vs 143s). TabPFN's median is 724s.
+
+TabICL has a feature-count limit: it stalls (multi-hour, ballooning RSS) on datasets with ≥500 features and is skipped for those (4 datasets total). See [TabICL_notes.md](TabICL_notes.md) for the full analysis including shared blind spots with TabPFN.
 
 ### Note on FT-Transformer
 
@@ -63,12 +77,15 @@ How often each model achieves each rank (1 = best on a given dataset).
 
 ## Observations
 
+- **TabICL is the strongest model overall** and the only foundation model with a favourable accuracy/cost trade-off on CPU. See the headline above and [TabICL_notes.md](TabICL_notes.md).
+- For severely class-imbalanced small datasets (e.g. `blood-transfusion-service`, `appendicitis`, `pima-indians-diabetes`), tuned **CatBoost** still wins decisively — TabICL and TabPFN share the same blind spots there. Co-training both is cheap and robust.
+- **TabPFN is strictly dominated** by TabICL on this benchmark: TabICL is more accurate (78/108 head-to-head wins) AND ~4× faster at median train time. The 10-class cap and high-feature stalls also limit TabPFN's coverage.
+- TabNet, ResNet and FT-Transformer don't match tuned GB accuracy on average and cost 1–2 orders of magnitude more compute. See [FT_transformer_notes.md](FT_transformer_notes.md).
 - Non-linear models outperform linear ones even on datasets with fewer than 100 samples.
-- Optuna-tuned XGBoost and CatBoost are the strongest individual models, competitive with AutoML frameworks.
-- AutoGluon and MLJAR show higher median PR AUC, but require a substantial wall-clock budget (1000s/fold used here).
+- Optuna-tuned XGBoost, CatBoost, LightGBM, and the new HistGradientBoosting are strong individual models, competitive with AutoML frameworks.
+- AutoGluon and MLJAR show higher median PR AUC than individual GBs, but require a substantial wall-clock budget (1000s/fold used here).
 - Proper categorical feature handling gives a meaningful boost on datasets with string features (~30% of the benchmark).
 - LightGBM with linear trees (`linear_tree=True`) is a useful addition to the Optuna model set.
-- Among neural baselines, **TabPFN** is the only one consistently competitive with tuned GBs on completable datasets; TabNet, ResNet and FT-Transformer do not match GB accuracy on average and cost 1–2 orders of magnitude more compute. See [TabPFN_notes.md](TabPFN_notes.md) and [FT_transformer_notes.md](FT_transformer_notes.md).
 
 ### Note on AutoGluon operational complexity
 
