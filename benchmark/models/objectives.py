@@ -178,8 +178,11 @@ def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
         ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
         ("hgb", HistGradientBoostingClassifier(**params, random_state=RANDOM_STATE)),
     ])
+    # n_jobs=1: HGB has no n_jobs parameter and uses OMP internally; joblib-parallel
+    # outer folds × OMP threads deadlocks libomp on macOS. Serial folds, each fit
+    # gets the full OMP thread budget.
     return float(np.mean(cross_val_score(model, X_train, y_train,
-                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
+                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
 
 
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
