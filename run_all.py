@@ -28,6 +28,11 @@ SCRIPT_OUTPUTS = {
 
 SCRIPTS = list(SCRIPT_OUTPUTS.keys())
 
+# optuna_models.py keeps its own (dataset, model) checkpoint and skips finished
+# pairs itself, so an existing aggregate output must not stop it — otherwise a
+# newly added model silently never runs while the script reports success.
+SELF_RESUMING = {"optuna_models.py"}
+
 
 def run(script: str) -> subprocess.CompletedProcess:
     print(f"\n{'='*60}")
@@ -47,7 +52,7 @@ if __name__ == "__main__":
 
     for script in SCRIPTS:
         output = SCRIPT_OUTPUTS[script]
-        if output.exists():
+        if script not in SELF_RESUMING and output.exists():
             print(f"\n  Skipping {script} — output already exists: {output}")
             continue
         result = run(script)

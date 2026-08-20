@@ -18,10 +18,11 @@ dependencies = [
     "autogluon.tabular",
     "mljar-supervised",
     "torch",
-    "tabpfn>=7.1.1",
+    "tabpfn>=8.2.0",
     "pytorch-tabnet>=4.1.0",
     "rtdl>=0.14.0.dev5",
     "tabicl",
+    "tabfm[pytorch]>=1.0.1",
 ]
 
 [dependency-groups]

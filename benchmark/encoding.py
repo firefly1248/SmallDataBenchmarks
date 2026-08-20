@@ -98,6 +98,21 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
         Ensemble size — higher is more accurate but slower.
     balance_probabilities : bool
         Balance predicted class probabilities.
+    model_version : str, default ``"v2.6"``
+        Checkpoint generation, one of ``ModelVersion``'s values. Pinned rather
+        than left at the package default so that the ``tabpfn`` benchmark
+        results stay reproducible after the package upgraded its default to
+        v3; the ``tabpfn3`` model key passes ``"v3"``.
+    auto_scale_n_estimators : bool, default False
+        Introduced in tabpfn 8.x and on by default there: raises the *effective*
+        ensemble size to cover all features on wide datasets, while leaving
+        ``n_estimators`` — and therefore the reported ``best_params`` — at the
+        requested value. Off by default because the param did not exist in 7.1.1
+        when the ``tabpfn`` results were measured; the ``tabpfn3`` key turns it
+        back on, since for a fresh measurement the library default is the
+        behaviour a user would actually get.
+    device : str, default ``"cpu"``
+        Forwarded to ``TabPFNClassifier``.
     **tabpfn_params
         Forwarded verbatim to ``TabPFNClassifier``.
     """
@@ -107,11 +122,17 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
         cat_cols: list[str],
         n_estimators: int = 4,
         balance_probabilities: bool = False,
+        model_version: str = "v2.6",
+        auto_scale_n_estimators: bool = False,
+        device: str = "cpu",
         **tabpfn_params,
     ) -> None:
         self.cat_cols = cat_cols
         self.n_estimators = n_estimators
         self.balance_probabilities = balance_probabilities
+        self.model_version = model_version
+        self.auto_scale_n_estimators = auto_scale_n_estimators
+        self.device = device
         self.tabpfn_params = tabpfn_params
 
     def _prepare(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -161,18 +182,22 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
     def fit(self, X, y):
         self._patch_tabpfn_auth()
         from tabpfn import TabPFNClassifier
+        from tabpfn.constants import ModelVersion
         X = self._prepare(X)
-        self._model = TabPFNClassifier(
+        self._model = TabPFNClassifier.create_default_for_version(
+            ModelVersion(self.model_version),
             n_estimators=self.n_estimators,
             categorical_features_indices=self._cat_indices(X),
             balance_probabilities=self.balance_probabilities,
             ignore_pretraining_limits=True,
+            auto_scale_n_estimators=self.auto_scale_n_estimators,
             n_preprocessing_jobs=1,
-            device="cpu",
+            device=self.device,
             **{k: v for k, v in self.tabpfn_params.items()
                if k not in ("n_estimators", "balance_probabilities",
-                            "ignore_pretraining_limits", "n_jobs",
-                            "n_preprocessing_jobs", "device")},
+                            "ignore_pretraining_limits", "auto_scale_n_estimators",
+                            "n_jobs", "n_preprocessing_jobs", "device",
+                            "model_version")},
         )
         self._model.fit(X, y)
         self.classes_ = self._model.classes_
@@ -189,6 +214,9 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
             "cat_cols": self.cat_cols,
             "n_estimators": self.n_estimators,
             "balance_probabilities": self.balance_probabilities,
+            "model_version": self.model_version,
+            "auto_scale_n_estimators": self.auto_scale_n_estimators,
+            "device": self.device,
         }
         params.update(self.tabpfn_params)
         return params
@@ -198,6 +226,10 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
         self.n_estimators = params.pop("n_estimators", self.n_estimators)
         self.balance_probabilities = params.pop("balance_probabilities",
                                                 self.balance_probabilities)
+        self.model_version = params.pop("model_version", self.model_version)
+        self.auto_scale_n_estimators = params.pop("auto_scale_n_estimators",
+                                                  self.auto_scale_n_estimators)
+        self.device = params.pop("device", self.device)
         self.tabpfn_params.update(params)
         return self
 
@@ -289,6 +321,106 @@ class TabICLNativeWrapper(ClassifierMixin, BaseEstimator):
         self.device = params.pop("device", self.device)
         self.batch_size = params.pop("batch_size", self.batch_size)
         self.tabicl_params.update(params)
+        return self
+
+
+class TabFMNativeWrapper(ClassifierMixin, BaseEstimator):
+    """Wrap TabFMClassifier (Google's 1.6B-parameter tabular foundation model).
+
+    Like TabICL, TabFM auto-detects categorical columns from pandas dtype, so
+    the DataFrame is forwarded as-is.
+
+    Default device is MPS. TabFM is ~30x larger than TabPFN / TabICL and CPU
+    inference was measured at 17-36x slower than MPS on this machine, which
+    puts a full benchmark run out of reach. Weights are cast to bfloat16 at
+    load time and cached process-wide by the library, so repeated fits pay the
+    ~20 s load cost only once.
+
+    Parameters
+    ----------
+    cat_cols : list[str]
+        Unused — kept for signature parity with the other native wrappers.
+    n_estimators : int, default 4
+        Ensemble size, well below the library default of 32. Measured PR AUC
+        spread across 1 / 4 / 8 / 32 members is under 0.005 on every dataset
+        tried, while wall-clock scales linearly — 4 halves the full run against
+        8. Peak memory is unaffected: with ``batch_size=1`` the members run
+        sequentially.
+    max_num_rows : int, default 5000
+        Cap on the in-context training rows. Memory is *superlinear* in context
+        length — on a 10 000-row dataset the uncapped fit allocated 13.55 GB and
+        drove this 24 GB machine deep into swap, which both slowed it ~5x and
+        made the timings meaningless. 5000 brings that to 9.30 GB. Measured PR
+        AUC across caps 2500 / 5000 / 7500 was 0.476 / 0.501 / 0.485 — flat, so
+        the truncation costs nothing detectable. Affects 22 of the 126 eligible
+        datasets; must be disclosed when comparing against models that see the
+        full training fold.
+    device : str, default ``"mps"``
+        Forwarded to the checkpoint loader — ``TabFMClassifier`` itself takes no
+        device argument and runs wherever the weights were placed.
+    **tabfm_params
+        Forwarded verbatim to ``TabFMClassifier``.
+    """
+
+    def __init__(
+        self,
+        cat_cols: list[str],
+        n_estimators: int = 4,
+        max_num_rows: int = 5000,
+        device: str = "mps",
+        random_state: int | None = None,
+        **tabfm_params,
+    ) -> None:
+        self.cat_cols = cat_cols
+        self.n_estimators = n_estimators
+        self.max_num_rows = max_num_rows
+        self.device = device
+        self.random_state = random_state
+        self.tabfm_params = tabfm_params
+
+    def fit(self, X, y):
+        from tabfm import TabFMClassifier
+        from tabfm import tabfm_v1_0_0_pytorch as tabfm_v1_0_0
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        self._model = TabFMClassifier(
+            model=tabfm_v1_0_0.load(model_type="classification", device=self.device),
+            n_estimators=self.n_estimators,
+            max_num_rows=self.max_num_rows,
+            random_state=self.random_state,
+            **{k: v for k, v in self.tabfm_params.items()
+               if k not in ("model", "n_estimators", "max_num_rows",
+                            "random_state")},
+        )
+        self._model.fit(X, y)
+        self.classes_ = self._model.classes_
+        return self
+
+    def predict_proba(self, X) -> np.ndarray:
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        return self._model.predict_proba(X)
+
+    def predict(self, X) -> np.ndarray:
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        return self._model.predict(X)
+
+    def get_params(self, deep: bool = True) -> dict:
+        params: dict = {
+            "cat_cols": self.cat_cols,
+            "n_estimators": self.n_estimators,
+            "max_num_rows": self.max_num_rows,
+            "device": self.device,
+            "random_state": self.random_state,
+        }
+        params.update(self.tabfm_params)
+        return params
+
+    def set_params(self, **params) -> "TabFMNativeWrapper":
+        self.cat_cols = params.pop("cat_cols", self.cat_cols)
+        self.n_estimators = params.pop("n_estimators", self.n_estimators)
+        self.max_num_rows = params.pop("max_num_rows", self.max_num_rows)
+        self.device = params.pop("device", self.device)
+        self.random_state = params.pop("random_state", self.random_state)
+        self.tabfm_params.update(params)
         return self
 
 

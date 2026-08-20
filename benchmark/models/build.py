@@ -9,7 +9,7 @@ from lightgbm import LGBMClassifier
 
 from benchmark.encoding import (
     CAT_STRATEGY_TREE, CatBoostNativeWrapper, CatFeaturesEncoder,
-    TabPFNNativeWrapper, _build_imputer, _build_scaler,
+    TabFMNativeWrapper, _build_imputer, _build_scaler,
 )
 from config import N_JOBS, RANDOM_STATE
 
@@ -22,9 +22,9 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
     model_name : str
         One of ``"random_forest"``, ``"xgboost"``, ``"sgd"``,
         ``"lgbm"``, ``"lgbm_linear"``, ``"hgb"``, ``"catboost"``,
-        ``"tabnet"``, ``"ft_transformer"``, ``"resnet"``.
+        ``"tabnet"``, ``"ft_transformer"``, ``"resnet"``, ``"tabfm"``.
     best : dict
-        ``study.best_params`` returned by Optuna.
+        ``study.best_params`` returned by Optuna — empty for untuned models.
     n_classes : int
         Number of target classes (used to set model-specific objectives).
     cat_cols : list[str]
@@ -96,6 +96,9 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
         from benchmark.models.torch_wrappers import ResNetWrapper
         return ResNetWrapper(cat_cols=cat_cols, max_epochs=400, patience=24,
                              **{k: v for k, v in best.items() if k != "cat_cols"})
+
+    if model_name == "tabfm":
+        return TabFMNativeWrapper(cat_cols=cat_cols, random_state=RANDOM_STATE, **best)
 
     if model_name == "catboost":
         loss_function = "Logloss" if n_classes == 2 else "MultiClass"
