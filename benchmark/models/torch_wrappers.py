@@ -15,6 +15,7 @@ import torch
 import torch.nn as nn
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.impute import SimpleImputer
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 
 from config import RANDOM_STATE
@@ -105,12 +106,14 @@ def _train_rtdl_on_device(
     # AdamW noise) lives here, so seeding here pins per-fit determinism.
     torch.manual_seed(RANDOM_STATE)
     y = np.asarray(y)
-    rng = np.random.default_rng(RANDOM_STATE)
     n = len(y)
     # ~20 % for n ≤ 100 (more reliable early-stop signal on small data), ~15 % for n ≥ 200.
-    val_n = max(int(0.15 * n), min(20, n // 5))
-    idx = rng.permutation(n)
-    val_idx, tr_idx = idx[:val_n], idx[val_n:]
+    # Stratified so the signal covers every class — see the TabNet split below.
+    val_n = max(int(0.15 * n), min(20, n // 5), len(np.unique(y)))
+    tr_idx, val_idx = next(
+        StratifiedShuffleSplit(n_splits=1, test_size=val_n, random_state=RANDOM_STATE)
+        .split(np.zeros(n), y)
+    )
 
     model = model.to(device)
 
@@ -142,6 +145,10 @@ def _train_rtdl_on_device(
         perm = torch.randperm(n_tr, device=device)
         for start in range(0, n_tr, batch_size):
             b = perm[start : start + batch_size]
+            # BatchNorm needs >1 value per channel in train mode; a size-1
+            # remainder raises and kills the dataset.
+            if len(b) == 1:
+                continue
             logits = forward_fn(model, Xn_tr[b], Xc_tr[b])
             opt.zero_grad()
             loss_fn(logits, y_tr[b]).backward()
@@ -303,13 +310,22 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
         X_np = X[cols].values.astype(np.float32)
 
         # ~20 % for small n, ~15 % for large n — see _train_rtdl for rationale.
-        rng = np.random.default_rng(RANDOM_STATE)
-        val_n = max(int(0.15 * len(y)), min(20, len(y) // 5))
-        idx = rng.permutation(len(y))
-        vi, ti = idx[:val_n], idx[val_n:]
+        # Stratified: the previous split was unstratified and seeded from a
+        # constant, so a rare class missing from validation made logloss raise
+        # identically on every trial — a permanent loss of 26 of 146 datasets.
+        val_n = max(int(0.15 * len(y)), min(20, len(y) // 5), len(np.unique(y)))
+        ti, vi = next(
+            StratifiedShuffleSplit(n_splits=1, test_size=val_n, random_state=RANDOM_STATE)
+            .split(X_np, y)
+        )
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            # device_name explicitly: pytorch-tabnet's "auto" only ever picks
+            # cuda or cpu, so on Apple silicon it silently trained on CPU.
+            # Forcing mps is ~4x faster with no cost in score — measured over 5
+            # seeds per device, the two distributions overlap (abalone-3class
+            # 0.5398+/-0.0763 cpu vs 0.5733+/-0.0245 mps).
             self._clf = TabNetClassifier(
                 n_d=self.n_d, n_a=self.n_a, n_steps=self.n_steps,
                 gamma=self.gamma, n_independent=self.n_independent,
@@ -318,6 +334,7 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
                 optimizer_params={"lr": self.lr},
                 cat_idxs=cat_idxs, cat_dims=cat_dims, cat_emb_dim=1,
                 seed=RANDOM_STATE, verbose=0,
+                device_name=_get_device().type,
             )
             self._clf.fit(
                 X_np[ti], y[ti],

@@ -15,6 +15,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 
+from benchmark.checkpoints import atomic_dump
 from benchmark.data import load_data
 from config import MAX_DATASET_ROWS, RANDOM_STATE
 
@@ -100,11 +101,14 @@ def run_automl_benchmark(
             f"PR AUC={np.mean(nested_scores):.4f}  "
             f"(RF baseline: {np.mean(rf_results[i]):.4f})"
         )
-        joblib.dump(checkpoint, checkpoint_path)
+        atomic_dump(checkpoint, checkpoint_path)
 
-    # Datasets skipped due to empty y are absent from checkpoint — filter them out.
+    # Datasets skipped due to empty y are absent from checkpoint — filter them
+    # out, and ship the names: without them the arrays can only be matched back
+    # positionally, which silently misattributes every row once the dataset list
+    # grows.
     valid_datasets = [n for n in evaluated_datasets if n in checkpoint]
     results = [checkpoint[name]["scores"] for name in valid_datasets]
     times   = [checkpoint[name]["time"]   for name in valid_datasets]
-    joblib.dump((np.array(results), np.array(times)), final_output_path)
+    atomic_dump((np.array(results), np.array(times), valid_datasets), final_output_path)
     print(f"\nDone. Results saved to {final_output_path}")

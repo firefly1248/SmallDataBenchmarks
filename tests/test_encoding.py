@@ -1,15 +1,18 @@
-"""Tests for benchmark.encoding (CatFeaturesEncoder, CatBoostNativeWrapper)."""
+"""Tests for benchmark.encoding (CatFeaturesEncoder and the native wrappers)."""
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.base import clone, is_classifier
 
 from benchmark.encoding import (
     CAT_STRATEGIES_LINEAR,
     CAT_STRATEGY_TREE,
     CatBoostNativeWrapper,
     CatFeaturesEncoder,
+    TabFMNativeWrapper,
+    TabPFNNativeWrapper,
 )
 
 
@@ -170,3 +173,39 @@ class TestCatBoostNativeWrapper:
         # is_classifier check via tags
         from sklearn.base import is_classifier
         assert is_classifier(wrapper)
+
+
+class TestFoundationModelWrapperParams:
+    """Param round-tripping only — fitting these wrappers downloads GB of weights."""
+
+    def test_tabpfn_defaults_to_the_benchmarked_checkpoint(self):
+        """The `tabpfn` results were measured on v2.6; the package default is now v3."""
+        assert TabPFNNativeWrapper(cat_cols=[]).get_params()["model_version"] == "v2.6"
+
+    def test_tabpfn_version_survives_clone(self):
+        wrapper = TabPFNNativeWrapper(cat_cols=[], model_version="v3")
+        assert clone(wrapper).get_params()["model_version"] == "v3"
+
+    def test_tabpfn_set_params_updates_version(self):
+        wrapper = TabPFNNativeWrapper(cat_cols=[])
+        wrapper.set_params(model_version="v3", n_estimators=8)
+        assert wrapper.get_params()["model_version"] == "v3"
+        assert wrapper.get_params()["n_estimators"] == 8
+
+    def test_tabfm_defaults(self):
+        """MPS and a capped context are what keep the run inside 24 GB of RAM."""
+        params = TabFMNativeWrapper(cat_cols=[]).get_params()
+        assert params["device"] == "mps"
+        assert params["n_estimators"] == 4
+        assert params["max_num_rows"] == 5000
+
+    def test_tabfm_survives_clone(self):
+        wrapper = TabFMNativeWrapper(cat_cols=["cat"], n_estimators=4, device="cpu")
+        params = clone(wrapper).get_params()
+        assert params["n_estimators"] == 4
+        assert params["device"] == "cpu"
+        assert params["cat_cols"] == ["cat"]
+
+    @pytest.mark.parametrize("wrapper", [TabPFNNativeWrapper, TabFMNativeWrapper])
+    def test_is_classifier(self, wrapper):
+        assert is_classifier(wrapper(cat_cols=[]))

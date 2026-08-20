@@ -1,23 +1,24 @@
-"""Remove all-NaN TabPFN entries from checkpoint so they get re-run."""
-import joblib, numpy as np
+"""Remove all-NaN TabPFN entries from the checkpoint so they get re-run."""
+import os
 
-CHECKPOINT = "results/optuna_models_ckpt.joblib"
+import joblib
+import numpy as np
 
-ckpt, done_set = joblib.load(CHECKPOINT)
+from benchmark.checkpoints import ckpt_path
 
-reset = []
-for ds, models in ckpt.items():
-    if "tabpfn" in models:
-        scores = models["tabpfn"]["scores"]
-        if scores and all(np.isnan(s) for s in scores):
-            reset.append(ds)
+MODEL = "tabpfn"
 
+entries = joblib.load(ckpt_path(MODEL))
+reset = [ds for ds, v in entries.items()
+         if v["scores"] and all(np.isnan(s) for s in v["scores"])]
 for ds in reset:
-    done_set.discard((ds, "tabpfn"))
-    del ckpt[ds]["tabpfn"]
+    del entries[ds]
 
-joblib.dump((ckpt, done_set), CHECKPOINT)
+tmp = ckpt_path(MODEL) + ".tmp"
+joblib.dump(entries, tmp)
+os.replace(tmp, ckpt_path(MODEL))
+
 print(f"Reset {len(reset)} datasets:")
 for ds in reset:
     print(f"  {ds}")
-print("Now re-run: uv run python -u optuna_models.py --models tabpfn")
+print(f"Now re-run: uv run python -u optuna_models.py --models {MODEL}")

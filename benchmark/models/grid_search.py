@@ -15,7 +15,11 @@ from config import N_JOBS, RANDOM_STATE
 
 CAT_STRATEGIES_GRID: list[str] = ["target", "james_stein", "m_estimate", "catboost_enc"]
 
-GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg", "tabpfn", "tabicl"})
+GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg", "tabpfn", "tabpfn3", "tabicl"})
+
+# PyTorch-backed models: parallel GridSearchCV workers trigger OMP mutex
+# conflicts on macOS, so these search serially.
+_SERIAL_GRID_MODELS: frozenset[str] = frozenset({"tabpfn", "tabpfn3", "tabicl"})
 
 
 def build_grid_search(
@@ -31,7 +35,7 @@ def build_grid_search(
 
     Parameters
     ----------
-    model_name : ``"svc"``, ``"logreg"``, ``"tabpfn"``, or ``"tabicl"``
+    model_name : ``"svc"``, ``"logreg"``, ``"tabpfn"``, ``"tabpfn3"``, or ``"tabicl"``
     inner_cv   : cross-validation splitter passed to GridSearchCV
     cat_cols   : list of categorical column names in the training data
 
@@ -50,7 +54,11 @@ def build_grid_search(
 
     if model_name == "svc":
         pipeline = Pipeline(base_pre + [
-            ("svc", SVC(probability=True, random_state=RANDOM_STATE)),
+            # libsvm's SMO solver is unbounded by default and can spin for hours
+            # on one pathological (config, fold) pair. Normal fits here need
+            # ~1e3 iterations, so this only binds on runaways.
+            ("svc", SVC(probability=True, max_iter=2_000_000,
+                        random_state=RANDOM_STATE)),
         ])
         param_grid = [
             {
@@ -91,6 +99,20 @@ def build_grid_search(
             "balance_probabilities": [True, False],
         }
 
+    elif model_name == "tabpfn3":
+        # auto_scale on: for a fresh measurement, run the model the way the
+        # library ships it. On the 5 wide datasets this makes both grid points
+        # collapse to the same effective ensemble size — half those inner fits
+        # are duplicates — but disabling it would instead leave most features
+        # unsampled there.
+        pipeline = TabPFNNativeWrapper(cat_cols=cat_cols, model_version="v3",
+                                       auto_scale_n_estimators=True,
+                                       random_state=RANDOM_STATE)
+        param_grid = {
+            "n_estimators":          [4, 8],
+            "balance_probabilities": [True, False],
+        }
+
     elif model_name == "tabicl":
         pipeline = TabICLNativeWrapper(cat_cols=cat_cols, random_state=RANDOM_STATE)
         param_grid = {
@@ -104,9 +126,7 @@ def build_grid_search(
             f"Expected one of {sorted(GRID_SEARCH_MODELS)}."
         )
 
-    # TabPFN / TabICL use PyTorch internally; running GridSearchCV workers in
-    # parallel causes OMP mutex conflicts on macOS — run serial for these only.
-    gs_n_jobs = 1 if model_name in ("tabpfn", "tabicl") else N_JOBS
+    gs_n_jobs = 1 if model_name in _SERIAL_GRID_MODELS else N_JOBS
 
     return GridSearchCV(
         pipeline,

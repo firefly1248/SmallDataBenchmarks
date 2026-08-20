@@ -23,12 +23,29 @@ from config import N_INNER_FOLDS, N_JOBS, N_OUTER_FOLDS, N_TRIALS, N_TRIALS_NN, 
 
 _NN_MODELS: frozenset[str] = frozenset({"tabnet", "ft_transformer", "resnet"})
 
+# Foundation models whose authors state defaults are SOTA without tuning, and
+# for which an inner-CV grid costs more than it buys. Fitted once per outer
+# fold with fixed defaults; ``best_params`` is empty.
+_NO_TUNING_MODELS: frozenset[str] = frozenset({"tabfm"})
+
+# Per-model hard limits. Datasets exceeding them are skipped and recorded as
+# NaN so the score arrays stay aligned with the full dataset list.
+#
 # TabICL's docs claim up to ~2000 features, but empirically it stalls far
 # earlier: arcene (10000 feats) ran 8h+ with no completion, cnae-9 (856 feats)
-# stalled past 25min, both ballooning RSS to 5-10 GB. Skip wide datasets for
-# TabICL — recorded as NaN. 500 catches the known offenders (madelon 500,
-# multiple-features 649, har 561, cnae-9 856, micro-mass 1300, arcene 10000).
-_TABICL_MAX_FEATURES = 500
+# stalled past 25min, both ballooning RSS to 5-10 GB. 500 catches the known
+# offenders (madelon 500, multiple-features 649, har 561, cnae-9 856,
+# micro-mass 1300, arcene 10000).
+#
+# TabFM is documented for up to ~500 features, and 10 classes is a hard
+# architectural limit that raises ValueError in its fit().
+_MODEL_LIMITS: dict[str, dict[str, int]] = {
+    "tabicl": {"max_features": 500},
+    "tabfm":  {"max_features": 500, "max_classes": 10},
+    # All 17 tabpfn (v2.6) losses are these two limits: 15 datasets over 10
+    # classes, plus madelon and multiple-features over 500 features.
+    "tabpfn": {"max_features": 500, "max_classes": 10},
+}
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
@@ -42,8 +59,9 @@ def run_nested_cv(
     """Run nested cross-validation for *model_name*.
 
     Tuning strategy:
-    - ``"svc"``, ``"logreg"``, ``"tabpfn"``, ``"tabicl"`` → GridSearchCV (small HP space)
-    - all others                                         → Optuna TPE (``N_TRIALS`` trials per outer fold)
+    - ``"tabfm"``                                                  → none (fixed defaults)
+    - ``"svc"``, ``"logreg"``, ``"tabpfn"``, ``"tabpfn3"``, ``"tabicl"`` → GridSearchCV (small HP space)
+    - all others                                                   → Optuna TPE (``N_TRIALS`` trials per outer fold)
 
     Parameters
     ----------
@@ -59,11 +77,14 @@ def run_nested_cv(
     labels      : list of ndarray — true labels per outer fold
     best_params : list of dict — chosen hyperparameters per outer fold (e.g. SVC kernel)
     """
-    if model_name == "tabicl" and X.shape[1] >= _TABICL_MAX_FEATURES:
+    n_classes = int(np.unique(y).size)
+
+    limits = _MODEL_LIMITS.get(model_name, {})
+    if (X.shape[1] >= limits.get("max_features", float("inf"))
+            or n_classes > limits.get("max_classes", float("inf"))):
         nan_scores = [float("nan")] * N_OUTER_FOLDS
         return nan_scores, None, None, None
 
-    n_classes = int(np.unique(y).size)
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True,
                                random_state=RANDOM_STATE)
     nested_scores: list[float] = []
@@ -80,7 +101,11 @@ def run_nested_cv(
         inner_cv = StratifiedKFold(n_splits=N_INNER_FOLDS, shuffle=True,
                                    random_state=RANDOM_STATE)
 
-        if model_name in GRID_SEARCH_MODELS:
+        if model_name in _NO_TUNING_MODELS:
+            model = build_final_model(model_name, {}, n_classes, cat_cols)
+            model.fit(X_train, y_train)
+            best_params = {}
+        elif model_name in GRID_SEARCH_MODELS:
             gs = build_grid_search(model_name, inner_cv, cat_cols)
             gs.fit(X_train, y_train)
             model = gs.best_estimator_
@@ -110,7 +135,9 @@ def run_nested_cv(
                 direction="maximize",
                 sampler=optuna.samplers.TPESampler(seed=RANDOM_STATE),
             )
-            study.optimize(_objectives[model_name], n_trials=n_trials)
+            # catch: one raising trial must not abort the whole dataset.
+            study.optimize(_objectives[model_name], n_trials=n_trials,
+                           catch=(Exception,))
             best_params = dict(study.best_params)
             model = build_final_model(model_name, study.best_params, n_classes, cat_cols)
             model.fit(X_train, y_train)

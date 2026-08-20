@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 from sklearn.metrics import average_precision_score, make_scorer
+from sklearn.preprocessing import label_binarize
 
 
 PR_AUC_SCORER = make_scorer(
@@ -26,7 +27,16 @@ def pr_auc_score(y_true: np.ndarray, y_prob: np.ndarray) -> float:
     y_true : array of shape (n_samples,)
     y_prob : array of shape (n_samples,) for binary or (n_samples, n_classes)
              for multiclass.
+
+    The branch is taken on the width of ``y_prob`` (what the model was trained
+    on), not on the labels present in ``y_true``: a test fold missing a class
+    would otherwise score a 3-class problem as binary. Multiclass targets are
+    binarised against the trained label set for the same reason — bit-identical
+    to raw ``y_true`` when every class is present.
     """
-    n_classes = len(np.unique(y_true))
-    y_score = y_prob[:, 1] if (y_prob.ndim == 2 and n_classes == 2) else y_prob
-    return float(average_precision_score(y_true, y_score, average="weighted"))
+    if y_prob.ndim == 1 or y_prob.shape[1] == 2:
+        y_score = y_prob if y_prob.ndim == 1 else y_prob[:, 1]
+        return float(average_precision_score(y_true, y_score, average="weighted"))
+
+    y_true = label_binarize(y_true, classes=np.arange(y_prob.shape[1]))
+    return float(average_precision_score(y_true, y_prob, average="weighted"))

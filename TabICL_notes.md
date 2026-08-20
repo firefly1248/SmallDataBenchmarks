@@ -1,72 +1,101 @@
 # TabICL notes
 
-Findings from running [TabICL](https://github.com/soda-inria/tabicl) (INRIA's in-context tabular foundation model, v2 checkpoint `tabicl-classifier-v2-20260212`) in the nested-CV benchmark across 146 small tabular datasets.
+[TabICL](https://github.com/soda-inria/tabicl) (INRIA's in-context tabular
+foundation model, v2 checkpoint `tabicl-classifier-v2-20260212`) in the nested-CV
+benchmark across 146 small tabular datasets.
+
+For the cross-model comparison see [FoundationModels_notes.md](FoundationModels_notes.md);
+this note covers what is specific to TabICL.
 
 ## TL;DR
 
-TabICL is **the strongest model on this benchmark** and **the only tabular foundation model that's also fast enough for everyday CPU use**. It beats tuned CatBoost on 76% of non-trivial datasets at a median compute cost of only 1.3× CatBoost. It strictly dominates TabPFN (more accurate AND 4× faster at median).
+TabICL is **the best foundation model to reach for on a CPU**: practically tied with
+TabFM and TabPFN-3 on performance, 2.7x cheaper per fit than either, and it needs no
+GPU. It beats tuned CatBoost on 85 % of non-trivial datasets at a median cost of
+1.7x CatBoost.
+
+It is not the strongest model in the benchmark. Both AutoML frameworks beat it, on
+about 60 % of shared datasets.
 
 ## Coverage
 
-- 142 / 146 datasets with valid scores (97%).
-- 4 datasets skipped (NaN) by a hard feature-count guard, threshold n_features ≥ 500: `arcene` (10000 features), `amazon-commerce-reviews` (10000), `dbworld-bodies` (4702), `dbworld-bodies-stemmed` (3721). See the operational section below.
-- Total wall-clock on Apple M-series CPU: ~2 days for 142 datasets.
+- 142 / 146 datasets with valid scores (97 %).
+- 4 skipped by a hard feature-count guard at 500 features: `arcene` (10 000),
+  `micro-mass-mixed-spectra` (1300), `multiple-features` (649), `madelon` (500).
+- A fifth over the threshold, `cnae-9` (856), has a valid score because it ran
+  before the guard was added. A clean re-run of the current code would skip it, so
+  coverage would be 141 / 146.
+- Total wall clock: 34.7 h for 142 datasets, median 364 s per dataset.
 
-After filtering trivially-easy datasets (every model > 0.99 PR-AUC) and intersecting with TabPFN + CatBoost coverage, 107 datasets are usable for head-to-head analysis.
+## Where TabICL wins big
 
-## Quantitative verdict (107 shared datasets)
+Not where the previous version of this note said. Two of its three headline
+examples were a scoring bug, not a result:
 
-| Metric                                       | TabICL          | TabPFN     | CatBoost (tuned) |
-|----------------------------------------------|-----------------|------------|-------------------|
-| Mean PR-AUC                                  | **0.839**       | 0.789      | 0.806             |
-| Mean rank (1 = best)                         | **1.51**        | 2.23       | 2.25              |
-| Rank-1 datasets                              | **62 / 107**    | 21 / 107   | 22 / 107          |
-| Median train time (per dataset)              | 190 s           | 724 s      | 143 s             |
-| Total compute on these datasets              | 20.7 h          | 157.5 h    | 18.5 h            |
+| dataset | claimed vs CatBoost | actual |
+|---|---|---|
+| `seismic-bumps` | +0.73 | **+0.0026** |
+| `thoracic-surgery` | +0.66 | **+0.0002** |
 
-Pairwise head-to-head wins (rows beat columns on mean PR-AUC):
+Both came from the positive-class defect described in
+[Findings_notes.md](Findings_notes.md#label-ordering-silently-changed-the-metric):
+on binary problems the metric reads `y_prob[:, 1]`, and the two paths were encoding
+labels in opposite orders.
 
-| Row \ Column | TabICL  | TabPFN     | CatBoost   |
-|--------------|---------|------------|------------|
-| **TabICL**   | —       | 77 (72%)   | 81 (76%)   |
-| **TabPFN**   | 30      | —          | 52 (49%)   |
-| **CatBoost** | 24      | 55 (51%)   | —          |
+What survives is one clean pattern — synthetic structured noise, where gradient
+boosting fails outright and the in-context prior does not:
 
-Mean delta vs CatBoost: TabICL **+0.033**, TabPFN **−0.017**. Median delta: TabICL **+0.007**, TabPFN **0.000**.
+| dataset | TabICL | CatBoost | delta |
+|---|---|---|---|
+| `hill-valley-without-noise` | 0.9999 | 0.6199 | **+0.3800** |
+| `hill-valley-with-noise` | 0.9967 | 0.5560 | **+0.4407** |
+| `blogger` | 0.8881 | 0.8515 | +0.0366 |
+| `saheart` | 0.6509 | 0.6244 | +0.0266 |
+| `wilt` | 0.9597 | 0.9358 | +0.0238 |
 
-Mean delta TabICL − TabPFN: **+0.050** (TabICL strictly better in aggregate).
+Outside the two `hill-valley` variants the margins are small. The aggregate lead
+over CatBoost is +0.024 mean, +0.009 median: TabICL wins often and narrowly, plus
+two datasets where it wins enormously.
 
-## Where TabICL shines
+## Blind spots: none that hold up
 
-Big wins concentrate where gradient boosters underfit due to noise or sparse signal:
-- `seismic-bumps` +0.73 vs CatBoost (severe class imbalance — CatBoost lands near random PR-AUC, TabICL prior wins)
-- `thoracic-surgery` +0.66, `hill-valley-with/without-noise` +0.31–0.33 (synthetic structured noise)
-- `hepatitis` +0.28, `blogger` +0.22, `autoUniv-au1-1000` +0.29 (small-data noise pattern)
+The previous version listed `blood-transfusion-service`, `appendicitis`, `saheart`,
+`pima-indians-diabetes`, `thyroid-sick-euthyroid` and `wilt` as shared foundation
+model failures on "severely imbalanced small medical data", and recommended
+co-training CatBoost to cover them.
 
-## Shared blind spots
+Every one of those was the same scoring bug. On `blood-transfusion-service` TabICL
+scores 0.5284 against CatBoost's 0.5162 — it wins. Across all 146 datasets only two
+have any classical model ahead of every foundation model by more than 0.02, and
+neither is small, binary, or medical.
 
-TabICL and TabPFN fail on the **same** small medical / severely imbalanced datasets. The correlation between their deltas vs CatBoost is strong, both ways. These are the foundation-model failure mode for this kind of data:
-- `blood-transfusion-service` (TabICL −0.36, TabPFN −0.56)
-- `appendicitis`, `saheart`, `pima-indians-diabetes` — small medical sets with severe imbalance
-- `thyroid-sick-euthyroid`, `wilt` — extreme imbalance, CatBoost ~0.998, TabICL ~0.91
-
-Practical implication: foundation models are not a free win on every dataset. For severely imbalanced binary classification on small data, tuned GB with `class_weight="balanced"` is still the safe choice. **Co-train CatBoost alongside TabICL** — it's cheap and catches the blind spots.
+The co-training recommendation is withdrawn.
 
 ## Operational
 
-- **Default device is CPU.** MPS works on isolated single fits but **SIGSEGVs in detached background processes** during the repeated-fit GridSearch path (single fits = 0.5 s on MPS; running the same path under `nohup`/`run_in_background` crashes within seconds, exit 139). Reproducible — root cause not isolated, but the workaround (CPU-only) was straightforward.
-- **OpenMP init race.** `import torch` must precede `xgboost`/`lightgbm`/`catboost` in `optuna_models.py`. Without it, libomp `__kmp_suspend_64` SIGSEGVs in a worker thread on the first dataset. Combined with `KMP_DUPLICATE_LIB_OK=TRUE` env var, eliminates the crash.
-- **`batch_size=4`** in the wrapper (vs library default 8) caps peak ensemble-forward memory on this 24 GB machine. No accuracy effect.
-- **Feature-count guard (≥ 500 features → NaN).** TabICL docs claim support up to 2000 features, but empirically `cnae-9` (856) stalled past 25 min with no completion; `arcene` (10000) ran 8h+ with RSS ballooning to 5–10 GB and never completed. Lower threshold catches all known offenders (`madelon` 500, `multiple-features` 649, `har` 561, `cnae-9` 856, `micro-mass` 1300, `arcene` 10000) without over-skipping.
-- **HP grid is intentionally small.** TabICL authors state defaults are SOTA without tuning. Grid: `n_estimators ∈ {4, 8, 16} × softmax_temperature ∈ {0.7, 0.9, 1.1}`. That's 9 configs per outer fold via GridSearchCV.
-- **`n_jobs=1` at GridSearchCV level** (like TabPFN) — TabICL uses PyTorch internally and parallel GridSearch workers trigger OMP mutex conflicts on macOS.
+- **Default device is CPU.** MPS works on isolated single fits but **SIGSEGVs in
+  detached background processes** during the repeated-fit GridSearch path (single
+  fits 0.5 s on MPS; the same path under `nohup` crashes within seconds, exit 139).
+  Reproducible; root cause not isolated, workaround is CPU-only.
+- **OpenMP init race.** `import torch` must precede `xgboost`/`lightgbm`/`catboost`
+  in `optuna_models.py`, or libomp `__kmp_suspend_64` SIGSEGVs in a worker thread on
+  the first dataset. With `KMP_DUPLICATE_LIB_OK=TRUE`, this eliminates the crash.
+- **`batch_size=4`** in the wrapper (library default 8) caps peak ensemble-forward
+  memory on this 24 GB machine. No effect on scores.
+- **Feature-count guard at 500.** The docs claim support to 2000, but `arcene`
+  (10 000 features) ran 8 h+ with RSS ballooning to 5-10 GB and never completed. The
+  threshold is set on wall-clock risk, not hard failure: `cnae-9` (856) did finish,
+  in 2.2 h.
+- **HP grid is intentionally small.** The authors state defaults are SOTA untuned.
+  Grid: `n_estimators ∈ {4, 8, 16} × softmax_temperature ∈ {0.7, 0.9, 1.1}`, 9
+  configs per outer fold.
+- **`n_jobs=1` at GridSearchCV level** — TabICL uses PyTorch internally and parallel
+  GridSearch workers trigger OMP mutex conflicts on macOS.
 
 ## Practical recommendation
 
-For small tabular classification on this kind of data:
-
-1. **Default to TabICL.** Zero HP tuning, ~3 min median train time, beats 50-trial-Optuna CatBoost on ~3/4 of datasets.
-2. **Always co-train CatBoost.** It's the only model that meaningfully wins on the shared blind-spot datasets (severe class imbalance + small n), and it's cheap.
-3. **Drop TabPFN.** TabICL strictly dominates it on accuracy and speed.
-
-See [TabPFN_notes.md](TabPFN_notes.md) for the older foundation model's limits and [FT_transformer_notes.md](FT_transformer_notes.md) for the abandoned heavy-CPU foundation model attempt.
+1. **Default to TabICL on CPU.** No tuning, ~6 min median, beats 50-trial-Optuna
+   CatBoost on 85 % of non-trivial datasets.
+2. **Switch to TabPFN-3 for wide or many-class data**, which TabICL skips.
+3. **Run AutoML instead if 20 minutes a dataset is acceptable** — MLJAR beats TabICL
+   on 61 % of shared datasets.

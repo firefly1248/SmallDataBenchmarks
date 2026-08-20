@@ -1,59 +1,52 @@
 # FT-Transformer notes
 
-Findings from running FT-Transformer (rtdl-revisiting-models) via Optuna in the nested-CV benchmark. The run was stopped after ~3 days on 67 of 146 datasets; the data is sufficient to draw a clear conclusion.
+FT-Transformer (rtdl-revisiting-models) via Optuna in the nested-CV benchmark.
 
-## TL;DR
+## Status: deferred, not measured
 
-FT-Transformer is **not worth running on CPU** for small tabular data at this benchmark's scale and search budget. It is dramatically slower than tuned gradient boosters and, on the datasets evaluated, does not match their accuracy on average.
+**No usable result exists.** The run reached 72 of 146 datasets with only 67 scored,
+then stopped. That 67 is a biased subset — the datasets where the model happened not
+to fail — so a mean over it is not comparable with the 146-dataset means every other
+model reports, and it is not published.
 
-## Coverage
+The stored run also predates the stratified validation-split fix, so it is not
+reproducible with current code. Its checkpoint is parked as
+`results/ckpt/ft_transformer.joblib.bak-partial-run`.
 
-- 67 / 146 datasets with valid scores (47%), 5 with NaN.
-- ~3 days of wall-clock on Apple M-series CPU, `OMP_NUM_THREADS=4`, `caffeinate`-wrapped.
-- Optuna budget: 50 trials × 4 outer folds per dataset (same as other Optuna models in this benchmark).
+Finishing it at the current 50-trial budget projects to **~863 h (36 days)**, and
+that projection is itself unreliable because it scales from a run in which most fits
+were failing.
 
-After filtering trivially-easy datasets (every model > 0.99 PR-AUC), 62 datasets are usable for head-to-head analysis.
+## Why it failed, and why that matters
 
-## Quantitative verdict (62 datasets)
+79 of 146 datasets produced no score, from the same defect that made TabNet look
+cheap: the validation split inside the wrapper was unstratified and seeded from a
+constant, so on any dataset where a class missed the validation fold, the logloss
+metric raised — identically on every trial, every fold, every time.
 
-Comparison is against the **best of CatBoost / LightGBM / XGBoost** per dataset.
+The failure was silent. A dataset whose every trial raises completes quickly and
+records NaN, so the run looked like it was making progress. Both this model and
+TabNet were characterised in earlier notes on numbers produced this way.
 
-| Metric                         | Value                  |
-|--------------------------------|------------------------|
-| FT-T wins (any margin)         | 14 / 62  (23%)         |
-| FT-T wins by ≥ 0.01 PR-AUC     |  9 / 62  (15%)         |
-| FT-T loses by ≥ 0.01 PR-AUC    | 32 / 62  (52%)         |
-| FT-T loses by ≥ 0.02 PR-AUC    | 23 / 62  (37%)         |
-| Mean   ΔPR-AUC vs best GB      | **−0.0257**            |
-| Median ΔPR-AUC vs best GB      | **−0.0118**            |
-| Median train time ratio FT-T / fastest GB | **109×**    |
-| Mean   train time ratio FT-T / fastest GB | 193×        |
-| Total compute, FT-T            | 133.6 h                |
-| Total compute, best GB (same datasets) | 0.9 h          |
+The split is stratified as of 2026-08-02. See
+[Findings_notes.md](Findings_notes.md#the-bug-that-produced-two-published-results).
 
-For roughly **150× the compute**, FT-T delivers a **negative mean PR-AUC delta**.
+## What the partial data suggested
 
-## Patterns
+Treat as anecdote, not measurement. Against the best of CatBoost / LightGBM /
+XGBoost per dataset, over the 62 non-trivial datasets it covered, FT-Transformer ran
+roughly 150x the compute for a mean delta of about −0.026 PR AUC. Its apparent wins
+concentrated on datasets of 100-200 rows, where single outer folds swing wildly.
 
-**Wins concentrate on tiny datasets.** Top wins: `hepatitis` (155 rows, +0.27), `blogger` (100, +0.15), `autoUniv-au1-1000` (+0.22). These margins exceed what is plausible from a "better model" and look like outer-fold variance — single splits on a 100-row dataset swing wildly.
+ResNet, which is measured properly on all 146 datasets, reaches 0.8234 mean
+PR AUC for 207.7 h and still lands below Random Forest's 0.8359 at 7.6 h. Nothing in
+the partial FT-Transformer data suggests it would land above ResNet.
 
-**Losses are not subtle and look like training failures.** `blood-transfusion-service` −0.38, `appendicitis` −0.23, `artificial-characters` −0.19, `hill-valley-without-noise` −0.19. PR-AUC drops of this size against tuned gradient boosters suggest the model is not learning a useful representation on those datasets — likely a combination of:
+## If it is ever run
 
-- Optuna's search space allowing too-large architectures (`d_token` up to 192, `n_blocks` up to 3) on small data,
-- short training schedule for a transformer to converge,
-- no problem-aware regularization beyond what the search exposes.
-
-## Operational
-
-- CPU-only run. PyTorch thread limits (`OMP_NUM_THREADS=4`, etc.) reduced thermals significantly with minor throughput cost on this hardware.
-- Single-dataset cost ranged from ~300s (small, dense) to **27000s ≈ 7.6h** (e.g. `eeg-eye-state`, 10k × 14). Median per dataset roughly an order of magnitude above CatBoost / XGBoost on the same data.
-- Optuna trial failures with `nan` value were occasional and handled by TPE pruning the point — not the cause of any reported result.
-- Checkpoint at the `(dataset, model)` level (`results/optuna_models_ckpt.joblib`) made the early stop loss-free: all completed datasets retained, no need to re-run.
-
-## What would change the verdict
-
-- **GPU** — would bring the 100× time gap down enough to argue for inclusion as an ensemble member.
-- **Smaller search space tied to dataset size** — capping `d_token` and `n_blocks` for n < 1000 might fix the catastrophic losses; the win pattern on tiny data suggests there is real signal when training does not collapse.
-- **Longer training schedule** with proper early stopping inside the trial — current per-trial budget may be too short for transformer convergence on harder datasets.
-
-None of these are pursued in this benchmark; the model is documented here and excluded from the final headline results.
+- On MPS already, via `_train_rtdl_on_device`, except above 500 features where it
+  falls back to CPU. That fallback costs about 3.5x and is what pushed
+  `multiple-features` past the 12 h cap in the ResNet run.
+- The Optuna space allows large architectures (`d_token` to 256, `n_blocks` to 6) on
+  data of a few hundred rows; tying the space to dataset size is the first thing to
+  try.

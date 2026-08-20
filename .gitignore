@@ -145,3 +145,11 @@ dmypy.json
 foo-*
 *.dat
 *.cpp
+
+# Per-model checkpoints: ~350 MB, regenerable, and the run resumes from them.
+# Only the aggregated results/optuna_models.joblib is tracked.
+results/ckpt/
+
+# Point-in-time backups taken before destructive reruns
+*.bak-*
+*.log.part*
