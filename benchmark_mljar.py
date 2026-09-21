@@ -3,9 +3,9 @@ import joblib
 import numpy as np
 from supervised import AutoML
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import average_precision_score
 
 from benchmark.automl_runner import run_automl_benchmark
+from benchmark.metrics import pr_auc_score
 from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, AUTOML_SEC
 
 
@@ -32,10 +32,7 @@ def evaluate_mljar(X, y):
             n_jobs=N_JOBS,
         )
         automl.fit(X_train, y_train)
-        y_pred = automl.predict_proba(X_test)
-        y_score = y_pred[:, 1] if n_classes == 2 else y_pred
-        score = average_precision_score(y_test, y_score, average="weighted")
-        nested_scores.append(score)
+        nested_scores.append(pr_auc_score(y_test, automl.predict_proba(X_test)))
         shutil.rmtree(MLJAR_PATH, ignore_errors=True)
     return nested_scores
 

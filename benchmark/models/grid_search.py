@@ -17,8 +17,7 @@ CAT_STRATEGIES_GRID: list[str] = ["target", "james_stein", "m_estimate", "catboo
 
 GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg", "tabpfn", "tabpfn3", "tabicl"})
 
-# PyTorch-backed models: parallel GridSearchCV workers trigger OMP mutex
-# conflicts on macOS, so these search serially.
+# Parallel GridSearchCV workers deadlock on macOS libomp, so these search serially.
 _SERIAL_GRID_MODELS: frozenset[str] = frozenset({"tabpfn", "tabpfn3", "tabicl"})
 
 
@@ -29,19 +28,9 @@ def build_grid_search(
 ) -> GridSearchCV:
     """Build a GridSearchCV pipeline for *model_name*.
 
-    The ``cat_enc__strategy`` parameter is only added to the search grid when
-    *cat_cols* is non-empty — on purely numeric data all strategies are
-    equivalent and searching them wastes compute.
-
-    Parameters
-    ----------
-    model_name : ``"svc"``, ``"logreg"``, ``"tabpfn"``, ``"tabpfn3"``, or ``"tabicl"``
-    inner_cv   : cross-validation splitter passed to GridSearchCV
-    cat_cols   : list of categorical column names in the training data
-
-    Returns
-    -------
-    GridSearchCV (not yet fitted)
+    ``cat_enc__strategy`` joins the grid only when *cat_cols* is non-empty: on
+    purely numeric data every strategy is equivalent and searching them wastes
+    compute.
     """
     base_pre = [
         ("cat_enc", CatFeaturesEncoder(strategy="target")),
@@ -54,9 +43,8 @@ def build_grid_search(
 
     if model_name == "svc":
         pipeline = Pipeline(base_pre + [
-            # libsvm's SMO solver is unbounded by default and can spin for hours
-            # on one pathological (config, fold) pair. Normal fits here need
-            # ~1e3 iterations, so this only binds on runaways.
+            # libsvm's solver is unbounded by default; normal fits need ~1e3
+            # iterations, so this only binds on runaways.
             ("svc", SVC(probability=True, max_iter=2_000_000,
                         random_state=RANDOM_STATE)),
         ])
@@ -100,11 +88,9 @@ def build_grid_search(
         }
 
     elif model_name == "tabpfn3":
-        # auto_scale on: for a fresh measurement, run the model the way the
-        # library ships it. On the 5 wide datasets this makes both grid points
-        # collapse to the same effective ensemble size — half those inner fits
-        # are duplicates — but disabling it would instead leave most features
-        # unsampled there.
+        # Run the model as the library ships it. On the 5 wide datasets both
+        # grid points then collapse to one ensemble size, but disabling
+        # auto_scale would leave most features unsampled instead.
         pipeline = TabPFNNativeWrapper(cat_cols=cat_cols, model_version="v3",
                                        auto_scale_n_estimators=True,
                                        random_state=RANDOM_STATE)

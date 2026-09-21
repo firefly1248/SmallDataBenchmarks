@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 from autogluon.tabular import TabularPredictor
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import average_precision_score
 
 from benchmark.automl_runner import run_automl_benchmark
+from benchmark.metrics import pr_auc_score
 from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, AUTOML_SEC
 
 
@@ -35,9 +35,7 @@ def evaluate_autogluon(X, y):
               dynamic_stacking=False,
               excluded_model_types=["NeuralNetFastAI", "NeuralNetTorch"])
         y_pred = predictor.predict_proba(test_df.drop(columns=["y"])).values
-        y_score = y_pred[:, 1] if n_classes == 2 else y_pred
-        score = average_precision_score(test_df["y"], y_score, average="weighted")
-        nested_scores.append(score)
+        nested_scores.append(pr_auc_score(test_df["y"].values, y_pred))
         shutil.rmtree(AG_PATH, ignore_errors=True)
     return nested_scores
 

@@ -1,18 +1,11 @@
-"""
-Benchmark: SVC, LogReg, TabPFN, TabPFN-3, TabICL, TabFM, RandomForest, XGBoost,
-SGD, CatBoost, LightGBM, LightGBM-linear, HistGradientBoosting, TabNet,
-FT-Transformer, ResNet.
+"""Benchmark entry point: every model over every dataset, nested CV.
 
-Hyperparameter tuning strategy:
-- TabFM                                : none — fixed defaults, 4 outer folds only
-- SVC, LogReg, TabPFN, TabPFN-3, TabICL : GridSearchCV (small, well-understood HP space)
-- All others                           : Optuna TPE (N_TRIALS / N_TRIALS_NN trials per outer fold)
+Tuning: TabFM none; SVC, LogReg, TabPFN, TabPFN-3, TabICL by GridSearchCV;
+the rest by Optuna TPE.
 
-Categorical handling:
-- CatBoost, TabPFN, TabICL, TabFM: native categorical handling
-- RF, XGBoost, LGBM, HGB         : CatFeaturesEncoder(ordinal) (NaN handled natively)
-- SVC, LogReg, SGD               : CatFeaturesEncoder(target/...) + Imputer + Scaler
-- TabNet, FT-Transformer, ResNet : ordinal-encode + impute + StandardScaler in wrapper
+Categoricals: CatBoost, TabPFN, TabICL and TabFM handle them natively; RF,
+XGBoost, LGBM and HGB get ordinal encoding; SVC, LogReg and SGD get target
+encoding, imputation and scaling; the torch wrappers do their own.
 """
 
 import torch  # must precede xgboost / lightgbm / catboost to win the OpenMP init race
@@ -25,19 +18,16 @@ import joblib
 import warnings
 import numpy as np
 
-# 12 hours — above longest legit run (pendigits ~11h), below hangs (18h+).
-# Overridable so the two pairs that only ever recorded NaN can be measured
-# for real without editing this file.
+# 12h: above the longest legit run (pendigits ~11h), below hangs (18h+).
+# Env-overridable so a suspect pair can be re-measured without an edit.
 DATASET_TIMEOUT = int(os.environ.get("DATASET_TIMEOUT", 43_200))
 
 
 class _DatasetTimeout(BaseException):
     """Raised by the SIGALRM handler when a (dataset, model) pair overruns.
 
-    BaseException, not Exception: Optuna's ``study.optimize(catch=(Exception,))``
-    would otherwise swallow it, mark the trial failed and keep searching. The
-    alarm is one-shot, so the dataset would then run unbounded — CatBoost sat on
-    plant-species-leaves-shape for 14 h that way.
+    BaseException so Optuna's ``catch=(Exception,)`` cannot swallow it and let
+    the dataset run unbounded. See Findings_notes.md.
     """
 
 
@@ -91,10 +81,8 @@ if __name__ == "__main__":
     def save_checkpoint(model_name):
         atomic_dump(ckpt[model_name], ckpt_path(model_name))
 
-    # A model failing on several datasets in a row is failing systemically —
-    # missing weights, expired license, OOM — not per-dataset. Without this the
-    # loop would race through all 146 datasets recording NaN and marking each
-    # pair done, which then takes manual checkpoint surgery to undo.
+    # Consecutive failures mean the model is broken, not the data. Without this
+    # the run marks all 146 pairs done as NaN, undone only by checkpoint surgery.
     MAX_CONSECUTIVE_FAILURES = 3
     consecutive_failures: dict[str, int] = {}
 
@@ -137,15 +125,12 @@ if __name__ == "__main__":
             finally:
                 signal.alarm(0)
             elapsed = time.time() - start
-            # preds is None when the model never trained. A limit-skip costs
-            # microseconds and must not enter the cost figures; a timeout or an
-            # error does cost real time, and nulling it understates them.
+            # A limit-skip costs microseconds and must stay out of the cost
+            # figures; a timeout or error cost real time and must stay in.
             if preds is None:
                 elapsed = float("nan")
-            # Only real errors count towards the breaker. A hard-limit skip
-            # also yields no result, and those datasets can be adjacent
-            # (plant-species-leaves-margin / -shape), so counting them would
-            # abort a perfectly healthy run.
+            # Limit-skips also yield no result and can be adjacent, so counting
+            # them towards the breaker would abort a healthy run.
             consecutive_failures[model_name] = (
                 consecutive_failures.get(model_name, 0) + 1 if failed else 0
             )
@@ -162,14 +147,11 @@ if __name__ == "__main__":
                          f"Fix the cause, drop those datasets from "
                          f"{ckpt_path(model_name)}, and rerun.")
 
-    # Final output: dump EVERY model that has a checkpoint, not just the models
-    # from this run. Otherwise re-running with --models X overwrites the file
-    # with only X's results and loses everyone else.
-    # NaN-pad datasets where a given model has no entry, so all arrays align to
-    # the full evaluated_datasets list (consumed positionally by figures.ipynb).
+    # Dump every model with a checkpoint, not just this run's, or --models X
+    # overwrites the file with X alone. NaN-pad missing datasets so the arrays
+    # stay aligned with evaluated_datasets, which figures.ipynb reads positionally.
     output_models = available_models()
-    final_ckpt = {m: ckpt[m] if m in ckpt else load_by_model([m])[m]
-                  for m in output_models}
+    final_ckpt = {**load_by_model(output_models), **ckpt}
     all_results = {name: [] for name in output_models}
     all_times   = {name: [] for name in output_models}
     nan_scores = [float("nan")] * N_OUTER_FOLDS
@@ -186,5 +168,5 @@ if __name__ == "__main__":
         all_results[name] = np.array(all_results[name])
         all_times[name]   = np.array(all_times[name])
 
-    joblib.dump((all_results, all_times, evaluated_datasets), FINAL_OUTPUT)
+    atomic_dump((all_results, all_times, evaluated_datasets), FINAL_OUTPUT)
     print("\nDone. Results saved to", FINAL_OUTPUT)

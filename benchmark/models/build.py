@@ -15,24 +15,8 @@ from config import N_JOBS, RANDOM_STATE
 
 
 def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: list[str]):
-    """Construct a fitted-ready pipeline from Optuna ``best_params``.
-
-    Parameters
-    ----------
-    model_name : str
-        One of ``"random_forest"``, ``"xgboost"``, ``"sgd"``,
-        ``"lgbm"``, ``"lgbm_linear"``, ``"hgb"``, ``"catboost"``,
-        ``"tabnet"``, ``"ft_transformer"``, ``"resnet"``, ``"tabfm"``.
-    best : dict
-        ``study.best_params`` returned by Optuna — empty for untuned models.
-    n_classes : int
-        Number of target classes (used to set model-specific objectives).
-    cat_cols : list[str]
-        Categorical column names (used by CatBoost wrapper).
-
-    Returns
-    -------
-    Unfitted sklearn-compatible estimator / pipeline.
+    """Construct an unfitted pipeline for *model_name* from Optuna ``best_params``,
+    which is empty for the models that are not tuned.
     """
     if model_name == "random_forest":
         return Pipeline([

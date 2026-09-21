@@ -1,10 +1,7 @@
-"""Shared sequential benchmark runner for AutoML frameworks (AutoGluon, MLJAR).
+"""Shared sequential runner for the AutoML frameworks (AutoGluon, MLJAR).
 
-Both frameworks follow the same outer loop structure:
-- load evaluated_datasets from compare_baseline_models results
-- name-based checkpoint/resume (dict keyed by dataset name)
-- save checkpoint after each dataset
-- write final output when all datasets are done
+Both follow the same loop: read evaluated_datasets, resume from a name-keyed
+checkpoint, save after each dataset, write the final output when all are done.
 """
 from __future__ import annotations
 
@@ -24,10 +21,10 @@ def _load_checkpoint(
     checkpoint_path: str | Path,
     evaluated_datasets: np.ndarray,
 ) -> dict[str, dict]:
-    """Load checkpoint dict, migrating from old positional tuple format if needed.
+    """Load the checkpoint, migrating the old positional tuple format if needed.
 
-    New format: ``{dataset_name: {'scores': list[float], 'time': float}}``
-    Old format: ``(np.ndarray of shape (n, folds), np.ndarray of shape (n,))``
+    New: ``{dataset_name: {'scores': list[float], 'time': float}}``
+    Old: ``(ndarray of shape (n, folds), ndarray of shape (n,))``
     """
     try:
         saved = joblib.load(checkpoint_path)
@@ -56,19 +53,8 @@ def run_automl_benchmark(
 ) -> None:
     """Run an AutoML benchmark over *evaluated_datasets* with resume support.
 
-    Parameters
-    ----------
-    evaluate_fn
-        ``evaluate_autogluon`` or ``evaluate_mljar`` — takes ``(X, y)`` and
-        returns a list of PR AUC scores (one per outer fold).
-    evaluated_datasets
-        Ordered array of dataset names (from compare_baseline_models output).
-    rf_results
-        Random-forest baseline scores, used only for the console comparison line.
-    checkpoint_path
-        Path to the intermediate checkpoint file (``*_ckpt.joblib``).
-    final_output_path
-        Path written only when all datasets are complete.
+    ``evaluate_fn`` takes ``(X, y)`` and returns one PR AUC per outer fold.
+    ``final_output_path`` is written only once every dataset is complete.
     """
     checkpoint = _load_checkpoint(checkpoint_path, evaluated_datasets)
     if checkpoint:
@@ -103,10 +89,8 @@ def run_automl_benchmark(
         )
         atomic_dump(checkpoint, checkpoint_path)
 
-    # Datasets skipped due to empty y are absent from checkpoint — filter them
-    # out, and ship the names: without them the arrays can only be matched back
-    # positionally, which silently misattributes every row once the dataset list
-    # grows.
+    # Ship the names: a positional match silently misattributes every row as
+    # soon as the dataset list grows.
     valid_datasets = [n for n in evaluated_datasets if n in checkpoint]
     results = [checkpoint[name]["scores"] for name in valid_datasets]
     times   = [checkpoint[name]["time"]   for name in valid_datasets]

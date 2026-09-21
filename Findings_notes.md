@@ -31,16 +31,43 @@ time with **zero** completed fits — no early-stopping line, no max-epochs line
 1736.9 s is pure wrapper overhead for 324 fits that each raised on entry.
 
 Consequence for TabNet's headline number: its published 107.3 h total made it look
-like a cheap model that simply performs badly. With the split stratified and every
-fit actually training, the first two datasets cost 11.47 h and 7.48 h against
-historical 0.53 h and 0.38 h — **20x**. Projected over 146 datasets that is 824-1372 h,
-against ResNet's measured 197 h. TabNet is not a cheap weak model; it is an
-expensive one that was broken.
+like a cheap model that simply performs badly. Measured with every fit training, it
+costs 485.3 h, the most of any model, and still ranks last. TabNet is not a cheap
+weak model; it is an expensive weak one.
 
 **The lesson is about coverage, not about these two models.** A mean is only
 meaningful next to the count it was taken over. Check the all-NaN count before
 trusting any aggregate — the run that produces the worst numbers is the one that
 looks fastest.
+
+## A default batch size trained TabNet on nothing
+
+With the split fixed and 144 of 146 datasets scored, TabNet still averaged 0.5946 —
+last by 0.18, ahead of CatBoost on 2 of 144 datasets. The coverage check above passed.
+
+`batch_size` was fixed at 1024 and never tuned, and pytorch-tabnet's `fit` defaults
+to `drop_last=True`. An inner fit trains on about 48 % of a dataset, so below roughly
+2 100 rows its only batch is incomplete and gets dropped: **zero gradient steps**.
+Early stopping then fires on the untrained model, the fit returns in under a second,
+and the score lands next to the class-prevalence baseline. That was 82 of 146
+datasets.
+
+| dataset | prevalence baseline | broken | fixed | CatBoost |
+|---|---|---|---|---|
+| `connectionist-vowel` | 0.0909 | 0.1280 | 0.9853 | 0.9966 |
+| `cnae-9` | 0.1111 | 0.1567 | 0.9419 | 0.9793 |
+| `semeion` | 0.1000 | 0.1406 | 0.9113 | 0.9880 |
+| `dermatology` | 0.2012 | 0.3070 | 0.9903 | 0.9942 |
+
+Below 1024 training rows the batch is now an eighth of the split, and only a
+single-row remainder is dropped, since BatchNorm cannot take one. On the 82 affected
+datasets TabNet moves from 0.4662 to 0.7345 (CatBoost 0.8160); overall from 0.5946 to
+0.7507, and from 2 to 11 datasets ahead of CatBoost. It still ranks last.
+
+**A full count of scores is not enough either.** An untrained classifier returns a
+valid number on every dataset. The tell is a score sitting on the prevalence baseline
+— the positive-class share, or for weighted multiclass PR AUC the sum of squared
+class shares — and it is worth checking per dataset before trusting a mean.
 
 ## Label ordering silently changed the metric
 
@@ -106,6 +133,12 @@ A single-seed comparison first looked alarming (0.6252 CPU vs 0.4670 MPS), but
 CPU's own five-seed range on that dataset is [0.4165, 0.6414]. Device comparisons on
 a stochastic model need distributions, not one run each.
 
+Small data reverses the result. Below 1024 training rows the batches are tens of
+rows, MPS dispatch overhead outweighs the arithmetic, and CPU wins:
+`autoUniv-au6-1000` (1000 x 40) takes 2 098 s on CPU with the four inner folds in
+parallel, against 9 994 s for `autoUniv-au1-1000` (1000 x 20) on MPS with folds in
+sequence. The wrapper picks the device by split size.
+
 ## TabNet's seed variance exceeds most between-model gaps
 
 That same experiment: on `abalone-3class`, TabNet's PR AUC across 5 seeds spans
@@ -129,11 +162,10 @@ The difference was not the algorithm. The original run shared the machine with
 processes that drove it into swap. The binding resource in this benchmark is RAM,
 not cores: 24 GB, and a single TabFM dataset uncapped allocated 13.55 GB.
 
-A separate real defect surfaced during the investigation: libsvm's SMO solver is
-unbounded by default and genuinely never terminates on some (config, fold) pairs.
-Four orphaned libsvm workers were found running 14 h 08 m with `ppid=1`, six hours
-after their parent was killed. `max_iter=2_000_000` bounds it; verified
-non-binding — scores are byte-identical on all comparable datasets.
+A separate real defect: libsvm's SMO solver is unbounded by default and never
+terminates on some (config, fold) pairs — workers observed still spinning after
+14 h 08 m. `max_iter=2_000_000` bounds it and is verified non-binding: scores are
+byte-identical on all comparable datasets.
 
 ## A month of stolen cores, invisible from inside
 
@@ -170,11 +202,10 @@ Best single model is TabFM at 0.8653. Nothing beats it. The strongest ensemble t
 it to within 0.0001 and wins on 39 % of datasets — worse than a coin flip.
 
 Two specifics worth stating. **Adding CatBoost to the foundation trio makes it
-worse** (−0.0006), which is the second independent refutation of the "always
-co-train a cheap classical baseline" advice these notes used to give; the first was
-that the blind-spot table justifying it turned out to be a scoring bug. And logit
-averaging beats probability averaging beats rank averaging, consistently, in every
-combination — but the ordering does not matter much when none of them wins.
+worse** (−0.0006), which refutes the "always co-train a cheap classical
+baseline" advice independently of the blind-spot table, itself a scoring bug. And
+logit averaging beats probability averaging beats rank averaging, consistently, in
+every combination — but the ordering does not matter much when none of them wins.
 
 ## Cost does not track performance
 
@@ -197,10 +228,14 @@ model's own coverage:
 | TabPFN-3 | 73.6 | 1199 s | 0.8591 | 146 |
 | ResNet | 207.7 | 2597 s | 0.8234 | 146 |
 | TabPFN 2.6 | 236.3 | 678 s | 0.8246 | 129 |
+| TabNet | 485.3 | 2754 s | 0.7507 | 146 |
 
-The two most expensive models in the benchmark rank eleventh and twelfth of fourteen.
-Together they cost 433.6 h — more than every other model combined — to land below
-Random Forest, which costs 7.6 h.
+The three most expensive models rank eleventh, twelfth and last of fifteen. TabPFN 2.6
+and ResNet together cost 444.0 h — more than the other twelve models combined — to
+land below Random Forest, which costs 7.6 h. TabNet alone costs 485.3 h to finish
+last. Its hours mix two execution modes, MPS with sequential folds on the larger
+datasets and CPU with parallel folds on the smaller ones, so they compare only
+roughly with the rest.
 
 TabFM reaches the highest mean of any single model for 4.3 h, though on 126 datasets
 and with a GPU.
@@ -219,11 +254,11 @@ They are still computed — 7 of the 9 `volcanoes` variants cost ResNet over 2 h
 — so about 10 % of the benchmark's compute goes to datasets that are then dropped
 from every figure. Worth filtering before the run rather than after.
 
-## Two pairs the timeout could not measure — now measured
+## The pairs the timeout could not measure — now measured
 
 A timed-out (dataset, model) pair records `time = NaN`, so the hours it burned never
-enter the cost figures. Both pairs were re-run with the cap raised to a week. Both
-answers were worth the machine time.
+enter the cost figures. Each was re-run with the cap raised. Every answer was worth
+the machine time.
 
 **CatBoost on `plant-species-leaves-shape`** (100 classes, 1600 rows, 64 features)
 needs **25.16 h**. It had recorded NaN twice before — 14 h with the timeout defeated,
@@ -255,4 +290,12 @@ Above 500 features `_train_rtdl_on_device` falls back from MPS to CPU. Historica
 the TabNet device experiment, and enough, multiplied by the trial change, to push a
 one-hour dataset past a twelve-hour cap.
 
-Both models now cover all 146 datasets.
+**TabNet on `letter` and `tamilnadu-electricity`** (both 10 000 rows) needs **18.12 h**
+and **16.19 h**. At a twelve-hour cap and again at twenty they recorded NaN; `letter`
+was 36 fits of 804 short the second time. What the 18.12 h buys is 0.9841, between
+Random Forest (0.9820, 0.06 h) and SVC (0.9882, 0.04 h), while TabPFN-3 takes the
+dataset at 0.9984 in 0.72 h. On `tamilnadu-electricity` ten models reach a perfect
+1.0000, Random Forest in 3.6 minutes against TabNet's 16.19 h — **270x** for the same
+score.
+
+All three models now cover all 146 datasets.

@@ -170,8 +170,6 @@ class TestCatBoostNativeWrapper:
         from sklearn.utils import estimator_html_repr
         wrapper = CatBoostNativeWrapper(cat_cols=[], iterations=2, verbose=0)
         from sklearn.utils.validation import check_is_fitted
-        # is_classifier check via tags
-        from sklearn.base import is_classifier
         assert is_classifier(wrapper)
 
 

@@ -16,7 +16,7 @@ from benchmark.encoding import (
     _build_imputer, _build_scaler,
 )
 from benchmark.metrics import PR_AUC_SCORER
-from config import INNER_FIT_THREADS, N_JOBS, RANDOM_STATE
+from config import INNER_FIT_THREADS, N_INNER_FOLDS, N_JOBS, RANDOM_STATE
 
 
 def rf_objective(trial, X_train, y_train, inner_cv) -> float:
@@ -33,7 +33,7 @@ def rf_objective(trial, X_train, y_train, inner_cv) -> float:
         ("rf", RandomForestClassifier(**params, random_state=RANDOM_STATE,
                                       n_jobs=INNER_FIT_THREADS)),
     ])
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
+    return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
@@ -55,7 +55,7 @@ def xgb_objective(trial, X_train, y_train, inner_cv, n_classes: int) -> float:
         ("xgb", XGBClassifier(**params, objective=objective,
                               random_state=RANDOM_STATE, n_jobs=1, verbosity=0)),
     ])
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
+    return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
@@ -68,13 +68,13 @@ def sgd_objective(trial, X_train, y_train, inner_cv) -> float:
         "loss":          trial.suggest_categorical("loss", ["modified_huber", "log_loss"]),
         "alpha":         trial.suggest_float("alpha", 1e-6, 1e2, log=True),
         "penalty":       penalty,
-        # 'optimal' removed: produces NaN when alpha is very small
+        # 'optimal' produces NaN at very small alpha.
         "learning_rate": trial.suggest_categorical("learning_rate",
                                                    ["constant", "invscaling", "adaptive"]),
         "eta0":          trial.suggest_float("eta0", 1e-4, 1.0, log=True),
         "class_weight":  trial.suggest_categorical("class_weight", ["balanced", None]),
     }
-    # l1_ratio is only meaningful for elasticnet; skip for l1/l2 to avoid polluting the search space
+    # l1_ratio is meaningless outside elasticnet.
     if penalty == "elasticnet":
         params["l1_ratio"] = trial.suggest_float("l1_ratio", 0.0, 1.0)
     model = Pipeline([
@@ -84,7 +84,7 @@ def sgd_objective(trial, X_train, y_train, inner_cv) -> float:
         ("sgd",     SGDClassifier(**params, max_iter=1000, tol=1e-3,
                                   random_state=RANDOM_STATE, n_jobs=1)),
     ])
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
+    return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
@@ -106,7 +106,7 @@ def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
         cat_cols=cat_cols, loss_function=loss_function,
         random_state=RANDOM_STATE, verbose=0, thread_count=INNER_FIT_THREADS, **params,
     )
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
+    return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
@@ -124,9 +124,11 @@ def tabnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> 
         "n_shared":      trial.suggest_int("n_shared", 1, 4),
     }
     model = TabNetNativeWrapper(cat_cols=cat_cols, max_epochs=200, patience=15, **params)
-    # n_jobs=1: avoid nested PyTorch thread parallelism
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
-                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+    # Below 1600 rows every inner fit lands on CPU, so the folds can run in
+    # parallel; larger data trains on MPS, which the folds would contend for.
+    n_jobs = N_INNER_FOLDS if len(X_train) < 1600 else 1
+    return float(np.mean(cross_val_score(model, X_train, y_train,
+                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=n_jobs)))
 
 
 def ft_transformer_objective(trial, X_train, y_train, inner_cv,
@@ -144,8 +146,8 @@ def ft_transformer_objective(trial, X_train, y_train, inner_cv,
         "weight_decay":       trial.suggest_float("weight_decay", 1e-6, 1e-3, log=True),
     }
     model = FTTransformerWrapper(cat_cols=cat_cols, max_epochs=200, patience=16, **params)
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
-                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+    return float(np.mean(cross_val_score(model, X_train, y_train,
+                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
 
 
 def resnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> float:
@@ -160,8 +162,8 @@ def resnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> 
         "weight_decay":    trial.suggest_float("weight_decay", 1e-6, 1e-3, log=True),
     }
     model = ResNetWrapper(cat_cols=cat_cols, max_epochs=200, patience=16, **params)
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
-                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+    return float(np.mean(cross_val_score(model, X_train, y_train,
+                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
 
 
 def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
@@ -177,10 +179,9 @@ def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
         ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
         ("hgb", HistGradientBoostingClassifier(**params, random_state=RANDOM_STATE)),
     ])
-    # n_jobs=1: HGB has no n_jobs parameter and uses OMP internally; joblib-parallel
-    # outer folds × OMP threads deadlocks libomp on macOS. Serial folds, each fit
-    # gets the full OMP thread budget.
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
+    # n_jobs=1: HGB uses OMP internally, and joblib folds x OMP threads
+    # deadlocks libomp on macOS.
+    return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
 
 
@@ -208,5 +209,5 @@ def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                                 subsample_freq=1, random_state=RANDOM_STATE,
                                 n_jobs=1, verbose=-1)),
     ])
-    return float(np.nanmean(cross_val_score(model, X_train, y_train,
+    return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))

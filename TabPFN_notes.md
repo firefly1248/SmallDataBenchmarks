@@ -62,8 +62,8 @@ positive-class fix and the re-fit of every classical model — see
 
 - `signal.SIGALRM` per-dataset does **not** reliably interrupt TabPFN. Python signal
   handlers fire only between bytecode instructions, and long torch matmuls hold the
-  GIL inside C extensions, so the alarm lands only after the operation returns. In
-  practice `madelon` and `multiple-features` had to be killed and marked NaN by hand.
+  GIL inside C extensions, so the alarm lands only after the operation returns.
+  `madelon` and `multiple-features` are instead excluded by the 500-feature cap.
 - For a reliable kill switch the per-dataset run must be in a subprocess with an
   external timeout.
 
