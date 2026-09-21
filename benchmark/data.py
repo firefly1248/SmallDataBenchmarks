@@ -15,11 +15,7 @@ def load_data(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Load dataset as numpy arrays with one-hot encoded categoricals.
 
-    Returns
-    -------
-    X : ndarray of shape (n_samples, n_features)
-    y : ndarray of shape (n_samples,) with integer labels
-        Empty arrays are returned when the file is not found.
+    Returns empty arrays when the file is not found.
     """
     file_path = os.path.join(datasets_dir, f"{data_name}.arff")
     if not os.path.exists(file_path):
@@ -47,15 +43,9 @@ def load_data_df(
 ) -> tuple[pd.DataFrame, np.ndarray, list[str]]:
     """Load dataset as a DataFrame with original types preserved.
 
-    Categorical columns are decoded from bytes to str; numeric columns stay
-    as float.  Columns that *look* numeric (>90 % parseable) are coerced.
-
-    Returns
-    -------
-    X        : DataFrame of shape (n_samples, n_features)
-    y        : ndarray of shape (n_samples,) with integer labels
-    cat_cols : list of column names whose dtype is object (string categoricals)
-        Empty structures are returned when the file is not found.
+    Categorical columns are decoded from bytes to str; columns that *look*
+    numeric (>90 % parseable) are coerced. Returns ``(X, y, cat_cols)``, empty
+    when the file is not found.
     """
     file_path = os.path.join(datasets_dir, f"{data_name}.arff")
     if not os.path.exists(file_path):

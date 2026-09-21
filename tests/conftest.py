@@ -9,8 +9,7 @@ import pytest
 from sklearn.datasets import load_iris
 
 
-# Make sure tests always run from the project root so relative paths like
-# "datasets/" resolve correctly.
+# Relative paths like "datasets/" resolve from the project root.
 @pytest.fixture(autouse=True, scope="session")
 def project_root(tmp_path_factory):
     root = os.path.dirname(os.path.dirname(__file__))

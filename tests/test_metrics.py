@@ -56,3 +56,12 @@ class TestPrAucScorer:
         clf = DummyClassifier(strategy="prior")
         scores = cross_val_score(clf, X, y, cv=3, scoring=PR_AUC_SCORER)
         assert all(0.0 <= s <= 1.0 for s in scores)
+
+    def test_scorer_on_fold_missing_a_trained_class(self):
+        """Wrapping average_precision_score directly raises here."""
+        X, y = load_iris(return_X_y=True)
+        clf = DummyClassifier(strategy="prior").fit(X, y)
+        keep = y != 2
+        assert PR_AUC_SCORER(clf, X[keep], y[keep]) == pytest.approx(
+            pr_auc_score(y[keep], clf.predict_proba(X[keep]))
+        )

@@ -1,11 +1,6 @@
-"""
-Run all benchmark scripts sequentially.
+"""Run all benchmark scripts sequentially.
 
-Order:
-  1. compare_baseline_models.py  — required by all others
-  2. optuna_models.py
-  3. benchmark_autogluon.py
-  4. benchmark_mljar.py
+compare_baseline_models.py runs first — everything else reads its output.
 """
 
 import subprocess
@@ -18,7 +13,6 @@ from config import AUTOML_SEC
 PYTHON = sys.executable
 RESULTS = Path("results")
 
-# Maps each script to the output file it produces (used for skip logic).
 SCRIPT_OUTPUTS = {
     "compare_baseline_models.py": RESULTS / "compare_baseline_models.joblib",
     "optuna_models.py":           RESULTS / "optuna_models.joblib",
@@ -28,9 +22,8 @@ SCRIPT_OUTPUTS = {
 
 SCRIPTS = list(SCRIPT_OUTPUTS.keys())
 
-# optuna_models.py keeps its own (dataset, model) checkpoint and skips finished
-# pairs itself, so an existing aggregate output must not stop it — otherwise a
-# newly added model silently never runs while the script reports success.
+# These skip finished work themselves, so an existing output must not stop them
+# — otherwise a newly added model never runs and the script still reports success.
 SELF_RESUMING = {"optuna_models.py"}
 
 

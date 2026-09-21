@@ -45,14 +45,7 @@ def _build_imputer(strategy: str) -> SimpleImputer:
 
 
 class CatFeaturesEncoder(BaseEstimator, TransformerMixin):
-    """Encode categorical (object-dtype) columns; pass numeric columns through.
-
-    Parameters
-    ----------
-    strategy : str
-        One of ``"ordinal"``, ``"target"``, ``"james_stein"``,
-        ``"m_estimate"``, ``"catboost_enc"``.
-    """
+    """Encode object-dtype columns via ``_ENCODER_MAP``; pass numerics through."""
 
     _ENCODER_MAP: dict = {
         "ordinal":      ce.OrdinalEncoder,
@@ -88,33 +81,15 @@ class CatFeaturesEncoder(BaseEstimator, TransformerMixin):
 
 
 class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
-    """Wrap TabPFNClassifier to resolve categorical column names to indices at fit time.
+    """Wrap TabPFNClassifier, resolving categorical names to indices at fit time.
 
-    Parameters
-    ----------
-    cat_cols : list[str]
-        Categorical column names (resolved to integer indices at fit time).
-    n_estimators : int
-        Ensemble size — higher is more accurate but slower.
-    balance_probabilities : bool
-        Balance predicted class probabilities.
-    model_version : str, default ``"v2.6"``
-        Checkpoint generation, one of ``ModelVersion``'s values. Pinned rather
-        than left at the package default so that the ``tabpfn`` benchmark
-        results stay reproducible after the package upgraded its default to
-        v3; the ``tabpfn3`` model key passes ``"v3"``.
-    auto_scale_n_estimators : bool, default False
-        Introduced in tabpfn 8.x and on by default there: raises the *effective*
-        ensemble size to cover all features on wide datasets, while leaving
-        ``n_estimators`` — and therefore the reported ``best_params`` — at the
-        requested value. Off by default because the param did not exist in 7.1.1
-        when the ``tabpfn`` results were measured; the ``tabpfn3`` key turns it
-        back on, since for a fresh measurement the library default is the
-        behaviour a user would actually get.
-    device : str, default ``"cpu"``
-        Forwarded to ``TabPFNClassifier``.
-    **tabpfn_params
-        Forwarded verbatim to ``TabPFNClassifier``.
+    ``model_version`` is pinned: the package moved its default to v3, while the
+    ``tabpfn`` results were measured on v2.6. The ``tabpfn3`` key passes v3.
+
+    ``auto_scale_n_estimators`` raises the effective ensemble size on wide
+    datasets while leaving the reported ``best_params`` at the requested value.
+    Off here because it did not exist in 7.1.1 when ``tabpfn`` was measured;
+    ``tabpfn3`` turns it on, that being what a user gets today.
     """
 
     def __init__(
@@ -148,10 +123,10 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
 
     @staticmethod
     def _patch_tabpfn_auth() -> None:
-        """Monkey-patch verify_token to retry on network timeout.
+        """Retry verify_token on network timeout.
 
-        api.priorlabs.ai/protected/ is occasionally slow; 3 retries with 30s
-        timeout each prevents spurious TabPFNLicenseError in long benchmark runs.
+        api.priorlabs.ai is occasionally slow, which otherwise surfaces as a
+        spurious TabPFNLicenseError mid-run.
         """
         import tabpfn.browser_auth as _ba  # noqa: PLC0415
 
@@ -235,32 +210,14 @@ class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
 
 
 class TabICLNativeWrapper(ClassifierMixin, BaseEstimator):
-    """Wrap TabICLClassifier.
+    """Wrap TabICLClassifier, which preprocesses and auto-detects cats itself.
 
-    TabICL has its own internal preprocessor (OrdinalEncoder for cats, imputer
-    for nums); we only forward the DataFrame as-is and let it auto-detect.
+    Device defaults to CPU: MPS segfaults when the benchmark runs detached in
+    the background on Apple silicon, though it works interactively.
 
-    Default device is CPU: MPS crashes (SIGSEGV) when the benchmark runs in a
-    detached background process on Apple Silicon, even though it works fine in
-    interactive sessions. Override with ``device="mps"`` from interactive use.
-
-    Parameters
-    ----------
-    cat_cols : list[str]
-        Unused — kept for signature parity with other native wrappers. TabICL
-        auto-detects categorical columns from pandas dtype.
-    n_estimators : int
-        Ensemble size.
-    softmax_temperature : float
-        Output temperature; <1.0 sharpens, >1.0 softens predicted probabilities.
-    device : str, default ``"cpu"``
-        Forwarded to ``TabICLClassifier``.
-    batch_size : int, default 4
-        Ensemble members processed together. Lower than the TabICL default of 8
-        to cap peak memory on this 24 GB machine (memory is the binding
-        constraint, not compute); does not affect predictions.
-    **tabicl_params
-        Forwarded verbatim to ``TabICLClassifier``.
+    ``batch_size`` is 4 against a library default of 8, to cap peak memory on
+    this 24 GB machine. Predictions are unaffected. ``cat_cols`` is unused,
+    kept for parity with the other native wrappers.
     """
 
     def __init__(
@@ -327,39 +284,13 @@ class TabICLNativeWrapper(ClassifierMixin, BaseEstimator):
 class TabFMNativeWrapper(ClassifierMixin, BaseEstimator):
     """Wrap TabFMClassifier (Google's 1.6B-parameter tabular foundation model).
 
-    Like TabICL, TabFM auto-detects categorical columns from pandas dtype, so
-    the DataFrame is forwarded as-is.
+    Auto-detects cats from dtype; ``cat_cols`` is unused, kept for parity.
 
-    Default device is MPS. TabFM is ~30x larger than TabPFN / TabICL and CPU
-    inference was measured at 17-36x slower than MPS on this machine, which
-    puts a full benchmark run out of reach. Weights are cast to bfloat16 at
-    load time and cached process-wide by the library, so repeated fits pay the
-    ~20 s load cost only once.
-
-    Parameters
-    ----------
-    cat_cols : list[str]
-        Unused — kept for signature parity with the other native wrappers.
-    n_estimators : int, default 4
-        Ensemble size, well below the library default of 32. Measured PR AUC
-        spread across 1 / 4 / 8 / 32 members is under 0.005 on every dataset
-        tried, while wall-clock scales linearly — 4 halves the full run against
-        8. Peak memory is unaffected: with ``batch_size=1`` the members run
-        sequentially.
-    max_num_rows : int, default 5000
-        Cap on the in-context training rows. Memory is *superlinear* in context
-        length — on a 10 000-row dataset the uncapped fit allocated 13.55 GB and
-        drove this 24 GB machine deep into swap, which both slowed it ~5x and
-        made the timings meaningless. 5000 brings that to 9.30 GB. Measured PR
-        AUC across caps 2500 / 5000 / 7500 was 0.476 / 0.501 / 0.485 — flat, so
-        the truncation costs nothing detectable. Affects 22 of the 126 eligible
-        datasets; must be disclosed when comparing against models that see the
-        full training fold.
-    device : str, default ``"mps"``
-        Forwarded to the checkpoint loader — ``TabFMClassifier`` itself takes no
-        device argument and runs wherever the weights were placed.
-    **tabfm_params
-        Forwarded verbatim to ``TabFMClassifier``.
+    ``n_estimators`` is 4 against a library default of 32, and ``max_num_rows``
+    caps in-context rows at 5000 since memory is superlinear in context length
+    — that cap binds on 22 of the 126 eligible datasets. ``device`` reaches the
+    checkpoint loader, not the classifier, which runs where the weights landed;
+    CPU is 17-36x slower. Measurements: FoundationModels_notes.md.
     """
 
     def __init__(
@@ -369,14 +300,12 @@ class TabFMNativeWrapper(ClassifierMixin, BaseEstimator):
         max_num_rows: int = 5000,
         device: str = "mps",
         random_state: int | None = None,
-        **tabfm_params,
     ) -> None:
         self.cat_cols = cat_cols
         self.n_estimators = n_estimators
         self.max_num_rows = max_num_rows
         self.device = device
         self.random_state = random_state
-        self.tabfm_params = tabfm_params
 
     def fit(self, X, y):
         from tabfm import TabFMClassifier
@@ -387,9 +316,6 @@ class TabFMNativeWrapper(ClassifierMixin, BaseEstimator):
             n_estimators=self.n_estimators,
             max_num_rows=self.max_num_rows,
             random_state=self.random_state,
-            **{k: v for k, v in self.tabfm_params.items()
-               if k not in ("model", "n_estimators", "max_num_rows",
-                            "random_state")},
         )
         self._model.fit(X, y)
         self.classes_ = self._model.classes_
@@ -403,40 +329,12 @@ class TabFMNativeWrapper(ClassifierMixin, BaseEstimator):
         X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
         return self._model.predict(X)
 
-    def get_params(self, deep: bool = True) -> dict:
-        params: dict = {
-            "cat_cols": self.cat_cols,
-            "n_estimators": self.n_estimators,
-            "max_num_rows": self.max_num_rows,
-            "device": self.device,
-            "random_state": self.random_state,
-        }
-        params.update(self.tabfm_params)
-        return params
-
-    def set_params(self, **params) -> "TabFMNativeWrapper":
-        self.cat_cols = params.pop("cat_cols", self.cat_cols)
-        self.n_estimators = params.pop("n_estimators", self.n_estimators)
-        self.max_num_rows = params.pop("max_num_rows", self.max_num_rows)
-        self.device = params.pop("device", self.device)
-        self.random_state = params.pop("random_state", self.random_state)
-        self.tabfm_params.update(params)
-        return self
-
 
 class CatBoostNativeWrapper(ClassifierMixin, BaseEstimator):
     """Wrap CatBoostClassifier to use native ``cat_features`` from DataFrame cols.
 
-    Fills NaN in categorical columns with ``"missing"`` before training.
-    ``ClassifierMixin`` must precede ``BaseEstimator`` in MRO so that
-    sklearn 1.7's ``get_tags()`` API correctly identifies this as a classifier.
-
-    Parameters
-    ----------
-    cat_cols : list[str]
-        Names of categorical columns in the input DataFrame.
-    **catboost_params
-        Forwarded verbatim to ``CatBoostClassifier``.
+    ``ClassifierMixin`` must precede ``BaseEstimator`` in the MRO so sklearn
+    1.7's ``get_tags()`` identifies this as a classifier.
     """
 
     def __init__(self, cat_cols: list[str], **catboost_params) -> None:

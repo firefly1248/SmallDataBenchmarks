@@ -15,13 +15,13 @@ Results are produced in `figures.ipynb` (all models including AutoML) and `figur
 | Script | Description |
 |---|---|
 | `compare_baseline_models.py` | SVC, Logistic Regression, Random Forest — tuned with `GridSearchCV` |
-| `optuna_models.py` | SVC, LogReg, TabPFN 2.6, TabPFN-3, TabICL (GridSearch); TabFM (zero-shot); RF, XGBoost, SGD, LightGBM, LightGBM-linear, CatBoost, HistGradientBoosting, ResNet (Optuna TPE, 50 trials per outer fold) |
+| `optuna_models.py` | SVC, LogReg, TabPFN 2.6, TabPFN-3, TabICL (GridSearch); TabFM (zero-shot); RF, XGBoost, SGD, LightGBM, LightGBM-linear, CatBoost, HistGradientBoosting, ResNet, TabNet (Optuna TPE, 50 trials per outer fold) |
 | `benchmark_autogluon.py` | AutoGluon with a 300s wall-clock budget per fold (`best_quality` preset, 8 CPUs) |
 | `benchmark_mljar.py` | MLJAR Supervised with a 300s wall-clock budget per fold (`Compete` mode, `n_jobs=8`) |
 
 The AutoML figures come from the **300s-per-fold** runs (`results/*_sec_300.joblib`, ~20 min per dataset), the budget both frameworks share. A 1000s MLJAR run also exists but the matching AutoGluon run was abandoned after 11 datasets, so plotting it would compare the two at different budgets.
 
-TabNet and FT-Transformer are **not in this iteration**. Both were previously reported on numbers produced by a run in which they were largely failing to train; see [Findings_notes.md](Findings_notes.md#the-bug-that-produced-two-published-results) and [FT_transformer_notes.md](FT_transformer_notes.md).
+FT-Transformer is **not in this iteration**. It and TabNet were previously reported on numbers produced by runs in which they were largely failing to train; TabNet is now measured properly. See [Findings_notes.md](Findings_notes.md#the-bug-that-produced-two-published-results) and [FT_transformer_notes.md](FT_transformer_notes.md).
 
 To reproduce all results sequentially:
 
@@ -39,7 +39,7 @@ PYTHONUNBUFFERED=1 .venv/bin/python -u benchmark_autogluon.py
 - **TabPFN, TabFM** — native categorical indices
 - **TabICL** — auto-detects categorical columns from pandas dtype
 - **RF, XGBoost, LightGBM, HistGradientBoosting** — ordinal encoding via `category_encoders` (NaN handled natively)
-- **ResNet** — ordinal-encode + impute + StandardScaler inside the wrapper
+- **ResNet, TabNet** — ordinal-encode + impute inside the wrapper (ResNet also standardises)
 - **SVC, LogReg, SGD** — encoding strategy is a search hyperparameter (ordinal, target, James–Stein, m-estimate, CatBoost encoder)
 
 AutoGluon and MLJAR handle categorical features internally.
@@ -76,12 +76,12 @@ How often each model achieves each rank (1 = best on a given dataset).
 
 ## Observations
 
-- **Cost does not track performance.** The two most expensive models, TabPFN 2.6 (236.3 h) and ResNet (207.7 h), rank eleventh and twelfth of fourteen. Together they cost more than every other model combined and both land below Random Forest at 7.6 h. Full ladder in [Findings_notes.md](Findings_notes.md#cost-does-not-track-performance).
+- **Cost does not track performance.** The three most expensive models — TabNet (485.3 h), TabPFN 2.6 (236.3 h) and ResNet (207.7 h) — rank last, eleventh and twelfth of fifteen, all below Random Forest at 7.6 h. Full ladder in [Findings_notes.md](Findings_notes.md#cost-does-not-track-performance).
 - **Foundation models have no shared blind spot.** They match or beat the best of ten classical models on 116 of 146 datasets (79.5%), and only 2 datasets have any classical model ahead by more than 0.02. An earlier version of this README claimed a blind spot on small imbalanced medical data; that was a scoring bug, described in [Findings_notes.md](Findings_notes.md#label-ordering-silently-changed-the-metric).
 - **Ensembling never helped.** Averaging stored predictions — probability, logit and rank — across every combination tried failed to beat the best single model. The strongest, a logit average of the three foundation models, ties it to within 0.0001 and wins on 39% of datasets. Adding CatBoost to that trio makes it worse.
 - **Where foundation models win big is synthetic structured noise**, not small data generally: on `hill-valley-with-noise` CatBoost scores 0.5560 against TabICL's 0.9967.
-- **TabPFN-3 is the coverage answer.** It is the only model that scores all 146 datasets, and on the 20 that at least one other foundation model refuses it beats the best classical model on 16.
-- **Trained-from-scratch neural networks lose.** ResNet spends 207.7 h to land below Random Forest. The line is not "neural loses" — TabICL is a neural model and is both cheap and strong — but between *trained from scratch on your 1500 rows* and *pretrained, used in context*.
+- **TabPFN-3 is the coverage answer.** It is the only foundation model that scores all 146 datasets, and on the 20 that at least one other foundation model refuses it beats the best classical model on 16.
+- **Trained-from-scratch neural networks lose.** ResNet spends 207.7 h to land below Random Forest, and TabNet 485.3 h to finish last. The line is not "neural loses" — TabICL is a neural model and is both cheap and strong — but between *trained from scratch on your 1500 rows* and *pretrained, used in context*.
 - Non-linear models outperform linear ones even on datasets with fewer than 100 samples.
 - Proper categorical feature handling gives a meaningful boost on datasets with string features (~30% of the benchmark).
 

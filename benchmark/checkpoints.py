@@ -1,12 +1,12 @@
 """Benchmark checkpoints, one joblib file per model.
 
 `results/ckpt/<model>.joblib` holds `{dataset_name: {"scores", "preds",
-"labels", "best_params", "time"}}`. One file per model rather than one shared
-file so that several runs can work on different models concurrently without
-clobbering each other, and so a save rewrites a few MB instead of all of them.
+"labels", "best_params", "time"}}`. One file per model so concurrent runs on
+different models cannot clobber each other, and a save rewrites a few MB
+instead of all of them.
 """
-import glob
 import os
+from pathlib import Path
 
 import joblib
 
@@ -27,8 +27,7 @@ def ckpt_path(model_name):
 
 def available_models():
     """Every model with a checkpoint on disk."""
-    return sorted(os.path.basename(p)[: -len(".joblib")]
-                  for p in glob.glob(os.path.join(CKPT_DIR, "*.joblib")))
+    return sorted(p.stem for p in Path(CKPT_DIR).glob("*.joblib"))
 
 
 def load_by_model(model_names=None):

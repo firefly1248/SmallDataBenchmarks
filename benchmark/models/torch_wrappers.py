@@ -21,8 +21,6 @@ from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 from config import RANDOM_STATE
 
 
-# ── preprocessing ────────────────────────────────────────────────────────────
-
 class _Preprocessor:
     """Fit/transform: impute NaN → ordinal-encode cats → StandardScale nums."""
 
@@ -38,7 +36,7 @@ class _Preprocessor:
                 unknown_value=-1,
                 encoded_missing_value=-1,
             ).fit(Xc)
-            # cardinality = len(known cats) + 1 slot for unknown/missing (index 0)
+            # +1 for the unknown/missing slot at index 0
             self.cat_cardinalities_: list[int] = [len(c) + 1 for c in self._ord.categories_]
         else:
             self.cat_cardinalities_ = []
@@ -78,8 +76,6 @@ class _Preprocessor:
         return len(self.cat_cols_)
 
 
-# ── shared rtdl training loop ─────────────────────────────────────────────────
-
 def _get_device() -> torch.device:
     if torch.backends.mps.is_available():
         return torch.device("mps")
@@ -101,14 +97,11 @@ def _train_rtdl_on_device(
     patience: int,
     device: torch.device,
 ) -> nn.Module:
-    # Seed torch RNG: rtdl.make_baseline already constructed the model using the
-    # global torch RNG, but every subsequent stochastic op (dropout, randperm,
-    # AdamW noise) lives here, so seeding here pins per-fit determinism.
+    # Dropout, randperm and AdamW noise all draw here, so this pins the fit.
     torch.manual_seed(RANDOM_STATE)
     y = np.asarray(y)
     n = len(y)
-    # ~20 % for n ≤ 100 (more reliable early-stop signal on small data), ~15 % for n ≥ 200.
-    # Stratified so the signal covers every class — see the TabNet split below.
+    # ~20 % of small n, ~15 % of large; stratified so every class reaches val.
     val_n = max(int(0.15 * n), min(20, n // 5), len(np.unique(y)))
     tr_idx, val_idx = next(
         StratifiedShuffleSplit(n_splits=1, test_size=val_n, random_state=RANDOM_STATE)
@@ -145,8 +138,7 @@ def _train_rtdl_on_device(
         perm = torch.randperm(n_tr, device=device)
         for start in range(0, n_tr, batch_size):
             b = perm[start : start + batch_size]
-            # BatchNorm needs >1 value per channel in train mode; a size-1
-            # remainder raises and kills the dataset.
+            # BatchNorm raises on a single row.
             if len(b) == 1:
                 continue
             logits = forward_fn(model, Xn_tr[b], Xc_tr[b])
@@ -158,7 +150,7 @@ def _train_rtdl_on_device(
         with torch.no_grad():
             val_loss = loss_fn(forward_fn(model, Xn_val, Xc_val), y_val).item()
 
-        # NaN val_loss (numerical blow-up) should count as no-improvement, not a new best.
+        # A blown-up NaN loss is no-improvement, not a new best.
         if np.isfinite(val_loss) and val_loss < best_val - 1e-6:
             best_val = val_loss
             best_state = {k: v.clone() for k, v in model.state_dict().items()}
@@ -188,8 +180,8 @@ def _train_rtdl(
 ) -> nn.Module:
     """Train with AdamW + early stopping (15–20 % val split). Returns best model."""
     device = _get_device()
-    # Skip MPS for extreme feature counts — MPS allocation failures can trigger
-    # macOS jetsam (silent kill) before Python sees the RuntimeError.
+    # MPS allocation failure on wide inputs gets the process jetsam-killed
+    # before Python sees the RuntimeError.
     n_features = X_num.shape[1] + X_cat.shape[1]
     if n_features > 500 and device.type == "mps":
         device = torch.device("cpu")
@@ -234,7 +226,7 @@ def _predict_proba_rtdl(
             chunks.append(logits)
     logits = np.concatenate(chunks)
     if n_classes == 2:
-        # Numerically stable sigmoid: avoids overflow when logits are very negative.
+        # Stable sigmoid: plain exp overflows on very negative logits.
         z = logits.ravel()
         p = np.where(z >= 0,
                      1.0 / (1.0 + np.exp(-z)),
@@ -243,8 +235,6 @@ def _predict_proba_rtdl(
     exp = np.exp(logits - logits.max(1, keepdims=True))
     return exp / exp.sum(1, keepdims=True)
 
-
-# ── TabNet ────────────────────────────────────────────────────────────────────
 
 class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
     """Wraps pytorch_tabnet.TabNetClassifier with DataFrame + cat_cols support."""
@@ -297,7 +287,7 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
             cat_idxs.append(cols.index(col))
             cat_dims.append(len(cats))
 
-        # Impute numerics. If a column is entirely NaN, median() is NaN; fall back to 0.
+        # An all-NaN column has a NaN median; fall back to 0.
         self._num_medians = {}
         for c in num_cols:
             m = X[c].median()
@@ -309,23 +299,23 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
         self._num_cols = num_cols
         X_np = X[cols].values.astype(np.float32)
 
-        # ~20 % for small n, ~15 % for large n — see _train_rtdl for rationale.
-        # Stratified: the previous split was unstratified and seeded from a
-        # constant, so a rare class missing from validation made logloss raise
-        # identically on every trial — a permanent loss of 26 of 146 datasets.
+        # Stratified: a rare class missing from val makes logloss raise on
+        # every trial, losing the dataset.
         val_n = max(int(0.15 * len(y)), min(20, len(y) // 5), len(np.unique(y)))
         ti, vi = next(
             StratifiedShuffleSplit(n_splits=1, test_size=val_n, random_state=RANDOM_STATE)
             .split(X_np, y)
         )
 
+        # drop_last defaults to True, so a split below batch_size would train on
+        # nothing at all. Batches that small run several times faster on CPU:
+        # MPS dispatch overhead outweighs the math.
+        small = len(ti) < self.batch_size
+        bs = max(16, len(ti) // 8) if small else self.batch_size
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            # device_name explicitly: pytorch-tabnet's "auto" only ever picks
-            # cuda or cpu, so on Apple silicon it silently trained on CPU.
-            # Forcing mps is ~4x faster with no cost in score — measured over 5
-            # seeds per device, the two distributions overlap (abalone-3class
-            # 0.5398+/-0.0763 cpu vs 0.5733+/-0.0245 mps).
+            # pytorch-tabnet's "auto" knows only cuda and cpu.
             self._clf = TabNetClassifier(
                 n_d=self.n_d, n_a=self.n_a, n_steps=self.n_steps,
                 gamma=self.gamma, n_independent=self.n_independent,
@@ -334,7 +324,7 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
                 optimizer_params={"lr": self.lr},
                 cat_idxs=cat_idxs, cat_dims=cat_dims, cat_emb_dim=1,
                 seed=RANDOM_STATE, verbose=0,
-                device_name=_get_device().type,
+                device_name="cpu" if small else _get_device().type,
             )
             self._clf.fit(
                 X_np[ti], y[ti],
@@ -342,7 +332,9 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
                 eval_metric=["logloss"],
                 max_epochs=self.max_epochs,
                 patience=self.patience,
-                batch_size=self.batch_size,
+                batch_size=bs,
+                virtual_batch_size=min(128, bs),
+                drop_last=len(ti) % bs == 1,  # BatchNorm raises on a batch of one
             )
 
         self.classes_ = self._clf.classes_
@@ -379,8 +371,6 @@ class TabNetNativeWrapper(ClassifierMixin, BaseEstimator):
             setattr(self, k, v)
         return self
 
-
-# ── FT-Transformer ────────────────────────────────────────────────────────────
 
 class FTTransformerWrapper(ClassifierMixin, BaseEstimator):
     """Wraps rtdl.FTTransformer with DataFrame + cat_cols support."""
@@ -423,7 +413,7 @@ class FTTransformerWrapper(ClassifierMixin, BaseEstimator):
         self._prep = _Preprocessor().fit(X, self.cat_cols)
         X_num, X_cat = self._prep.transform(X)
 
-        # rtdl requires n_num_features >= 1; pad with a bias column when needed
+        # rtdl requires n_num_features >= 1.
         self._num_padded = self._prep.n_num == 0
         if self._num_padded:
             X_num = np.ones((len(X), 1), dtype=np.float32)
@@ -432,7 +422,7 @@ class FTTransformerWrapper(ClassifierMixin, BaseEstimator):
         n_num = X_num.shape[1]
         cat_cards = self._prep.cat_cardinalities_ if self._prep.n_cat > 0 else None
 
-        # Pin weight-init RNG (rtdl uses the global torch RNG inside make_baseline).
+        # make_baseline draws weights from the global torch RNG.
         torch.manual_seed(RANDOM_STATE)
         self._model = rtdl.FTTransformer.make_baseline(
             n_num_features=n_num,
@@ -488,8 +478,6 @@ class FTTransformerWrapper(ClassifierMixin, BaseEstimator):
         return self
 
 
-# ── ResNet ────────────────────────────────────────────────────────────────────
-
 class ResNetWrapper(ClassifierMixin, BaseEstimator):
     """Wraps rtdl.ResNet. Ordinal-encodes cats and stacks with scaled numerics."""
 
@@ -528,12 +516,11 @@ class ResNetWrapper(ClassifierMixin, BaseEstimator):
 
         self._prep = _Preprocessor().fit(X, self.cat_cols)
         X_num, X_cat = self._prep.transform(X)
-        # stack cats as float alongside numerics
         X_all = np.hstack([X_num, X_cat.astype(np.float32)])
         X_cat_empty = np.empty((len(X_all), 0), dtype=np.int64)
 
         d_out = 1 if self._n_classes == 2 else self._n_classes
-        # Pin weight-init RNG (rtdl uses the global torch RNG inside make_baseline).
+        # make_baseline draws weights from the global torch RNG.
         torch.manual_seed(RANDOM_STATE)
         self._model = rtdl.ResNet.make_baseline(
             d_in=X_all.shape[1],

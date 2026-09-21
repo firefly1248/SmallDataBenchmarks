@@ -12,9 +12,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, cross_val_score, StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline
-from benchmark.data import load_data  # intentionally not load_data_df: this meta-dataset has swallowed
-                                      # information about what's categorical and what isn't, so we treat
-                                      # every feature as continuous via one-hot encoding
+# Not load_data_df: this meta-dataset has lost which features are categorical,
+# so every one is treated as continuous.
+from benchmark.data import load_data
 from benchmark.metrics import PR_AUC_SCORER
 from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, N_INNER_FOLDS, MAX_DATASET_ROWS
 
@@ -22,15 +22,14 @@ from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, N_INNER_FOLDS, MAX_DATAS
 def evaluate_pipeline_helper(X, y, pipeline, param_grid, scoring=PR_AUC_SCORER, random_state=RANDOM_STATE):
     inner_cv = StratifiedKFold(n_splits=N_INNER_FOLDS, shuffle=True, random_state=random_state)
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=random_state)
-    # Note: both GridSearchCV and cross_val_score use n_jobs=N_JOBS (legacy script).
-    # This causes N_JOBS² thread contention; acceptable since results are already saved.
+    # Nested n_jobs=N_JOBS costs N_JOBS² threads; kept because the published
+    # numbers were measured with it.
     clf = GridSearchCV(estimator=pipeline, param_grid=param_grid, cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)
     nested_score = cross_val_score(clf, X=X, y=y, cv=outer_cv, scoring=scoring, n_jobs=N_JOBS)
     return nested_score
 
 
 def define_and_evaluate_pipelines(X, y, random_state=RANDOM_STATE):
-    # LinearSVC
     pipeline1 = Pipeline(
         [
             ("scaler", MinMaxScaler()),
@@ -44,7 +43,6 @@ def define_and_evaluate_pipelines(X, y, random_state=RANDOM_STATE):
         "svc__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2],
     }
 
-    # logistic regression
     pipeline2 = Pipeline(
         [
             ("scaler", MinMaxScaler()),
@@ -60,7 +58,6 @@ def define_and_evaluate_pipelines(X, y, random_state=RANDOM_STATE):
         "logistic__C": [1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2],
     }
 
-    # random forest
     pipeline3 = RandomForestClassifier(random_state=random_state)
     param_grid3 = {
         "max_depth": [1, 2, 4, 8, 16, 32, None],
@@ -96,7 +93,7 @@ if __name__ == "__main__":
     for i, dataset_name in enumerate(database.index.values):
         if dataset_name not in done_set:
             X, y = load_data(dataset_name)
-            # datasets might have too few samples per class
+            # too few samples per class to stratify
             if len(y) > 0 and np.sum(pd.Series(y).value_counts() <= 15) == 0:
                 rng = np.random.default_rng(RANDOM_STATE)
                 if len(y) > MAX_DATASET_ROWS:
