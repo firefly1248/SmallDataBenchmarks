@@ -7,7 +7,7 @@ dependencies = [
     "scipy",
     "pandas",
     "seaborn",
-    "scikit-learn",
+    "scikit-learn>=1.7",  # brier_score_loss: multiclass + scale_by_half
     "lightgbm",
     "xgboost",
     "catboost",

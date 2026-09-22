@@ -183,6 +183,93 @@ percentage, its memory, its progress per dataset — looked normal. Wall-clock p
 dataset was the only affected number, and it is exactly the number a benchmark
 publishes.
 
+## Which headline gaps the data actually supports
+
+Every ranking in this benchmark is a list of means, and the gaps between neighbours
+run 0.002-0.009 — well inside the seed variance measured on a single model. The
+figures now test them: Friedman as an omnibus, then Wilcoxon signed-rank on every
+pair with Holm correction, over the 106 datasets every model scores. One dataset is
+one observation; the four folds of a dataset share their data and would inflate the
+sample fourfold.
+
+The family is 17 models, so 136 pairs. The three GridSearch baselines from
+`compare_baseline_models.py` are left out of it: they are the same learners as their
+tuned entries, pairs between the two versions are not comparisons this report makes,
+and carrying them would widen the family to 190 pairs and weaken every verdict.
+
+Nemenyi's critical distance is not used. It compares average ranks, and a model's
+average rank moves when an unrelated model joins the comparison, so the verdict on a
+pair depends on company it never met. Wilcoxon reads only the pair's own scores.
+The Holm multiplier still depends on the family size, which is why the family is
+stated rather than assumed.
+
+| comparison | mean gap | wins | raw p | Holm p | verdict |
+|---|---|---|---|---|---|
+| MLJAR over TabFM | +0.0295 | 61 / 106 | 0.015 | 0.43 | not separable |
+| TabFM over TabPFN-3 | +0.0041 | 73 / 106 | 8e-05 | 0.004 | separable |
+| CatBoost over HistGradientBoosting | +0.0067 | 75 / 106 | 4e-06 | 0.0003 | separable |
+| CatBoost over Random Forest | +0.0021 | 70 / 106 | 0.0009 | 0.04 | separable |
+| CatBoost over LightGBM Linear | -0.0006 | 60 / 106 | 0.08 | 1 | not separable |
+
+The first row is the one that mattered. The README said AutoML wins; MLJAR's 0.03
+lead over TabFM comes from large gains on a minority of datasets, and the paired
+test does not separate the two. That verdict rests on the correction — the raw
+p-value is 0.015 — which is the honest thing to report rather than either number
+alone.
+
+The rest run the other way. Gaps of 0.002 to 0.007, small enough to read as noise
+in a table of means, are consistent enough across datasets to survive correction
+for 136 comparisons.
+
+The critical-difference figure draws a bar only where every pair inside it is
+inseparable, so MLJAR and TabFM end up under no common bar despite that first row:
+TabPFN-3 ranks between them and does separate from TabFM.
+
+## PR AUC cannot see calibration
+
+PR AUC scores an ordering. A model that ranks every positive above every negative
+is perfect by that measure whether its 0.9 means 0.9 or 0.6. Nothing in this
+benchmark read the probabilities themselves until now.
+
+Brier and top-label ECE over the stored out-of-fold predictions, 108 datasets
+scored by all fourteen models that kept predictions:
+
+| model | PR AUC | Brier | ECE |
+|---|---|---|---|
+| TabFM | 0.8596 | 0.1881 | **0.0367** |
+| TabICL | 0.8574 | 0.1905 | 0.0405 |
+| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 |
+| SVC | 0.8240 | 0.2350 | 0.0477 |
+| ResNet | 0.8211 | 0.2446 | 0.0512 |
+| XGBoost | 0.8294 | 0.2394 | 0.0627 |
+| LightGBM | 0.8311 | 0.2443 | 0.0674 |
+| Logistic Regression | 0.7838 | 0.3084 | 0.0732 |
+| HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 |
+| Random Forest | 0.8325 | 0.2410 | 0.0747 |
+| LightGBM Linear | 0.8348 | 0.2457 | 0.0756 |
+| CatBoost | 0.8342 | 0.2496 | 0.0848 |
+| TabNet | 0.7529 | 0.3238 | 0.0851 |
+| SGD | 0.7837 | 0.3254 | **0.1000** |
+
+The three foundation models hold the three best ECE values. CatBoost — the top
+classical model on PR AUC, tied there with LightGBM Linear — is twelfth of the
+fourteen on calibration, with only TabNet and SGD behind it. Rank by PR AUC and
+rank by calibration disagree about which classical model to reach for.
+
+This cost nothing to measure: the per-fold probabilities and labels have been in
+`results/ckpt/<model>.joblib` all along. AutoGluon and MLJAR are the exception —
+their runners stored scores and times only, so the two models the README used to
+call the winners cannot be checked for calibration without a re-run.
+
+TabPFN 2.6 is excluded. Predictions survive for 80 of its datasets, and requiring
+them would cut the complete cases from 108 to 62. The figure notebook computes both
+tables, so the difference is checkable: on the smaller set the three foundation
+models still lead and SGD is still last, while the middle shifts by a place or two
+— LightGBM Linear rises from eleventh to ninth, Random Forest and
+HistGradientBoosting each drop one. Sixty-two datasets are too few to tell those
+moves from noise, which is the reason for the exclusion rather than a claim that
+the two sets agree.
+
 ## Ensembles over the stored predictions never help
 
 Every model stores per-fold probability matrices, so combining them costs arithmetic

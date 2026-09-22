@@ -10,7 +10,7 @@ uv sync
 
 ## Experiments
 
-Results are produced in `figures.ipynb` (all models including AutoML) and `figures_no_automl.ipynb` (non-AutoML models only). Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which is less sensitive to class imbalance than ROC AUC.
+Results are produced in `figures.ipynb` (all models including AutoML) and `figures_no_automl.ipynb` (non-AutoML models only). Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which is less sensitive to class imbalance than ROC AUC. Differences between models are tested with Friedman followed by pairwise Wilcoxon signed-rank with Holm correction, one dataset per observation. Calibration is reported separately as Brier score and top-label ECE, since PR AUC scores ranking only.
 
 | Script | Description |
 |---|---|
@@ -48,13 +48,13 @@ AutoGluon and MLJAR handle categorical features internally.
 
 There are three tiers, and they are separated by cost as much as by performance.
 
-**AutoML wins, given twenty minutes a dataset.** On the 124 datasets every model covers, MLJAR reaches 0.8965 mean PR AUC and AutoGluon 0.8944, against 0.8721 for the best foundation model. MLJAR beats TabICL on 61% of those datasets and TabFM on 56%.
+**AutoML and the current foundation models are one tier.** On the 106 datasets the figures use, MLJAR leads TabFM by 0.0295 mean PR AUC but wins only 61 of them. That lead is nominally significant (Wilcoxon signed-rank, p = 0.015) and does not survive correction for the 136 pairwise comparisons in the family (Holm p = 0.43) — the honest reading is that this benchmark does not separate them. Both separate cleanly from the best classical model: MLJAR over CatBoost p = 0.001, TabFM over CatBoost p = 4e-10 on 89 of 106 datasets. What sets AutoML apart here is the budget it is handed — twenty minutes a dataset — not a different class of result.
 
-**Foundation models are the best value.** TabFM reaches 0.8653 over its 126 datasets in **4.3 hours total** — the highest mean of any single model in the benchmark, for less compute than XGBoost. TabICL is the CPU choice at 0.8574 over 142 datasets in 34.7 hours. The three current-generation models (TabFM, TabICL, TabPFN-3) are practically equivalent on performance, spanning 0.0043; what separates them is cost and coverage. See [FoundationModels_notes.md](FoundationModels_notes.md).
+**Foundation models are the cheapest way into that tier, on the right hardware.** TabFM reaches 0.8653 over its 126 datasets in 4.3 hours, but it ran on MPS while everything else here ran on CPU. At the 17-36x CPU/MPS ratio measured on this machine that is 73-155 CPU-hours against XGBoost's 7.4, so its time column is not comparable to the rest of the table. TabICL is the CPU answer: 0.8574 over 142 datasets in 34.7 hours. The three current-generation models span 0.0043, and the test still separates TabFM from TabPFN-3 (p = 0.004, 73 wins of 106) — the gap is small, not absent. See [FoundationModels_notes.md](FoundationModels_notes.md).
 
-**The classical models are nearly interchangeable.** CatBoost 0.8386, LightGBM-linear 0.8374, Random Forest 0.8359, LightGBM 0.8345, XGBoost 0.8328, HistGradientBoosting 0.8303 — the whole block spans 0.009, which is less than the run-to-run seed variance measured on a single neural model. Random Forest gets 0.8359 for 7.6 hours; CatBoost gets +0.003 more for 75.7.
+**The classical models are nearly interchangeable, with one real ordering inside.** CatBoost 0.8386, LightGBM-linear 0.8374, Random Forest 0.8359, LightGBM 0.8345, XGBoost 0.8328, HistGradientBoosting 0.8303 — the whole block spans 0.009, which is less than the run-to-run seed variance measured on a single neural model. The test still puts CatBoost above HistGradientBoosting (p = 0.0003) and above Random Forest (p = 0.04, a 0.0021 gap won on 70 of 106 datasets), while leaving it tied with LightGBM-linear. Random Forest gets 0.8359 for 7.6 hours; CatBoost gets +0.003 more for 75.7.
 
-Coverage differs by model and the means above are each over a model's own datasets. Only 126 of 146 datasets are scored by every model; the figures below state `n` on every row and the rank heatmap uses complete cases only.
+Coverage differs by model and the means above are each over a model's own datasets. Only 124 of 146 datasets are scored by every model. Every figure below uses complete cases only and states its own `n`, which differs because the populations differ: the rank distribution is drawn without the two AutoML models and with both the tuned and the untuned entries of SVC, LogReg and Random Forest (108 datasets, 18 entries), while the critical-difference diagram includes AutoML and drops the untuned duplicates (106 datasets, 17). Reconciling the two is [open work](#known-gaps).
 
 ## Results
 
@@ -74,6 +74,23 @@ How often each model achieves each rank (1 = best on a given dataset).
 
 ![Rank distribution](figures/rank_distribution.png)
 
+### Which differences the data supports
+
+Average rank over the datasets every model scores, with a bar over each group the
+paired test cannot separate. A bar requires every pair inside it to be inseparable,
+so MLJAR and TabFM carry no common bar even though the test does not separate them:
+TabPFN-3 sits between them in rank and does separate from TabFM.
+
+![Critical difference diagram](figures/critical_difference.png)
+
+### Calibration
+
+PR AUC scores ranking only, so a model can order every case correctly and still be
+systematically overconfident. Brier and ECE come from the same stored out-of-fold
+predictions; AutoGluon and MLJAR keep none and are absent here.
+
+![Calibration vs performance](figures/calibration.png)
+
 ## Observations
 
 - **Cost does not track performance.** The three most expensive models — TabNet (485.3 h), TabPFN 2.6 (236.3 h) and ResNet (207.7 h) — rank last, eleventh and twelfth of fifteen, all below Random Forest at 7.6 h. Full ladder in [Findings_notes.md](Findings_notes.md#cost-does-not-track-performance).
@@ -81,11 +98,18 @@ How often each model achieves each rank (1 = best on a given dataset).
 - **Ensembling never helped.** Averaging stored predictions — probability, logit and rank — across every combination tried failed to beat the best single model. The strongest, a logit average of the three foundation models, ties it to within 0.0001 and wins on 39% of datasets. Adding CatBoost to that trio makes it worse.
 - **Where foundation models win big is synthetic structured noise**, not small data generally: on `hill-valley-with-noise` CatBoost scores 0.5560 against TabICL's 0.9967.
 - **TabPFN-3 is the coverage answer.** It is the only foundation model that scores all 146 datasets, and on the 20 that at least one other foundation model refuses it beats the best classical model on 16.
+- **The best-ranking model is not the best-calibrated one.** The three current foundation models take the three lowest ECE values (0.0367-0.0443); CatBoost, the strongest classical model on PR AUC, is twelfth of fourteen at 0.0848. Anything that consumes the probability rather than the ordering — a threshold, a cost model, a downstream expected value — gets a different answer from these two rankings.
 - **Trained-from-scratch neural networks lose.** ResNet spends 207.7 h to land below Random Forest, and TabNet 485.3 h to finish last. The line is not "neural loses" — TabICL is a neural model and is both cheap and strong — but between *trained from scratch on your 1500 rows* and *pretrained, used in context*.
 - Non-linear models outperform linear ones even on datasets with fewer than 100 samples.
 - Proper categorical feature handling gives a meaningful boost on datasets with string features (~30% of the benchmark).
 
 Method defects found and fixed during this iteration, including two that had produced published numbers, are written up in [Findings_notes.md](Findings_notes.md).
+
+### Known gaps
+
+- The figures are rendered by two notebooks over different model sets, so `rank_distribution.png` (no AutoML, 18 entries) and `critical_difference.png` (AutoML, 17) disagree about the denominator of a rank. One loader owning the dataset filters and the model set would remove the mismatch.
+- The 15 duplicate datasets and the 0.99 filter are hardcoded in both notebooks rather than in `config.py`, and the duplicates are dropped after the run rather than before it — about 10 % of the compute goes to datasets no figure shows.
+- AutoGluon and MLJAR store no predictions, so they are absent from the calibration figure and cannot be ensembled or re-scored without a re-run.
 
 ### Note on AutoGluon operational complexity
 
