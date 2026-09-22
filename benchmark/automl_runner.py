@@ -14,7 +14,7 @@ import numpy as np
 
 from benchmark.checkpoints import atomic_dump
 from benchmark.data import load_data
-from config import MAX_DATASET_ROWS, RANDOM_STATE
+from config import DUPLICATE_DATASETS, MAX_DATASET_ROWS, RANDOM_STATE
 
 
 def _load_checkpoint(
@@ -65,6 +65,11 @@ def run_automl_benchmark(
     for i, dataset_name in enumerate(evaluated_datasets):
         if dataset_name in checkpoint:
             print(f"[{i+1}/{n_total}] {dataset_name}  — skipping (done)")
+            continue
+        # Skipped here rather than filtered out of the list: rf_results is
+        # indexed by i, and a shorter list would misattribute every baseline.
+        if dataset_name in DUPLICATE_DATASETS:
+            print(f"[{i+1}/{n_total}] {dataset_name}  — skipping (UCI++ duplicate)")
             continue
 
         X, y = load_data(dataset_name)

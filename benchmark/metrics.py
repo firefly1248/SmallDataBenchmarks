@@ -23,6 +23,21 @@ def pr_auc_score(y_true: np.ndarray, y_prob: np.ndarray) -> float:
     return float(average_precision_score(y_true, y_prob, average="weighted"))
 
 
+def pr_auc_baseline(y_true: np.ndarray, n_classes: int) -> float:
+    """What a constant predictor scores: the floor this metric starts from.
+
+    ROC AUC starts at 0.5 whatever the data, so a weak model is obvious from the
+    number alone. Average precision starts at the positive class share, which is
+    0.09 on some datasets here and 0.5 on others — a score only means something
+    next to this. A run sitting on its baseline has learned nothing, however
+    respectable it looks in a column of means.
+    """
+    shares = np.bincount(y_true, minlength=n_classes) / len(y_true)
+    if n_classes == 2:
+        return float(shares[1])
+    return float(np.sum(shares ** 2))
+
+
 PR_AUC_SCORER = make_scorer(pr_auc_score, response_method="predict_proba")
 """``pr_auc_score`` as an sklearn scorer.
 
