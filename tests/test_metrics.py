@@ -7,7 +7,7 @@ from sklearn.datasets import load_iris
 from sklearn.dummy import DummyClassifier
 from sklearn.model_selection import cross_val_score
 
-from benchmark.metrics import PR_AUC_SCORER, pr_auc_score
+from benchmark.metrics import PR_AUC_SCORER, pr_auc_baseline, pr_auc_score
 
 
 class TestPrAucScore:
@@ -39,6 +39,34 @@ class TestPrAucScore:
         prob = np.array([[0.9, 0.1], [0.8, 0.2], [0.1, 0.9], [0.2, 0.8]])
         score = pr_auc_score(y, prob)
         assert score > 0.9
+
+
+class TestPrAucBaseline:
+    """The floor must be what a constant predictor actually scores."""
+
+    @pytest.mark.parametrize("shares", [[0.5, 0.5], [0.9, 0.1], [0.32, 0.35, 0.33],
+                                        [0.07, 0.63, 0.30], [0.55, 0.25, 0.03, 0.17]])
+    def test_matches_a_constant_predictor(self, shares):
+        rng = np.random.default_rng(0)
+        n_classes = len(shares)
+        y = rng.choice(n_classes, 2000, p=shares)
+        observed = np.bincount(y, minlength=n_classes) / len(y)
+        constant = np.tile(observed, (len(y), 1))
+        assert pr_auc_baseline(y, n_classes) == pytest.approx(pr_auc_score(y, constant))
+
+    def test_binary_baseline_is_the_positive_share(self):
+        y = np.array([0, 0, 0, 1])
+        assert pr_auc_baseline(y, 2) == pytest.approx(0.25)
+
+    def test_balanced_multiclass_baseline_is_one_over_k(self):
+        y = np.array([0, 1, 2, 0, 1, 2])
+        assert pr_auc_baseline(y, 3) == pytest.approx(1 / 3)
+
+    def test_imbalance_raises_the_floor_above_a_good_looking_score(self):
+        """0.85 is below the floor when 85 % of the labels are one class."""
+        y = np.array([0] * 85 + [1] * 15)
+        assert pr_auc_baseline(y, 2) == pytest.approx(0.15)
+        assert pr_auc_baseline(1 - y, 2) == pytest.approx(0.85)
 
 
 class TestPrAucScorer:

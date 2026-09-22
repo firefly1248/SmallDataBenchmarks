@@ -65,9 +65,36 @@ datasets TabNet moves from 0.4662 to 0.7345 (CatBoost 0.8160); overall from 0.59
 0.7507, and from 2 to 11 datasets ahead of CatBoost. It still ranks last.
 
 **A full count of scores is not enough either.** An untrained classifier returns a
-valid number on every dataset. The tell is a score sitting on the prevalence baseline
-— the positive-class share, or for weighted multiclass PR AUC the sum of squared
-class shares — and it is worth checking per dataset before trusting a mean.
+valid number on every dataset. The tell is a score sitting on the prevalence
+baseline, which `scripts/check_prevalence_baseline.py` now computes for every stored
+pair — see the next section.
+
+## The floor this metric starts from
+
+ROC AUC begins at 0.5 no matter what the data looks like, so a useless model is
+obvious from the number alone. Weighted PR AUC begins at the class prevalence: the
+positive-class share for binary, the sum of squared class shares for multiclass.
+That floor ranges from 0.09 to 0.85 across these 146 datasets, so a score means
+nothing without it. `benchmark.metrics.pr_auc_baseline` computes it, and a test
+pins it to what a constant predictor actually scores.
+
+`scripts/check_prevalence_baseline.py` compares every stored score against its own
+floor. Ten of roughly 2100 pairs sit within 0.01 of it, and the two datasets behind
+them are worth knowing about:
+
+| dataset | baseline | flagged | best model | models above the floor |
+|---|---|---|---|---|
+| `thoracic-surgery` | 0.8511 | TabNet 0.8376, SVC 0.8515 | TabFM 0.9132 | 14 / 15 |
+| `planning-relax` | 0.2857 | five, from LightGBM 0.2478 up | SVC 0.4044 | 10 / 15 |
+
+TabNet's 0.8376 on `thoracic-surgery` is the illustration: in a column of means it
+reads as one of the better results in the benchmark, and it is below what predicting
+the majority class achieves. The flagged pairs are not datasets that defeat
+everything — most models clear the floor on both — which is what makes them worth
+looking at.
+
+The check prints a report and is not a test that fails. A dataset can legitimately
+defeat a model, and a build that breaks on an honest result gets switched off.
 
 ## Label ordering silently changed the metric
 
@@ -329,17 +356,17 @@ and with a GPU.
 
 ## Fifteen datasets are duplicates
 
-UCI++ reuses the same underlying data in different configurations. The figure
-notebooks silently exclude 15 of them:
+UCI++ reuses the same underlying data in different configurations, and 15 of the
+146 are such variants. They used to be listed in each figure notebook and dropped
+after the fact, so they were computed and then discarded — 7 of the 9 `volcanoes`
+variants cost ResNet over 2 h each, and about 10 % of the benchmark's compute went
+to datasets no figure reads.
 
-`wine-quality-white-5class`, `waveform-v2`, `volcanoes-a3`, `volcanoes-b3`,
-`volcanoes-b4`, `volcanoes-b5`, `volcanoes-b6`, `volcanoes-d3`, `volcanoes-d4`,
-`statlog-german-credit-numeric`, `thyroid-allhyper`, `thyroid-allhypo`,
-`thyroid-allrep`, `thyroid-hypothyroid`, `thyroid-dis`
-
-They are still computed — 7 of the 9 `volcanoes` variants cost ResNet over 2 h each
-— so about 10 % of the benchmark's compute goes to datasets that are then dropped
-from every figure. Worth filtering before the run rather than after.
+The list now lives in `config.DUPLICATE_DATASETS` and the runners skip it, so that
+compute is not spent again. The scores already on disk are kept and the aggregates
+still span all 146, so nothing published changed; a model added from here on covers
+131. Duplicates also inflated the sample in the significance tests, which is the
+other reason to drop them before the statistics rather than after.
 
 ## The pairs the timeout could not measure — now measured
 

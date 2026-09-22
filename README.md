@@ -32,6 +32,11 @@ uv run python run_all.py
 PYTHONUNBUFFERED=1 .venv/bin/python -u benchmark_autogluon.py
 ```
 
+Runs skip the 15 UCI++ duplicates listed in `config.DUPLICATE_DATASETS`, which every
+figure drops anyway. After a run, `uv run python -m scripts.check_prevalence_baseline`
+lists any (model, dataset) pair scoring no better than predicting the class prior —
+the failure that once produced two published results.
+
 ### Categorical features
 
 `compare_baseline_models.py` uses one-hot encoding. `optuna_models.py` handles categories properly:
@@ -108,7 +113,7 @@ Method defects found and fixed during this iteration, including two that had pro
 ### Known gaps
 
 - The figures are rendered by two notebooks over different model sets, so `rank_distribution.png` (no AutoML, 18 entries) and `critical_difference.png` (AutoML, 17) disagree about the denominator of a rank. One loader owning the dataset filters and the model set would remove the mismatch.
-- The 15 duplicate datasets and the 0.99 filter are hardcoded in both notebooks rather than in `config.py`, and the duplicates are dropped after the run rather than before it — about 10 % of the compute goes to datasets no figure shows.
+- The 0.99 "everything already solves it" filter is still hardcoded in both notebooks. The duplicate list moved to `config.DUPLICATE_DATASETS` and the runners now skip it, but the ~10 % of compute already spent on those datasets is spent.
 - AutoGluon and MLJAR store no predictions, so they are absent from the calibration figure and cannot be ensembled or re-scored without a re-run.
 
 ### Note on AutoGluon operational complexity

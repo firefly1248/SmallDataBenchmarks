@@ -4,9 +4,29 @@ from __future__ import annotations
 import os
 import warnings
 
+import joblib
 import numpy as np
 import pandas as pd
 from scipy.io import arff
+
+from config import DUPLICATE_DATASETS
+
+BASELINE_RESULTS = "results/compare_baseline_models.joblib"
+
+
+def evaluated_datasets(path: str = BASELINE_RESULTS) -> list[str]:
+    """Every dataset the benchmark has scored, in the order the run fixed."""
+    *_, names, _ = joblib.load(path)
+    return list(names)
+
+
+def datasets_to_run(path: str = BASELINE_RESULTS) -> list[str]:
+    """What a new run should cover: the above minus the UCI++ duplicates.
+
+    Aggregates keep iterating ``evaluated_datasets`` so scores already on disk
+    for the duplicates survive; only fresh compute is skipped.
+    """
+    return [name for name in evaluated_datasets(path) if name not in DUPLICATE_DATASETS]
 
 
 def load_data(
