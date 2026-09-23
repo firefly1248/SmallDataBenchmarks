@@ -1,6 +1,6 @@
 """Remove all-NaN entries from a model's checkpoint so they get re-run.
 
-Usage: uv run python -m scripts.reset_model_failures [model]
+Usage: uv run python -m scripts.reset_model_failures <model>
 """
 import sys
 
@@ -9,7 +9,7 @@ import numpy as np
 
 from benchmark.checkpoints import atomic_dump, ckpt_path
 
-MODEL = sys.argv[1] if len(sys.argv) > 1 else "tabpfn"
+MODEL = sys.argv[1]
 
 entries = joblib.load(ckpt_path(MODEL))
 reset = [ds for ds, v in entries.items()

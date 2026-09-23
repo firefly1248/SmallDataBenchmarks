@@ -16,7 +16,9 @@ from sklearn.pipeline import Pipeline
 # so every one is treated as continuous.
 from benchmark.data import load_data
 from benchmark.metrics import PR_AUC_SCORER
-from config import N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, N_INNER_FOLDS, MAX_DATASET_ROWS
+from config import (
+    DUPLICATE_DATASETS, N_JOBS, RANDOM_STATE, N_OUTER_FOLDS, N_INNER_FOLDS, MAX_DATASET_ROWS,
+)
 
 
 def evaluate_pipeline_helper(X, y, pipeline, param_grid, scoring=PR_AUC_SCORER, random_state=RANDOM_STATE):
@@ -91,6 +93,8 @@ if __name__ == "__main__":
     done_set = set(evaluated_datasets)
 
     for i, dataset_name in enumerate(database.index.values):
+        if dataset_name in DUPLICATE_DATASETS:
+            continue
         if dataset_name not in done_set:
             X, y = load_data(dataset_name)
             # too few samples per class to stratify

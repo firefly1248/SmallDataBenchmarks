@@ -6,7 +6,11 @@ import pandas as pd
 import pytest
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 
-from benchmark.models.grid_search import GRID_SEARCH_MODELS, build_grid_search
+from benchmark.models.grid_search import (
+    GRID_SEARCH_MODELS,
+    TABPFN_VERSIONS,
+    build_grid_search,
+)
 from benchmark.nested_cv import _MODEL_LIMITS, run_nested_cv
 
 
@@ -15,7 +19,8 @@ class TestBuildGridSearch:
     def inner_cv(self):
         return StratifiedKFold(n_splits=2, shuffle=True, random_state=0)
 
-    @pytest.mark.parametrize("model_name", ["svc", "logreg", "tabpfn", "tabpfn3", "tabicl"])
+    @pytest.mark.parametrize("model_name",
+                             ["svc", "logreg", "tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl"])
     def test_returns_grid_search_cv(self, model_name, inner_cv):
         gs = build_grid_search(model_name, inner_cv, cat_cols=[])
         assert isinstance(gs, GridSearchCV)
@@ -56,36 +61,32 @@ class TestBuildGridSearch:
         assert proba.shape == (len(X), 3)
 
     def test_grid_search_models_constant(self):
-        assert "svc" in GRID_SEARCH_MODELS
-        assert "logreg" in GRID_SEARCH_MODELS
-        assert "tabpfn" in GRID_SEARCH_MODELS
-        assert "tabpfn3" in GRID_SEARCH_MODELS
-        assert "tabicl" in GRID_SEARCH_MODELS
-        assert "random_forest" not in GRID_SEARCH_MODELS
+        assert GRID_SEARCH_MODELS == {"svc", "logreg", "tabicl",
+                                      "tabpfn3", "tabpfn35", "tabpfn35fast"}
 
     def test_tabfm_is_not_a_grid_search_model(self, inner_cv):
         assert "tabfm" not in GRID_SEARCH_MODELS
         with pytest.raises(ValueError, match="not a grid-search model"):
             build_grid_search("tabfm", inner_cv, cat_cols=[])
 
-    @pytest.mark.parametrize(
-        ("model_name", "version"), [("tabpfn", "v2.6"), ("tabpfn3", "v3")]
-    )
+    @pytest.mark.parametrize(("model_name", "version"), TABPFN_VERSIONS.items())
     def test_tabpfn_keys_pin_their_checkpoint(self, model_name, version, inner_cv):
+        """The keys differ only by weights, so the version must be explicit."""
         gs = build_grid_search(model_name, inner_cv, cat_cols=[])
         assert gs.estimator.get_params()["model_version"] == version
 
-    @pytest.mark.parametrize("model_name", ["tabpfn", "tabpfn3", "tabicl"])
+    @pytest.mark.parametrize("model_name",
+                             ["tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl"])
     def test_torch_models_search_serially(self, model_name, inner_cv):
         assert build_grid_search(model_name, inner_cv, cat_cols=[]).n_jobs == 1
 
-    @pytest.mark.parametrize(
-        ("model_name", "auto_scale"), [("tabpfn", False), ("tabpfn3", True)]
-    )
-    def test_only_v3_auto_scales_the_ensemble(self, model_name, auto_scale, inner_cv):
-        """v2.6 must match tabpfn 7.1.1, which had no auto-scaling at all."""
+    @pytest.mark.parametrize("model_name", TABPFN_VERSIONS)
+    def test_tabpfn_generations_share_one_grid(self, model_name, inner_cv):
+        """Same search space, so a difference between them is the weights."""
         gs = build_grid_search(model_name, inner_cv, cat_cols=[])
-        assert gs.estimator.get_params()["auto_scale_n_estimators"] is auto_scale
+        assert gs.param_grid == {"n_estimators": [4, 8],
+                                 "balance_probabilities": [True, False]}
+        assert gs.estimator.get_params()["auto_scale_n_estimators"] is True
 
 
 class TestModelLimits:

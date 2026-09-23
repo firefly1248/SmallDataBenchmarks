@@ -1,9 +1,11 @@
 # TabPFN notes
 
 TabPFN 2.6 (`tabpfn>=7.1.1`) in the nested-CV benchmark across 146 small tabular
-datasets. TabPFN-3 results are in
-[FoundationModels_notes.md](FoundationModels_notes.md); this note documents 2.6,
-which the benchmark still carries as the previous generation.
+datasets. **The benchmark no longer runs 2.6**: it does not reproduce under
+`tabpfn` 9.0.0, which the 3.5 models require — see
+[Findings_notes.md](Findings_notes.md#an-upgrade-that-moved-one-model-and-not-another).
+This note is kept as the record of what was measured. Current results for the line
+are in [FoundationModels_notes.md](FoundationModels_notes.md).
 
 ## Verdict
 
