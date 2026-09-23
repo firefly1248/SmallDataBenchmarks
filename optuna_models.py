@@ -154,7 +154,9 @@ if __name__ == "__main__":
     # overwrites the file with X alone. NaN-pad missing datasets so the arrays
     # stay aligned with all_datasets, which figures.ipynb reads positionally.
     output_models = available_models()
-    final_ckpt = {**load_by_model(output_models), **ckpt}
+    # This run's models are already in ckpt; reloading them would hold a second
+    # copy of every stored prediction.
+    final_ckpt = ckpt | load_by_model([m for m in output_models if m not in ckpt])
     all_results = {name: [] for name in output_models}
     all_times   = {name: [] for name in output_models}
     nan_scores = [float("nan")] * N_OUTER_FOLDS

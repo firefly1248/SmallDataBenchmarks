@@ -1,4 +1,4 @@
-"""The project's figure style, and the figures that share it."""
+"""The project's figure style and model names, and the figures that share them."""
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
@@ -13,15 +13,40 @@ ACCENT = "#2a78d6"
 CONTEXT = "#a8a7a0"
 
 
-def style_axes(ax):
+# The label every figure prints for a checkpoint key. Both notebooks read it,
+# so a new model is named once.
+MODEL_LABELS: dict[str, str] = {
+    "svc":            "SVC (GridSearch)",
+    "logreg":         "Logistic Regression (GridSearch)",
+    "random_forest":  "Random Forest (Optuna)",
+    "xgboost":        "XGBoost (Optuna)",
+    "sgd":            "SGD (Optuna)",
+    "catboost":       "CatBoost (Optuna)",
+    "lgbm":           "LightGBM (Optuna)",
+    "lgbm_linear":    "LightGBM Linear (Optuna)",
+    "hgb":            "HistGradientBoosting (Optuna)",
+    "resnet":         "ResNet (Optuna)",
+    "tabnet":         "TabNet (Optuna)",
+    "tabpfn3":        "TabPFN-3 (GridSearch)",
+    "tabpfn35":       "TabPFN-3.5 (GridSearch)",
+    "tabpfn35fast":   "TabPFN-3.5-fast (GridSearch)",
+    "tabicl":         "TabICL (GridSearch)",
+    "tabfm":          "TabFM (zero-shot)",
+}
+
+
+def style_axes(ax, grid: bool = True):
     """Recessive chrome: hairline grid, no frame, muted ticks."""
     ax.set_facecolor(SURFACE)
-    ax.grid(True, color=GRID, linewidth=1)
+    # matplotlib enables the grid anyway if line properties come with grid=False.
+    if grid:
+        ax.grid(True, color=GRID, linewidth=1)
+    else:
+        ax.grid(False)
     ax.set_axisbelow(True)
     ax.tick_params(colors=MUTED, length=0)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    return ax
 
 
 def critical_difference_diagram(
@@ -60,10 +85,9 @@ def critical_difference_diagram(
     bars.set_xlabel("not separable", color=MUTED, fontsize="x-small")
 
     style_axes(ax)
-    style_axes(bars)
+    style_axes(bars, grid=False)
     ax.yaxis.grid(False)
     ax.tick_params(axis="y", colors=INK)
-    bars.grid(False)
     bars.set_xticks([])
 
     fig.suptitle(

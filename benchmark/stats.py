@@ -67,19 +67,15 @@ def cliques(ranks: pd.Series, adjusted: pd.DataFrame, alpha: float = 0.05) -> li
     is read, not the rank values.
     """
     order = list(ranks.index)
-
-    def differs(a: str, b: str) -> bool:
-        return adjusted.loc[(a, b), "holm"] < alpha
+    separated = (adjusted["holm"].unstack().loc[order, order] < alpha).to_numpy()
 
     # Each span is the longest run starting at i, so the runs end no earlier as
     # i advances: a span is contained in its predecessor exactly when it ends at
-    # the same place. Extending by one only needs the new model checked.
+    # the same place.
     spans, furthest = [], -1
     for i in range(len(order)):
         j = i
-        while j + 1 < len(order) and not any(
-            differs(order[k], order[j + 1]) for k in range(i, j + 1)
-        ):
+        while j + 1 < len(order) and not separated[i:j + 1, j + 1].any():
             j += 1
         if j > i and j > furthest:
             spans.append(order[i:j + 1])

@@ -30,14 +30,15 @@ def expected_calibration_error(
     """Top-label ECE: |confidence - accuracy| per bin, weighted by bin size.
 
     Bins are equal-width over the confidence range actually observed, not over
-    [0, 1]: a 3-class model never predicts below 1/3, and fixed [0, 1] bins
-    would leave the lower third empty and compress the rest.
+    [0, 1]: a 3-class model never predicts below 1/3, so fixed [0, 1] bins would
+    spend the lower third on empty bins and read the rest at a third of the
+    resolution.
     """
     confidence = y_prob.max(axis=1)
     correct = (y_prob.argmax(axis=1) == y_true).astype(float)
 
     edges = np.linspace(confidence.min(), confidence.max(), n_bins + 1)
-    binned = np.clip(np.digitize(confidence, edges[1:-1]), 0, n_bins - 1)
+    binned = np.digitize(confidence, edges[1:-1])
 
     # Per bin, size * |mean confidence - mean accuracy| is the difference of the
     # two sums, so the bin sizes never have to be divided out.

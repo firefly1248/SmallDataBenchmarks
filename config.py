@@ -32,3 +32,7 @@ DUPLICATE_DATASETS = frozenset({
     "volcanoes-b5", "volcanoes-b6", "volcanoes-d3", "volcanoes-d4",
     "waveform-v2", "wine-quality-white-5class",
 })
+
+# Datasets where even the weakest model clears this are dropped from the
+# figures: they rank the whole field on noise in the fourth decimal.
+TRIVIAL_PR_AUC = 0.99

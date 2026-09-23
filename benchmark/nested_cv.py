@@ -42,8 +42,8 @@ def run_nested_cv(
 ) -> tuple[list[float], list[np.ndarray], list[np.ndarray], list[dict]]:
     """Run nested cross-validation for *model_name*.
 
-    Tuning: ``"tabfm"`` none; ``"svc"``, ``"logreg"``, ``"tabpfn3"``,
-    ``"tabpfn35"``, ``"tabicl"`` by GridSearchCV; everything else by Optuna TPE.
+    Tuning: ``"tabfm"`` none; ``GRID_SEARCH_MODELS`` by GridSearchCV;
+    everything else by Optuna TPE.
 
     Returns ``(scores, preds, labels, best_params)``, one entry per outer fold.
     """
