@@ -65,9 +65,36 @@ datasets TabNet moves from 0.4662 to 0.7345 (CatBoost 0.8160); overall from 0.59
 0.7507, and from 2 to 11 datasets ahead of CatBoost. It still ranks last.
 
 **A full count of scores is not enough either.** An untrained classifier returns a
-valid number on every dataset. The tell is a score sitting on the prevalence baseline
-— the positive-class share, or for weighted multiclass PR AUC the sum of squared
-class shares — and it is worth checking per dataset before trusting a mean.
+valid number on every dataset. The tell is a score sitting on the prevalence
+baseline, which `scripts/check_prevalence_baseline.py` now computes for every stored
+pair — see the next section.
+
+## The floor this metric starts from
+
+ROC AUC begins at 0.5 no matter what the data looks like, so a useless model is
+obvious from the number alone. Weighted PR AUC begins at the class prevalence: the
+positive-class share for binary, the sum of squared class shares for multiclass.
+That floor ranges from 0.01 to 0.95 across these 146 datasets, so a score means
+nothing without it. `benchmark.metrics.pr_auc_baseline` computes it, and a test
+pins it to what a constant predictor actually scores.
+
+`scripts/check_prevalence_baseline.py` compares every stored score against its own
+floor. Ten of roughly 2 300 pairs sit within 0.01 of it, and the two datasets behind
+them are worth knowing about:
+
+| dataset | baseline | flagged | best model | models above the floor |
+|---|---|---|---|---|
+| `thoracic-surgery` | 0.8511 | TabNet 0.8376, SVC 0.8515 | TabFM 0.9132 | 15 / 16 |
+| `planning-relax` | 0.2857 | five, from LightGBM 0.2478 up | SVC 0.4044 | 11 / 16 |
+
+TabNet's 0.8376 on `thoracic-surgery` is the illustration: in a column of means it
+reads as one of the better results in the benchmark, and it is below what predicting
+the majority class achieves. The flagged pairs are not datasets that defeat
+everything — most models clear the floor on both — which is what makes them worth
+looking at.
+
+The check prints a report and is not a test that fails. A dataset can legitimately
+defeat a model, and a build that breaks on an honest result gets switched off.
 
 ## Label ordering silently changed the metric
 
@@ -183,6 +210,127 @@ percentage, its memory, its progress per dataset — looked normal. Wall-clock p
 dataset was the only affected number, and it is exactly the number a benchmark
 publishes.
 
+## An upgrade that moved one model and not another
+
+TabPFN-3.5 needs `tabpfn` 9.0.0; the benchmark had been running 8.2.0. Upgrading a
+library that holds every foundation-model number in the report is not free, so the
+question was what it changes.
+
+The checkpoint filenames for v2, v2.5, v2.6 and v3 are byte-identical between the
+two releases — the weights do not move. Re-running one dataset before and after the
+upgrade settled the rest: TabPFN-3 on `wholesale-channel` reproduced its stored
+scores exactly, 0.963776 / 0.951391 / 0.925232 / 0.926493, to 0.0e+00.
+
+TabPFN 2.6 did not. On `teaching-assistant-evaluation` it moved by up to 0.033, and
+GridSearch picked a different ensemble size, because 9.0.0 scales `n_estimators` for
+feature coverage where 8.2.0 did not. Same weights, different inference path.
+
+So TabPFN 2.6 was dropped rather than republished on numbers the current code cannot
+reproduce. Its checkpoint is kept on disk under a `.bak-` name; 236 h of compute is
+not worth deleting to save 7 MB. The model was eleventh of fifteen and the most
+expensive foundation model in the benchmark, so nothing in the conclusions rested
+on it.
+
+The general point: pinning a library version is not the same as pinning behaviour.
+The weights file was identical and the results still moved.
+
+## Which headline gaps the data actually supports
+
+Every ranking in this benchmark is a list of means, and the gaps between neighbours
+run 0.002-0.009 — well inside the seed variance measured on a single model. The
+figures now test them: Friedman as an omnibus, then Wilcoxon signed-rank on every
+pair with Holm correction, over the 106 datasets every model scores. One dataset is
+one observation; the four folds of a dataset share their data and would inflate the
+sample fourfold.
+
+The family is 18 models, so 153 pairs. The three GridSearch baselines from
+`compare_baseline_models.py` are left out of it: they are the same learners as their
+tuned entries, pairs between the two versions are not comparisons this report makes,
+and carrying them would widen the family to 210 pairs and weaken every verdict.
+
+Nemenyi's critical distance is not used. It compares average ranks, and a model's
+average rank moves when an unrelated model joins the comparison, so the verdict on a
+pair depends on company it never met. Wilcoxon reads only the pair's own scores.
+The Holm multiplier still depends on the family size, which is why the family is
+stated rather than assumed.
+
+| comparison | mean gap | wins | raw p | Holm p | verdict |
+|---|---|---|---|---|---|
+| MLJAR over TabFM | +0.0295 | 61 / 106 | 0.015 | 0.36 | not separable |
+| TabFM over TabPFN-3 | +0.0041 | 73 / 106 | 8e-05 | 0.004 | separable |
+| TabPFN-3.5 over TabPFN-3 | +0.0040 | 71 / 106 | 1e-04 | 0.005 | separable |
+| TabPFN-3.5 over TabPFN-3.5-fast | +0.0017 | 65 / 106 | 0.002 | 0.06 | not separable |
+| TabPFN-3.5-fast over TabPFN-3 | +0.0022 | 67 / 106 | 0.013 | 0.33 | not separable |
+| TabPFN-3.5 over TabFM | -0.0002 | 37 / 106 | 0.17 | 1 | not separable |
+| CatBoost over HistGradientBoosting | +0.0067 | 75 / 106 | 4e-06 | 0.0003 | separable |
+| CatBoost over Random Forest | +0.0021 | 70 / 106 | 0.0009 | 0.04 | separable |
+| CatBoost over LightGBM Linear | -0.0006 | 60 / 106 | 0.08 | 1 | not separable |
+
+The first row is the one that mattered. The README said AutoML wins; MLJAR's 0.03
+lead over TabFM comes from large gains on a minority of datasets, and the paired
+test does not separate the two. That verdict rests on the correction — the raw
+p-value is 0.015 — which is the honest thing to report rather than either number
+alone.
+
+The rest run the other way. Gaps of 0.002 to 0.007, small enough to read as noise
+in a table of means, are consistent enough across datasets to survive correction
+for 153 comparisons.
+
+Two rows show the correction doing opposite things to near-identical evidence.
+TabPFN-3.5 over TabPFN-3 is +0.0040 on 71 datasets and survives; TabPFN-3.5-fast
+over TabPFN-3 is +0.0022 on 67 and does not. The gap between the two verdicts is
+not a difference in kind, it is where 0.05 happens to fall.
+
+The TabFM row is worth reading twice. TabPFN-3.5 has the same mean to within 0.0002
+but wins only 37 of the 106 head-to-head — TabFM wins more often, TabPFN-3.5 wins
+by more when it does. Means and win counts answer different questions, and neither
+alone is the ranking.
+
+The critical-difference figure draws a bar only where every pair inside it is
+inseparable. Six models now sit under one bar: TabFM, TabPFN-3.5, TabICL,
+TabPFN-3.5-fast and both AutoML frameworks. TabPFN-3 falls just outside it, sharing
+the next bar down.
+
+## PR AUC cannot see calibration
+
+PR AUC scores an ordering. A model that ranks every positive above every negative
+is perfect by that measure whether its 0.9 means 0.9 or 0.6. Nothing in this
+benchmark read the probabilities themselves until now.
+
+Brier and top-label ECE over the stored out-of-fold predictions, 108 datasets
+scored by all fourteen models that kept predictions:
+
+| model | PR AUC | Brier | ECE |
+|---|---|---|---|
+| TabFM | 0.8596 | 0.1881 | **0.0367** |
+| TabICL | 0.8574 | 0.1905 | 0.0405 |
+| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 |
+| SVC | 0.8240 | 0.2350 | 0.0477 |
+| ResNet | 0.8211 | 0.2446 | 0.0512 |
+| XGBoost | 0.8294 | 0.2394 | 0.0627 |
+| LightGBM | 0.8311 | 0.2443 | 0.0674 |
+| Logistic Regression | 0.7838 | 0.3084 | 0.0732 |
+| HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 |
+| Random Forest | 0.8325 | 0.2410 | 0.0747 |
+| LightGBM Linear | 0.8348 | 0.2457 | 0.0756 |
+| CatBoost | 0.8342 | 0.2496 | 0.0848 |
+| TabNet | 0.7529 | 0.3238 | 0.0851 |
+| SGD | 0.7837 | 0.3254 | **0.1000** |
+
+The three foundation models hold the three best ECE values. CatBoost — the top
+classical model on PR AUC, tied there with LightGBM Linear — is twelfth of the
+fourteen on calibration, with only TabNet and SGD behind it. Rank by PR AUC and
+rank by calibration disagree about which classical model to reach for.
+
+This cost nothing to measure: the per-fold probabilities and labels have been in
+`results/ckpt/<model>.joblib` all along. AutoGluon and MLJAR are the exception —
+their runners stored scores and times only, so the two models the README used to
+call the winners cannot be checked for calibration without a re-run.
+
+The two TabPFN-3.5 variants land third and fourth on ECE, a little ahead of
+TabPFN-3 and a little behind TabFM and TabICL. Calibration is the one axis where
+the new generation did not move much.
+
 ## Ensembles over the stored predictions never help
 
 Every model stores per-fold probability matrices, so combining them costs arithmetic
@@ -209,8 +357,10 @@ every combination — but the ordering does not matter much when none of them wi
 
 ## Cost does not track performance
 
-Total wall clock for the full 146-dataset nested CV, against mean PR AUC over each
-model's own coverage:
+Total wall clock for the nested CV, against mean PR AUC over each model's own
+coverage. The two TabPFN-3.5 rows cover 131 datasets rather than 146, because runs
+now skip the UCI++ duplicates; over those same 131 TabPFN-3 costs 63.6 h, which is
+the like-for-like number to compare them against.
 
 | model | hours | median/dataset | mean PR AUC | coverage |
 |---|---|---|---|---|
@@ -220,39 +370,43 @@ model's own coverage:
 | LogReg | 5.9 | 24 s | 0.7772 | 146 |
 | XGBoost | 7.4 | 53 s | 0.8328 | 146 |
 | Random Forest | 7.6 | 105 s | 0.8359 | 146 |
+| TabPFN-3.5-fast | 9.3 | 85 s | 0.8608 | 131 |
 | LightGBM | 11.3 | 118 s | 0.8345 | 146 |
 | LightGBM-linear | 13.2 | 145 s | 0.8374 | 146 |
+| TabPFN-3.5 | 17.8 | 180 s | 0.8627 | 131 |
 | TabICL | 34.7 | 364 s | 0.8574 | 142 |
 | HistGradientBoosting | 36.5 | 384 s | 0.8303 | 146 |
-| CatBoost | 75.7 | 268 s | 0.8386 | 146 |
 | TabPFN-3 | 73.6 | 1199 s | 0.8591 | 146 |
+| CatBoost | 75.7 | 268 s | 0.8386 | 146 |
 | ResNet | 207.7 | 2597 s | 0.8234 | 146 |
-| TabPFN 2.6 | 236.3 | 678 s | 0.8246 | 129 |
 | TabNet | 485.3 | 2754 s | 0.7507 | 146 |
 
-The three most expensive models rank eleventh, twelfth and last of fifteen. TabPFN 2.6
-and ResNet together cost 444.0 h — more than the other twelve models combined — to
-land below Random Forest, which costs 7.6 h. TabNet alone costs 485.3 h to finish
-last. Its hours mix two execution modes, MPS with sequential folds on the larger
-datasets and CPU with parallel folds on the smaller ones, so they compare only
-roughly with the rest.
+ResNet and TabNet together cost 693.0 h — more than every other model combined — to
+finish below Random Forest, which costs 7.6 h. TabNet's hours mix two execution
+modes, MPS with sequential folds on the larger datasets and CPU with parallel folds
+on the smaller ones, so they compare only roughly with the rest.
+
+The sharpest illustration is inside one model family. TabPFN-3 costs 63.6 h over the
+131 datasets a run now covers; TabPFN-3.5 costs 17.8 h and scores higher; the fast
+variant costs 9.3 h and is within 0.002 of it. Nearly seven times the price for a
+difference the test cannot find.
 
 TabFM reaches the highest mean of any single model for 4.3 h, though on 126 datasets
 and with a GPU.
 
 ## Fifteen datasets are duplicates
 
-UCI++ reuses the same underlying data in different configurations. The figure
-notebooks silently exclude 15 of them:
+UCI++ reuses the same underlying data in different configurations, and 15 of the
+146 are such variants. They used to be listed in each figure notebook and dropped
+after the fact, so they were computed and then discarded — 7 of the 9 `volcanoes`
+variants cost ResNet over 2 h each, and about 10 % of the benchmark's compute went
+to datasets no figure reads.
 
-`wine-quality-white-5class`, `waveform-v2`, `volcanoes-a3`, `volcanoes-b3`,
-`volcanoes-b4`, `volcanoes-b5`, `volcanoes-b6`, `volcanoes-d3`, `volcanoes-d4`,
-`statlog-german-credit-numeric`, `thyroid-allhyper`, `thyroid-allhypo`,
-`thyroid-allrep`, `thyroid-hypothyroid`, `thyroid-dis`
-
-They are still computed — 7 of the 9 `volcanoes` variants cost ResNet over 2 h each
-— so about 10 % of the benchmark's compute goes to datasets that are then dropped
-from every figure. Worth filtering before the run rather than after.
+The list now lives in `config.DUPLICATE_DATASETS` and the runners skip it, so that
+compute is not spent again. The scores already on disk are kept and the aggregates
+still span all 146, so nothing published changed; a model added from here on covers
+131. Duplicates also inflated the sample in the significance tests, which is the
+other reason to drop them before the statistics rather than after.
 
 ## The pairs the timeout could not measure — now measured
 

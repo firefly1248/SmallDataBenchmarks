@@ -14,7 +14,6 @@ import os
 import signal
 import sys
 import time
-import joblib
 import warnings
 import numpy as np
 
@@ -37,7 +36,7 @@ def _alarm_handler(signum, frame):
 from benchmark.checkpoints import (
     CKPT_DIR, atomic_dump, available_models, ckpt_path, load_by_model,
 )
-from benchmark.data import load_data_df
+from benchmark.data import datasets_to_run, evaluated_datasets, load_data_df
 from benchmark.nested_cv import run_nested_cv
 from config import RANDOM_STATE, N_OUTER_FOLDS, MAX_DATASET_ROWS, MODELS_TO_RUN
 
@@ -47,7 +46,7 @@ warnings.filterwarnings("ignore")
 FINAL_OUTPUT = "results/optuna_models.joblib"
 
 if __name__ == "__main__":
-    ALL_MODELS = ["svc", "logreg", "tabpfn", "tabpfn3", "tabicl", "tabfm",
+    ALL_MODELS = ["svc", "logreg", "tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl", "tabfm",
                   "random_forest", "xgboost", "sgd",
                   "catboost", "lgbm", "lgbm_linear", "hgb",
                   "tabnet", "ft_transformer", "resnet"]
@@ -72,11 +71,15 @@ if __name__ == "__main__":
     print(f"Models to run: {MODEL_NAMES}")
 
     os.makedirs(CKPT_DIR, exist_ok=True)
-    _, _, _, evaluated_datasets, _ = joblib.load("results/compare_baseline_models.joblib")
+    # The work loop skips the UCI++ duplicates; the aggregate below still spans
+    # every dataset, so the scores already stored for them stay published.
+    run_datasets = datasets_to_run()
+    all_datasets = evaluated_datasets()
 
     ckpt = load_by_model(MODEL_NAMES)
     for model_name in MODEL_NAMES:
-        print(f"  {model_name:16s} {len(ckpt[model_name])}/{len(evaluated_datasets)} done")
+        done = sum(1 for d in run_datasets if d in ckpt[model_name])
+        print(f"  {model_name:16s} {done}/{len(run_datasets)} done")
 
     def save_checkpoint(model_name):
         atomic_dump(ckpt[model_name], ckpt_path(model_name))
@@ -86,10 +89,10 @@ if __name__ == "__main__":
     MAX_CONSECUTIVE_FAILURES = 3
     consecutive_failures: dict[str, int] = {}
 
-    for i, dataset_name in enumerate(evaluated_datasets):
+    for i, dataset_name in enumerate(run_datasets):
         models_to_run = [m for m in MODEL_NAMES if dataset_name not in ckpt[m]]
         if not models_to_run:
-            print(f"[{i+1}/{len(evaluated_datasets)}] {dataset_name}  — skipping (all models done)")
+            print(f"[{i+1}/{len(run_datasets)}] {dataset_name}  — skipping (all models done)")
             continue
 
         X, y, cat_cols = load_data_df(dataset_name)
@@ -102,7 +105,7 @@ if __name__ == "__main__":
             X = X.iloc[random_idx].reset_index(drop=True)
             y = y[random_idx]
 
-        print(f"\n[{i+1}/{len(evaluated_datasets)}] {dataset_name}  "
+        print(f"\n[{i+1}/{len(run_datasets)}] {dataset_name}  "
               f"shape={X.shape}  cat_cols={len(cat_cols)}")
 
         for model_name in models_to_run:
@@ -149,13 +152,15 @@ if __name__ == "__main__":
 
     # Dump every model with a checkpoint, not just this run's, or --models X
     # overwrites the file with X alone. NaN-pad missing datasets so the arrays
-    # stay aligned with evaluated_datasets, which figures.ipynb reads positionally.
+    # stay aligned with all_datasets, which figures.ipynb reads positionally.
     output_models = available_models()
-    final_ckpt = {**load_by_model(output_models), **ckpt}
+    # This run's models are already in ckpt; reloading them would hold a second
+    # copy of every stored prediction.
+    final_ckpt = ckpt | load_by_model([m for m in output_models if m not in ckpt])
     all_results = {name: [] for name in output_models}
     all_times   = {name: [] for name in output_models}
     nan_scores = [float("nan")] * N_OUTER_FOLDS
-    for dataset_name in evaluated_datasets:
+    for dataset_name in all_datasets:
         for name in output_models:
             entry = final_ckpt[name].get(dataset_name)
             if entry is not None:
@@ -168,5 +173,5 @@ if __name__ == "__main__":
         all_results[name] = np.array(all_results[name])
         all_times[name]   = np.array(all_times[name])
 
-    atomic_dump((all_results, all_times, evaluated_datasets), FINAL_OUTPUT)
+    atomic_dump((all_results, all_times, all_datasets), FINAL_OUTPUT)
     print("\nDone. Results saved to", FINAL_OUTPUT)

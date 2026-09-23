@@ -83,22 +83,21 @@ class CatFeaturesEncoder(BaseEstimator, TransformerMixin):
 class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
     """Wrap TabPFNClassifier, resolving categorical names to indices at fit time.
 
-    ``model_version`` is pinned: the package moved its default to v3, while the
-    ``tabpfn`` results were measured on v2.6. The ``tabpfn3`` key passes v3.
+    ``model_version`` has no default: the package moves its own default between
+    releases, and a checkpoint that does not name its weights cannot be
+    reproduced. ``benchmark.models.grid_search.TABPFN_VERSIONS`` holds the keys.
 
     ``auto_scale_n_estimators`` raises the effective ensemble size on wide
     datasets while leaving the reported ``best_params`` at the requested value.
-    Off here because it did not exist in 7.1.1 when ``tabpfn`` was measured;
-    ``tabpfn3`` turns it on, that being what a user gets today.
     """
 
     def __init__(
         self,
         cat_cols: list[str],
+        model_version: str,
         n_estimators: int = 4,
         balance_probabilities: bool = False,
-        model_version: str = "v2.6",
-        auto_scale_n_estimators: bool = False,
+        auto_scale_n_estimators: bool = True,
         device: str = "cpu",
         **tabpfn_params,
     ) -> None:

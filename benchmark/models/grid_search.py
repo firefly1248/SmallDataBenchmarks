@@ -15,10 +15,16 @@ from config import N_JOBS, RANDOM_STATE
 
 CAT_STRATEGIES_GRID: list[str] = ["target", "james_stein", "m_estimate", "catboost_enc"]
 
-GRID_SEARCH_MODELS: frozenset[str] = frozenset({"svc", "logreg", "tabpfn", "tabpfn3", "tabicl"})
+# One grid for the whole line, so a difference between the generations is the
+# weights. v3.5-fast is a separate smaller model, not a cheaper mode of v3.5.
+TABPFN_VERSIONS: dict[str, str] = {
+    "tabpfn3": "v3", "tabpfn35": "v3.5", "tabpfn35fast": "v3.5-fast",
+}
 
 # Parallel GridSearchCV workers deadlock on macOS libomp, so these search serially.
-_SERIAL_GRID_MODELS: frozenset[str] = frozenset({"tabpfn", "tabpfn3", "tabicl"})
+_SERIAL_GRID_MODELS: frozenset[str] = frozenset(TABPFN_VERSIONS) | {"tabicl"}
+
+GRID_SEARCH_MODELS: frozenset[str] = _SERIAL_GRID_MODELS | {"svc", "logreg"}
 
 
 def build_grid_search(
@@ -80,19 +86,12 @@ def build_grid_search(
             "lr__class_weight": ["balanced", None],
         }
 
-    elif model_name == "tabpfn":
-        pipeline = TabPFNNativeWrapper(cat_cols=cat_cols, random_state=RANDOM_STATE)
-        param_grid = {
-            "n_estimators":        [4, 8, 16, 32],
-            "balance_probabilities": [True, False],
-        }
-
-    elif model_name == "tabpfn3":
+    elif model_name in TABPFN_VERSIONS:
         # Run the model as the library ships it. On the 5 wide datasets both
         # grid points then collapse to one ensemble size, but disabling
         # auto_scale would leave most features unsampled instead.
-        pipeline = TabPFNNativeWrapper(cat_cols=cat_cols, model_version="v3",
-                                       auto_scale_n_estimators=True,
+        pipeline = TabPFNNativeWrapper(cat_cols=cat_cols,
+                                       model_version=TABPFN_VERSIONS[model_name],
                                        random_state=RANDOM_STATE)
         param_grid = {
             "n_estimators":          [4, 8],
