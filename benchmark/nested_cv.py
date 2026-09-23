@@ -29,7 +29,6 @@ _NN_MODELS: frozenset[str] = frozenset({"tabnet", "ft_transformer", "resnet"})
 _MODEL_LIMITS: dict[str, dict[str, int]] = {
     "tabicl": {"max_features": 500},
     "tabfm":  {"max_features": 500, "max_classes": 10},
-    "tabpfn": {"max_features": 500, "max_classes": 10},
 }
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -43,8 +42,8 @@ def run_nested_cv(
 ) -> tuple[list[float], list[np.ndarray], list[np.ndarray], list[dict]]:
     """Run nested cross-validation for *model_name*.
 
-    Tuning: ``"tabfm"`` none; ``"svc"``, ``"logreg"``, ``"tabpfn"``,
-    ``"tabpfn3"``, ``"tabicl"`` by GridSearchCV; everything else by Optuna TPE.
+    Tuning: ``"tabfm"`` none; ``"svc"``, ``"logreg"``, ``"tabpfn3"``,
+    ``"tabpfn35"``, ``"tabicl"`` by GridSearchCV; everything else by Optuna TPE.
 
     Returns ``(scores, preds, labels, best_params)``, one entry per outer fold.
     """
