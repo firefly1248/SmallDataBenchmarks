@@ -12,6 +12,7 @@ model, so sitting on the baseline is evidence to look at, not proof of a bug.
 Usage: uv run python -m scripts.check_prevalence_baseline [margin]
 """
 import sys
+from collections import Counter
 
 import joblib
 import numpy as np
@@ -37,9 +38,6 @@ print(f"{'model':16s} {'dataset':34s} {'score':>8s} {'baseline':>9s} {'margin':>
 for margin, model, dataset, score, baseline in sorted(suspects):
     print(f"{model:16s} {dataset:34s} {score:8.4f} {baseline:9.4f} {margin:+8.4f}")
 
-by_model = {}
-for _, model, *_ in suspects:
-    by_model[model] = by_model.get(model, 0) + 1
 print("\nper model:")
-for model, count in sorted(by_model.items(), key=lambda kv: -kv[1]):
+for model, count in Counter(model for _, model, *_ in suspects).most_common():
     print(f"  {model:16s} {count}")

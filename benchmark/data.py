@@ -14,19 +14,21 @@ from config import DUPLICATE_DATASETS
 BASELINE_RESULTS = "results/compare_baseline_models.joblib"
 
 
-def evaluated_datasets(path: str = BASELINE_RESULTS) -> list[str]:
+def evaluated_datasets() -> list[str]:
     """Every dataset the benchmark has scored, in the order the run fixed."""
-    *_, names, _ = joblib.load(path)
+    *_, names, _ = joblib.load(BASELINE_RESULTS)
     return list(names)
 
 
-def datasets_to_run(path: str = BASELINE_RESULTS) -> list[str]:
+def datasets_to_run() -> list[str]:
     """What a new run should cover: the above minus the UCI++ duplicates.
 
-    Aggregates keep iterating ``evaluated_datasets`` so scores already on disk
-    for the duplicates survive; only fresh compute is skipped.
+    The only reader of ``DUPLICATE_DATASETS`` on the compute side — a runner
+    that wants the filter calls this rather than repeating the test. Aggregates
+    keep iterating ``evaluated_datasets`` so scores already on disk for the
+    duplicates survive; only fresh compute is skipped.
     """
-    return [name for name in evaluated_datasets(path) if name not in DUPLICATE_DATASETS]
+    return [name for name in evaluated_datasets() if name not in DUPLICATE_DATASETS]
 
 
 def load_data(

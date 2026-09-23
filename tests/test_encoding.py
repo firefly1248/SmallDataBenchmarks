@@ -176,18 +176,19 @@ class TestCatBoostNativeWrapper:
 class TestFoundationModelWrapperParams:
     """Param round-tripping only — fitting these wrappers downloads GB of weights."""
 
-    def test_tabpfn_defaults_to_the_benchmarked_checkpoint(self):
-        """The `tabpfn` results were measured on v2.6; the package default is now v3."""
-        assert TabPFNNativeWrapper(cat_cols=[]).get_params()["model_version"] == "v2.6"
+    def test_tabpfn_version_has_no_default(self):
+        """The package moves its own default, so a checkpoint must name its weights."""
+        with pytest.raises(TypeError):
+            TabPFNNativeWrapper(cat_cols=[])
 
     def test_tabpfn_version_survives_clone(self):
         wrapper = TabPFNNativeWrapper(cat_cols=[], model_version="v3")
         assert clone(wrapper).get_params()["model_version"] == "v3"
 
     def test_tabpfn_set_params_updates_version(self):
-        wrapper = TabPFNNativeWrapper(cat_cols=[])
-        wrapper.set_params(model_version="v3", n_estimators=8)
-        assert wrapper.get_params()["model_version"] == "v3"
+        wrapper = TabPFNNativeWrapper(cat_cols=[], model_version="v3")
+        wrapper.set_params(model_version="v3.5", n_estimators=8)
+        assert wrapper.get_params()["model_version"] == "v3.5"
         assert wrapper.get_params()["n_estimators"] == 8
 
     def test_tabfm_defaults(self):
@@ -204,6 +205,6 @@ class TestFoundationModelWrapperParams:
         assert params["device"] == "cpu"
         assert params["cat_cols"] == ["cat"]
 
-    @pytest.mark.parametrize("wrapper", [TabPFNNativeWrapper, TabFMNativeWrapper])
-    def test_is_classifier(self, wrapper):
-        assert is_classifier(wrapper(cat_cols=[]))
+    def test_is_classifier(self):
+        assert is_classifier(TabPFNNativeWrapper(cat_cols=[], model_version="v3"))
+        assert is_classifier(TabFMNativeWrapper(cat_cols=[]))

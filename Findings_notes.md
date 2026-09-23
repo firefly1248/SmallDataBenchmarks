@@ -74,7 +74,7 @@ pair — see the next section.
 ROC AUC begins at 0.5 no matter what the data looks like, so a useless model is
 obvious from the number alone. Weighted PR AUC begins at the class prevalence: the
 positive-class share for binary, the sum of squared class shares for multiclass.
-That floor ranges from 0.09 to 0.85 across these 146 datasets, so a score means
+That floor ranges from 0.01 to 0.95 across these 146 datasets, so a score means
 nothing without it. `benchmark.metrics.pr_auc_baseline` computes it, and a test
 pins it to what a constant predictor actually scores.
 
