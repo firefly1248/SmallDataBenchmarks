@@ -1,33 +1,47 @@
 # Tabular foundation models on small data
 
-Four tabular foundation models through the nested-CV benchmark (4 outer x 4 inner
-folds, weighted PR AUC) across 146 small tabular datasets, on an Apple M4 Pro with
-24 GB RAM.
+Tabular foundation models through the nested-CV benchmark (4 outer x 4 inner folds,
+weighted PR AUC) on an Apple M4 Pro with 24 GB RAM.
 
 | model | version | coverage | tuning | device |
 |---|---|---|---|---|
 | TabFM | `tabfm` 1.0.1, Google Research | 126 / 146 | none (zero-shot defaults) | MPS |
 | TabICL | `tabicl` 2.1.1, INRIA | 142 / 146 | GridSearch, 9 configs | CPU |
-| TabPFN-3 | `tabpfn` 8.2.0, Prior Labs | **146 / 146** | GridSearch, 4 configs | CPU |
-| TabPFN 2.6 | `tabpfn` 7.1.1, Prior Labs | 129 / 146 | GridSearch, 8 configs | CPU |
+| TabPFN-3 | `tabpfn` 9.0.0, Prior Labs | **146 / 146** | GridSearch, 4 configs | CPU |
+| TabPFN-3.5 | `tabpfn` 9.0.0, Prior Labs | 131 / 131 | GridSearch, 4 configs | CPU |
+| TabPFN-3.5-fast | `tabpfn` 9.0.0, Prior Labs | 131 / 131 | GridSearch, 4 configs | CPU |
+
+The 3.5 rows cover 131 because runs now skip the 15 UCI++ duplicates, not because
+anything was refused. TabPFN 2.6 was measured here earlier and has been removed: it
+does not reproduce under `tabpfn` 9.0.0. Its numbers survive below where they are
+part of a historical comparison, and the reason is in
+[Findings_notes.md](Findings_notes.md#an-upgrade-that-moved-one-model-and-not-another).
 
 ## TL;DR
 
-1. The three current-generation models are **practically equivalent on performance**.
-   Over the 105 non-trivial datasets all of them cover: TabFM 0.8386, TabICL 0.8359,
-   TabPFN-3 0.8343 — a spread of 0.0043. No significance test was run.
-2. They are **not** equivalent on cost: 24 s / 190 s / 933 s median per dataset.
-3. What separates them is **coverage**. TabPFN-3 is the only model in the benchmark
-   that scores all 146; TabFM drops 20 and TabICL 4 to hard limits.
-4. **There is no shared blind spot.** The earlier version of this note claimed 13
+1. The current-generation models are **close on performance and far apart on cost**.
+   TabFM 0.8653, TabPFN-3.5 0.8627, TabPFN-3.5-fast 0.8608, TabPFN-3 0.8591,
+   TabICL 0.8574, each over its own coverage — a spread of 0.0079 against a cost
+   range of 4.3 h to 73.6 h.
+2. **TabPFN-3.5 supersedes TabPFN-3 outright**: higher score, 3.6x cheaper, and the
+   paired test separates them (Holm p = 0.005, 71 wins of 106).
+3. The **fast variant halves the cost again** for 0.0019 of mean PR AUC, which the
+   test cannot separate from full 3.5 (Holm p = 0.06). It is the cheapest way into
+   the top tier on a CPU.
+4. What separates them otherwise is **coverage**. Every TabPFN version scores each
+   dataset it is given; TabFM drops 20 and TabICL 4 to hard limits.
+5. **There is no shared blind spot.** The earlier version of this note claimed 13
    such datasets. After the positive-class fix only 2 survive, and the explanation
    built on them was an artefact. See [The blind spot that wasn't](#the-blind-spot-that-wasnt).
-5. Both vendors' speed claims fail on this workload. See [Cost](#cost-measured-not-advertised).
-6. All three lose to AutoML given a 300 s/fold budget. See [Against AutoML](#against-automl).
+6. Both vendors' speed claims fail on this workload. See [Cost](#cost-measured-not-advertised).
+7. The gap to AutoML closed: the test no longer separates the top foundation models
+   from either framework. See [Against AutoML](#against-automl).
 
 ## Performance: a three-way tie
 
-105 datasets where TabFM, TabICL, TabPFN-3, TabPFN 2.6 and CatBoost all have scores,
+Measured before TabPFN-3.5 existed and kept as the record of that round; the current
+ordering is in the TL;DR above. 105 datasets where TabFM, TabICL, TabPFN-3,
+TabPFN 2.6 and CatBoost all have scores,
 after dropping the 21 trivially-easy ones (every model above 0.99 PR AUC):
 
 | model | mean PR AUC | mean rank | rank-1 | median time |
@@ -87,24 +101,31 @@ Per-fit cost, normalising away the different search-grid sizes:
 
 | model | fits per dataset | median per dataset | per fit | device |
 |---|---|---|---|---|
-| TabICL | 148 | 364 s | **2.5 s** | CPU |
-| TabPFN 2.6 | 132 | 678 s | 5.1 s | CPU |
+| TabPFN-3.5-fast | 68 | 85 s | **1.3 s** | CPU |
+| TabPFN-3.5 | 68 | 180 s | 2.6 s | CPU |
+| TabICL | 148 | 364 s | 2.5 s | CPU |
 | TabFM | 4 | 27 s | 6.8 s | **GPU** |
 | TabPFN-3 | 68 | 1199 s | **17.6 s** | CPU |
 
 Two claims do not hold up here.
 
-**"TabPFN-3 is up to 20x faster than 2.5."** Measured, it is **3.4x slower per fit**
-than 2.6. Its lower total (73.6 h vs 236.3 h) comes from not hanging on wide data,
-not from throughput. The vendor claim targets million-row data on an H100 and does
-not transfer to hundreds-to-thousands of rows on a CPU.
+**"TabPFN-3 is up to 20x faster than 2.5."** Measured on the version of the
+benchmark that still carried TabPFN 2.6, it was **3.4x slower per fit**. Its lower
+total came from not hanging on wide data, not from throughput. The vendor claim
+targets million-row data on an H100 and does not transfer to hundreds-to-thousands
+of rows on a CPU.
+
+The 3.5 generation is where the speed actually arrived, and it arrived without a
+claim attached: 13.5x faster per fit than v3 on the same hardware and the same
+grid, with a higher mean.
 
 **"TabFM is cheap."** Its 27 s median is an artefact of doing no hyperparameter
 search at all — 4 fits against TabICL's 148. Per fit it is 2.7x *more* expensive
 than TabICL, while running on the GPU against TabICL's CPU. Without a GPU it is not
 usable: CPU inference measured 17-36x slower than MPS.
 
-TabICL is the genuinely fast model here, on the cheapest hardware.
+TabPFN-3.5-fast is now the cheapest per fit, and on the same CPU as TabICL. That
+ordering is one release old: before 9.0.0, TabICL held this row by 7x.
 
 ## The blind spot that wasn't
 
@@ -164,14 +185,42 @@ On the 124 datasets covered by every model including both AutoML frameworks:
 | TabPFN-3 | 0.8682 | 17 min |
 | CatBoost (tuned) | 0.8495 | 3.6 min |
 
-MLJAR beats TabFM on 56 % of datasets, TabICL on 61 %, TabPFN-3 on 60 %. The
-foundation models sit clearly between tuned single models and AutoML, not above
-everything.
+MLJAR beats TabFM on 56 % of datasets, TabICL on 61 %, TabPFN-3 on 60 %, which put
+the foundation models between tuned single models and AutoML.
+
+That reading did not survive a test. On the 106 datasets the figures use, MLJAR's
+0.0295 lead over TabFM is won on 61 of them, and Holm-corrected the pair is not
+separable (p = 0.36). Six models now share the top bar of the critical-difference
+diagram, both AutoML frameworks among them. AutoML is not a tier above; it is the
+same tier bought with twenty minutes a dataset.
 
 Two caveats keep this from being a clean verdict. The AutoML budget is fixed at
 300 s per fold whatever the dataset, so it spends far more on easy data and is
 capped on hard data; and AutoML ensembles many models, so it is a different kind of
 object than a single estimator.
+
+## TabPFN-3 to TabPFN-3.5
+
+The second generational jump, and a different shape from the first. Over the 131
+datasets a run now covers:
+
+| | TabPFN-3 | TabPFN-3.5 | TabPFN-3.5-fast |
+|---|---|---|---|
+| mean PR AUC | 0.8571 | **0.8627** | 0.8608 |
+| total hours | 63.6 | 17.8 | **9.3** |
+| median per dataset | 1199 s | 180 s | 85 s |
+
+Where 2.6 to v3 bought coverage at ten times the per-fit cost, v3 to v3.5 gives the
+cost back: 3.6x cheaper overall, 13.5x cheaper per fit, and a higher mean. The
+paired test separates 3.5 from v3 (Holm p = 0.005, 71 wins of 106).
+
+The fast variant is a separate smaller model, not a mode of 3.5. It halves the cost
+again and gives up 0.0019 of mean PR AUC, which the test cannot separate from full
+3.5 (Holm p = 0.06) — though 3.5 does win 65 of the 106 head-to-head, so the
+ordering is probably real and merely small.
+
+Against TabFM the new model is an exact tie on means (-0.0002) while winning only
+37 of 106. TabFM wins more often; TabPFN-3.5 wins by more when it wins.
 
 ## TabPFN 2.6 to TabPFN-3
 
@@ -188,15 +237,17 @@ in 0.47 h scoring 0.9656, and v3 took 4.71 h for 0.9690. Ten times the cost for
 
 ## Practical recommendation
 
-1. **Default to TabICL** on CPU. Practically tied with the others, cheapest per fit
-   by 2.7x, and its coverage gap is 4 datasets.
-2. **Reach for TabPFN-3 when the data is wide or many-class.** It is the only one
-   that handles those, and it beats classical models there on 16 of 20.
-3. **TabFM only with a GPU.** Its performance lead is within noise, so the case for
+1. **Default to TabPFN-3.5-fast** on CPU. Cheapest per fit of anything here, full
+   coverage, and the test cannot separate it from full 3.5 or from AutoML.
+2. **Use full TabPFN-3.5 when the extra 0.002 is worth double the compute.** It does
+   score higher, and against TabPFN-3 the gain is real (Holm p = 0.005).
+3. **Do not reach for TabPFN-3.** Its successor beats it on score, cost and
+   reproducibility; the only reason to keep it is an existing pinned environment.
+4. **TabFM only with a GPU.** Its performance lead is within noise, so the case for
    it is convenience — no tuning — not quality.
-4. **Drop TabPFN 2.6.** Superseded by v3 on every axis.
-5. **If 20 minutes a dataset is acceptable, run AutoML instead.** Both frameworks
-   beat all three foundation models on this benchmark.
+5. **AutoML is no longer the obvious upgrade.** At 20 minutes a dataset both
+   frameworks land in the same statistical tier as the top foundation models, for
+   more wall clock.
 
 The earlier recommendation to always co-train a classical baseline is withdrawn. It
 rested entirely on the blind-spot table, and that table was a scoring bug.
