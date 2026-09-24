@@ -53,8 +53,10 @@ def run_automl_benchmark(
 ) -> None:
     """Run an AutoML benchmark over *evaluated_datasets* with resume support.
 
-    ``evaluate_fn`` takes ``(X, y)`` and returns one PR AUC per outer fold.
-    ``final_output_path`` is written only once every dataset is complete.
+    ``evaluate_fn`` takes ``(X, y)`` and returns ``(scores, preds, labels)``,
+    one entry per outer fold — the same shape the Optuna checkpoints hold, so
+    the calibration figure can read either. ``final_output_path`` is written
+    only once every dataset is complete.
     """
     checkpoint = _load_checkpoint(checkpoint_path, evaluated_datasets)
     if checkpoint:
@@ -83,10 +85,11 @@ def run_automl_benchmark(
 
         print(f"[{i+1}/{n_total}] {dataset_name}  shape={X.shape}")
         start = time.time()
-        nested_scores = evaluate_fn(X, y)
+        nested_scores, preds, labels = evaluate_fn(X, y)
         elapsed = time.time() - start
 
-        checkpoint[dataset_name] = {"scores": nested_scores, "time": elapsed}
+        checkpoint[dataset_name] = {"scores": nested_scores, "time": elapsed,
+                                    "preds": preds, "labels": labels}
         print(
             f"  done. elapsed={elapsed:.1f}s  "
             f"PR AUC={np.mean(nested_scores):.4f}  "

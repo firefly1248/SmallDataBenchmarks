@@ -298,38 +298,81 @@ is perfect by that measure whether its 0.9 means 0.9 or 0.6. Nothing in this
 benchmark read the probabilities themselves until now.
 
 Brier and top-label ECE over the stored out-of-fold predictions, 108 datasets
-scored by all fourteen models that kept predictions:
+scored by all sixteen models that kept predictions. `ECE T` and `ECE iso` are
+the same models after post-hoc repair, covered in the next section.
 
-| model | PR AUC | Brier | ECE |
-|---|---|---|---|
-| TabFM | 0.8596 | 0.1881 | **0.0367** |
-| TabICL | 0.8574 | 0.1905 | 0.0405 |
-| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 |
-| SVC | 0.8240 | 0.2350 | 0.0477 |
-| ResNet | 0.8211 | 0.2446 | 0.0512 |
-| XGBoost | 0.8294 | 0.2394 | 0.0627 |
-| LightGBM | 0.8311 | 0.2443 | 0.0674 |
-| Logistic Regression | 0.7838 | 0.3084 | 0.0732 |
-| HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 |
-| Random Forest | 0.8325 | 0.2410 | 0.0747 |
-| LightGBM Linear | 0.8348 | 0.2457 | 0.0756 |
-| CatBoost | 0.8342 | 0.2496 | 0.0848 |
-| TabNet | 0.7529 | 0.3238 | 0.0851 |
-| SGD | 0.7837 | 0.3254 | **0.1000** |
+| model | PR AUC | Brier | ECE | ECE T | ECE iso | PR AUC iso |
+|---|---|---|---|---|---|---|
+| TabFM | 0.8596 | 0.1881 | **0.0367** | 0.0355 | 0.0352 | 0.8469 |
+| TabICL | 0.8574 | 0.1905 | 0.0405 | 0.0347 | 0.0359 | 0.8420 |
+| TabPFN-3.5-fast | 0.8577 | 0.2129 | 0.0427 | 0.0413 | 0.0364 | 0.8436 |
+| TabPFN-3.5 | 0.8595 | 0.2103 | 0.0429 | 0.0418 | 0.0367 | 0.8462 |
+| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 | 0.0420 | 0.0395 | 0.8402 |
+| SVC | 0.8240 | 0.2350 | 0.0477 | 0.0437 | 0.0436 | 0.8052 |
+| ResNet | 0.8211 | 0.2446 | 0.0512 | 0.0487 | 0.0455 | 0.8014 |
+| XGBoost | 0.8294 | 0.2394 | 0.0627 | 0.0521 | 0.0478 | 0.8114 |
+| LightGBM | 0.8311 | 0.2443 | 0.0674 | 0.0604 | 0.0572 | 0.8098 |
+| Logistic Regression | 0.7838 | 0.3084 | 0.0732 | 0.0687 | 0.0581 | 0.7564 |
+| HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 | 0.0561 | 0.0508 | 0.8094 |
+| Random Forest | 0.8325 | 0.2410 | 0.0747 | 0.0459 | 0.0463 | 0.8194 |
+| LightGBM Linear | 0.8348 | 0.2457 | 0.0756 | 0.0705 | 0.0581 | 0.8061 |
+| CatBoost | 0.8342 | 0.2496 | 0.0848 | 0.0665 | 0.0565 | 0.8087 |
+| TabNet | 0.7529 | 0.3238 | 0.0851 | 0.0665 | 0.0589 | 0.7362 |
+| SGD | 0.7837 | 0.3254 | **0.1000** | 0.0980 | 0.0640 | 0.7515 |
 
-The three foundation models hold the three best ECE values. CatBoost — the top
-classical model on PR AUC, tied there with LightGBM Linear — is twelfth of the
-fourteen on calibration, with only TabNet and SGD behind it. Rank by PR AUC and
+The five foundation models hold the five best ECE values. CatBoost — the top
+classical model on PR AUC, tied there with LightGBM Linear — is fourteenth of the
+sixteen on calibration, with only TabNet and SGD behind it. Rank by PR AUC and
 rank by calibration disagree about which classical model to reach for.
+
+The two TabPFN-3.5 variants land third and fourth, a little ahead of TabPFN-3 and
+a little behind TabFM and TabICL. Calibration is the one axis where the new
+generation did not move much.
+
+PR AUC is the mean over the four outer folds, as everywhere else in this report.
+Brier and ECE pool the folds first: a 300-row fold spread over 15 bins is mostly
+binning noise, and averaging that per fold inflates ECE by 1.3x to 1.7x.
 
 This cost nothing to measure: the per-fold probabilities and labels have been in
 `results/ckpt/<model>.joblib` all along. AutoGluon and MLJAR are the exception —
 their runners stored scores and times only, so the two models the README used to
 call the winners cannot be checked for calibration without a re-run.
 
-The two TabPFN-3.5 variants land third and fourth on ECE, a little ahead of
-TabPFN-3 and a little behind TabFM and TabICL. Calibration is the one axis where
-the new generation did not move much.
+## Post-hoc calibration does not buy the gap, and it is not free
+
+The obvious objection to the table above is that calibration is a solved problem:
+fit a one-dimensional map on held-out predictions and the cheap model catches up.
+It does not. Both repairs are cross-fitted over the model's own four outer folds —
+each fold is corrected by a map fitted on the other three, so the calibrator never
+reads the labels it is scored against.
+
+**Temperature scaling** divides the log probabilities by one fitted scalar. It can
+only sharpen or soften confidence, never reorder the classes in a row, so on binary
+problems PR AUC is untouched. **Isotonic regression** is the non-parametric ceiling:
+one-vs-rest, then renormalised.
+
+Three things come out of it.
+
+*The repair is real but small where it matters.* Random Forest gains the most
+(0.0747 to 0.0459, a 39 % cut), then SGD, CatBoost and HistGradientBoosting, all
+around 31-36 %. The foundation models gain least, because they had least to give
+back.
+
+*It does not close the gap.* Twelve of the sixteen models still sit above the
+**untreated** TabFM at 0.0367 after their better repair. The four that reach it are
+TabFM, TabICL and both TabPFN-3.5 variants — every one a foundation model. Repaired
+CatBoost lands at 0.0565, still worse than raw TabPFN-3 at 0.0443. "Just calibrate
+the gradient booster" does not produce a foundation model's probabilities.
+
+*The ceiling costs ranking.* Isotonic loses PR AUC on all sixteen, from -0.0127
+(TabFM) to -0.0322 (SGD). CatBoost gives up 0.0255 — twelve times the 0.0021 gap
+over Random Forest that the pairwise test calls significant. Temperature scaling is
+the honest free lunch, and it is the weaker of the two everywhere except TabICL and
+Random Forest.
+
+So the calibration ordering is not an artefact of leaving the classical models
+unrepaired. It survives repair, and the repair that closes most of it costs more
+ranking than the ranking differences this benchmark is able to detect.
 
 ## Ensembles over the stored predictions never help
 
