@@ -20,7 +20,7 @@ def evaluate_autogluon(X, y):
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=RANDOM_STATE)
     n_classes = len(np.unique(y))
     problem_type = "binary" if n_classes == 2 else "multiclass"
-    nested_scores = []
+    nested_scores, nested_preds, nested_labels = [], [], []
     for train_inds, test_inds in outer_cv.split(X, y):
         train_df = data_df.iloc[train_inds]
         test_df  = data_df.iloc[test_inds]
@@ -35,13 +35,18 @@ def evaluate_autogluon(X, y):
               dynamic_stacking=False,
               excluded_model_types=["NeuralNetFastAI", "NeuralNetTorch"])
         y_pred = predictor.predict_proba(test_df.drop(columns=["y"])).values
-        nested_scores.append(pr_auc_score(test_df["y"].values, y_pred))
+        y_test = test_df["y"].values
+        nested_scores.append(pr_auc_score(y_test, y_pred))
+        nested_preds.append(y_pred)
+        nested_labels.append(y_test)
         shutil.rmtree(AG_PATH, ignore_errors=True)
-    return nested_scores
+    return nested_scores, nested_preds, nested_labels
 
 
-CHECKPOINT   = f"results/autogluon_sec_{SEC}_ckpt.joblib"
-FINAL_OUTPUT = f"results/autogluon_sec_{SEC}.joblib"
+# Separate files from the published run: that one stored no probabilities, and
+# AutoML is time-budgeted, so a re-run does not reproduce its scores.
+CHECKPOINT   = f"results/autogluon_sec_{SEC}_preds_ckpt.joblib"
+FINAL_OUTPUT = f"results/autogluon_sec_{SEC}_preds.joblib"
 
 if __name__ == "__main__":
     _, _, random_forest_results, evaluated_datasets, _ = joblib.load(
