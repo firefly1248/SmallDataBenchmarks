@@ -124,7 +124,7 @@ Method defects found and fixed during this iteration, including two that had pro
 Running AutoGluon reliably in a long CPU benchmark required several non-obvious workarounds:
 
 - **`dynamic_stacking=False` is required.** With the default `best_quality` preset, AutoGluon's stacking phase can consume more time during initialization than the `time_limit` budget allows, causing an `AssertionError` before any model is trained.
-- **Neural network models (`NeuralNetFastAI`, `NeuralNetTorch`) must be excluded on CPU.** These do not reliably respect `time_limit` on CPU hardware and hang indefinitely — sometimes 10+ hours — without output or checkpoint updates.
+- **The neural-network exclusion does not take effect, and the runs were measured with it not taking effect.** `excluded_model_types=["NeuralNetFastAI", "NeuralNetTorch"]` passes class names; AutoGluon matches registry keys (`FASTAI`, `NN_TORCH`) and silently ignores anything else. `NeuralNetTorch` trains, and on `blood-transfusion-service` it takes the top six leaderboard places. `NeuralNetFastAI` is absent only because `fastai` is not installed. The argument is kept as measured rather than corrected, so that the re-run differs from the published one by the library version alone.
 - **Stdout must be unbuffered.** Launch with `python -u` or `PYTHONUNBUFFERED=1`, or background-process output is suppressed entirely.
 - **Ray subprocess lifecycle.** AutoGluon spawns Ray workers that outlive crashes and must be cleaned up manually before restarting.
 

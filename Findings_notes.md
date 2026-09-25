@@ -303,14 +303,14 @@ the same models after post-hoc repair, covered in the next section.
 
 | model | PR AUC | Brier | ECE | ECE T | ECE iso | PR AUC iso |
 |---|---|---|---|---|---|---|
-| TabFM | 0.8596 | 0.1881 | **0.0367** | 0.0355 | 0.0352 | 0.8469 |
-| TabICL | 0.8574 | 0.1905 | 0.0405 | 0.0347 | 0.0359 | 0.8420 |
+| TabFM | 0.8596 | 0.1881 | **0.0367** | 0.0354 | 0.0352 | 0.8469 |
+| TabICL | 0.8574 | 0.1905 | 0.0405 | 0.0347 | 0.0360 | 0.8420 |
 | TabPFN-3.5-fast | 0.8577 | 0.2129 | 0.0427 | 0.0413 | 0.0364 | 0.8436 |
 | TabPFN-3.5 | 0.8595 | 0.2103 | 0.0429 | 0.0418 | 0.0367 | 0.8462 |
-| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 | 0.0420 | 0.0395 | 0.8402 |
+| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 | 0.0419 | 0.0395 | 0.8402 |
 | SVC | 0.8240 | 0.2350 | 0.0477 | 0.0437 | 0.0436 | 0.8052 |
-| ResNet | 0.8211 | 0.2446 | 0.0512 | 0.0487 | 0.0455 | 0.8014 |
-| XGBoost | 0.8294 | 0.2394 | 0.0627 | 0.0521 | 0.0478 | 0.8114 |
+| ResNet | 0.8211 | 0.2446 | 0.0512 | 0.0487 | 0.0458 | 0.8014 |
+| XGBoost | 0.8294 | 0.2394 | 0.0627 | 0.0522 | 0.0478 | 0.8114 |
 | LightGBM | 0.8311 | 0.2443 | 0.0674 | 0.0604 | 0.0572 | 0.8098 |
 | Logistic Regression | 0.7838 | 0.3084 | 0.0732 | 0.0687 | 0.0581 | 0.7564 |
 | HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 | 0.0561 | 0.0508 | 0.8094 |
@@ -358,11 +358,18 @@ Three things come out of it.
 around 31-36 %. The foundation models gain least, because they had least to give
 back.
 
-*It does not close the gap.* Twelve of the sixteen models still sit above the
-**untreated** TabFM at 0.0367 after their better repair. The four that reach it are
-TabFM, TabICL and both TabPFN-3.5 variants — every one a foundation model. Repaired
-CatBoost lands at 0.0565, still worse than raw TabPFN-3 at 0.0443. "Just calibrate
-the gradient booster" does not produce a foundation model's probabilities.
+*It does not close the gap.* Nothing classical reaches the **untreated** TabFM at
+0.0367. The models that do, after their better repair, are TabFM, TabICL and the two
+TabPFN-3.5 variants — every one a foundation model, with only TabPFN-3 of that family
+left outside. The nearest classical model afterwards is SVC at 0.0436, and repaired
+CatBoost lands at 0.0565, still worse than raw TabPFN-3 at 0.0443. "Just calibrate the
+gradient booster" does not produce a foundation model's probabilities.
+
+Counting how many models clear that 0.0367 line exactly is not worth doing: TabPFN-3.5
+lands on it to four decimals, and a numpy upgrade moved several of these repaired
+figures in the fourth decimal without touching a single raw one. The gap that carries
+the claim is the 0.0069 between the best repaired classical model and the untreated
+foundation floor, not the tie at the line.
 
 *The ceiling costs ranking.* Isotonic loses PR AUC on all sixteen, from -0.0127
 (TabFM) to -0.0322 (SGD). CatBoost gives up 0.0255 — twelve times the 0.0021 gap
