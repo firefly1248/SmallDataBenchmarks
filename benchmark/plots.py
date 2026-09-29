@@ -44,7 +44,13 @@ MODEL_LABELS: dict[str, str] = {
 FOUNDATION_MODELS = frozenset(
     MODEL_LABELS[k] for k in ("tabfm", "tabicl", "tabpfn3", "tabpfn35", "tabpfn35fast")
 )
-AUTOML_MODELS = frozenset({"AutoGluon (sec=300)", "MLJAR (sec=300)"})
+# Kept out of MODEL_LABELS: those keys index the Optuna aggregate, and the AutoML
+# runs are stored per framework in results/<framework>_sec_300*.joblib instead.
+AUTOML_LABELS: dict[str, str] = {
+    "autogluon": "AutoGluon (sec=300)",
+    "mljar":     "MLJAR (sec=300)",
+}
+AUTOML_MODELS = frozenset(AUTOML_LABELS.values())
 
 
 def _family_colours(models: list[str]) -> list[str]:

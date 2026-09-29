@@ -2,7 +2,7 @@
 
 PR AUC measures ranking only: a model that scores every positive above every
 negative is perfect regardless of whether its 0.9 means 90 %. The two metrics
-here read the probabilities themselves, and the two calibrators try to repair
+here read the probabilities themselves, and the three calibrators try to repair
 them without refitting anything.
 """
 from __future__ import annotations
@@ -12,7 +12,7 @@ from collections.abc import Callable
 import numpy as np
 from scipy.optimize import minimize_scalar
 from scipy.special import logsumexp
-from sklearn.isotonic import IsotonicRegression
+from sklearn.isotonic import IsotonicRegression, isotonic_regression
 from sklearn.metrics import brier_score_loss
 
 Folds = list[tuple[np.ndarray, np.ndarray]]
@@ -81,7 +81,8 @@ def temperature_scale(folds: Folds) -> list[np.ndarray]:
 
     Divides the log probabilities by a scalar, so it can only sharpen or soften
     a model's confidence — it cannot reorder the classes within a row. On binary
-    problems that leaves PR AUC untouched; on multiclass the one-vs-rest column
+    problems that leaves PR AUC untouched except where an extreme temperature
+    rounds neighbouring scores together; on multiclass the one-vs-rest column
     depends on the other classes, so it can move a little.
     """
     def fit(prob: np.ndarray, y: np.ndarray) -> Callable:
@@ -106,6 +107,9 @@ def isotonic_calibrate(folds: Folds) -> list[np.ndarray]:
     zero and survives only as the floor ``_normalise`` applies.
     """
     def fit(prob: np.ndarray, y: np.ndarray) -> Callable:
+        # sklearn merges scores closer than its dtype's resolution: 1e-6 on the
+        # float32 the torch models emit, which ties scores the model kept apart.
+        prob = prob.astype(np.float64)
         models = [
             IsotonicRegression(y_min=0, y_max=1, out_of_bounds="clip")
             .fit(prob[:, k], (y == k).astype(float))
@@ -114,5 +118,69 @@ def isotonic_calibrate(folds: Folds) -> list[np.ndarray]:
         return lambda p: _normalise(
             np.column_stack([m.predict(p[:, k]) for k, m in enumerate(models)])
         )
+
+    return _cross_fitted(folds, fit)
+
+
+def _ivap(cal_scores: np.ndarray, cal_labels: np.ndarray,
+          test_scores: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Inductive Venn-ABERS: the isotonic fit at a test point forced to 0 and to 1.
+
+    This is what separates it from plain isotonic — the point being calibrated
+    joins the calibration set before the fit, once with each label, so the pair
+    brackets what a calibrator that already knew the answer would have said.
+    Refitting once per test point is exact rather than approximated: equal
+    scores merge into one weighted knot, so the fit is a weighted PAVA over the
+    distinct scores and the inserted point is read straight off it.
+    """
+    scores, inverse = np.unique(cal_scores, return_inverse=True)
+    weight = np.bincount(inverse).astype(float)
+    label_sum = np.bincount(inverse, weights=cal_labels.astype(float))
+
+    unique_test, back = np.unique(test_scores, return_inverse=True)
+    at = np.searchsorted(scores, unique_test)
+    merges = at < len(scores)
+    merges[merges] = scores[at[merges]] == unique_test[merges]
+
+    n = len(scores)
+    bounds = np.empty((2, len(unique_test)))
+    w_buf, sum_buf = np.empty(n + 1), np.empty(n + 1)
+    for j, (k, merged) in enumerate(zip(at, merges)):
+        if merged:
+            size = n
+            w_buf[:n], sum_buf[:n] = weight, label_sum
+            w_buf[k] += 1.0
+        else:
+            size = n + 1
+            w_buf[:k], sum_buf[:k] = weight[:k], label_sum[:k]
+            w_buf[k] = 1.0
+            w_buf[k + 1:size], sum_buf[k + 1:size] = weight[k:], label_sum[k:]
+        for label in (0, 1):
+            sum_buf[k] = (label_sum[k] if merged else 0.0) + label
+            bounds[label, j] = isotonic_regression(
+                sum_buf[:size] / w_buf[:size], sample_weight=w_buf[:size],
+                y_min=0.0, y_max=1.0)[k]
+    return bounds[0][back], bounds[1][back]
+
+
+def venn_abers_calibrate(folds: Folds) -> list[np.ndarray]:
+    """Cross-fitted Venn-ABERS, one-vs-rest then renormalised.
+
+    Applied exactly like ``isotonic_calibrate``, on the same isotonic machinery,
+    so the two differ only in construction. What that buys is resolution: plain
+    isotonic maps a whole score interval onto one plateau, where
+    ``p1 / (1 - p0 + p1)`` still separates the points inside it. On binary
+    problems the two columns' predictions already sum to one, up to the rounding
+    in the model's own output, so this is the canonical one-column method; on
+    multiclass the renormalisation is a heuristic.
+    """
+    def fit(prob: np.ndarray, y: np.ndarray) -> Callable:
+        def apply(p: np.ndarray) -> np.ndarray:
+            columns = []
+            for k in range(p.shape[1]):
+                lower, upper = _ivap(prob[:, k], (y == k).astype(float), p[:, k])
+                columns.append(upper / (1.0 - lower + upper))
+            return _normalise(np.column_stack(columns))
+        return apply
 
     return _cross_fitted(folds, fit)

@@ -40,10 +40,8 @@ def evaluate_mljar(X, y):
     return nested_scores, nested_preds, nested_labels
 
 
-# Separate files from the published run: that one stored no probabilities, and
-# AutoML is time-budgeted, so a re-run does not reproduce its scores.
-CHECKPOINT   = f"results/mljar_sec_{SEC}_preds_ckpt.joblib"
-FINAL_OUTPUT = f"results/mljar_sec_{SEC}_preds.joblib"
+CHECKPOINT   = f"results/mljar_sec_{SEC}_ckpt.joblib"
+FINAL_OUTPUT = f"results/mljar_sec_{SEC}.joblib"
 
 if __name__ == "__main__":
     _, _, random_forest_results, evaluated_datasets, _ = joblib.load(

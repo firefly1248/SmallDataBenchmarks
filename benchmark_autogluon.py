@@ -35,8 +35,7 @@ def evaluate_autogluon(X, y):
               dynamic_stacking=False,
               # These are class names, not registry keys (FASTAI, NN_TORCH), so
               # AutoGluon ignores them and NeuralNetTorch trains anyway. Left as
-              # measured: correcting it would change the model set on top of the
-              # library upgrade, and every published number was produced this way.
+              # measured: the published run was produced this way.
               excluded_model_types=["NeuralNetFastAI", "NeuralNetTorch"])
         y_pred = predictor.predict_proba(test_df.drop(columns=["y"])).values
         y_test = test_df["y"].values
@@ -47,10 +46,8 @@ def evaluate_autogluon(X, y):
     return nested_scores, nested_preds, nested_labels
 
 
-# Separate files from the published run: that one stored no probabilities, and
-# AutoML is time-budgeted, so a re-run does not reproduce its scores.
-CHECKPOINT   = f"results/autogluon_sec_{SEC}_preds_ckpt.joblib"
-FINAL_OUTPUT = f"results/autogluon_sec_{SEC}_preds.joblib"
+CHECKPOINT   = f"results/autogluon_sec_{SEC}_ckpt.joblib"
+FINAL_OUTPUT = f"results/autogluon_sec_{SEC}.joblib"
 
 if __name__ == "__main__":
     _, _, random_forest_results, evaluated_datasets, _ = joblib.load(
