@@ -5,7 +5,7 @@ import torch  # must precede catboost to win the OpenMP init race
 import numpy as np
 import pandas as pd
 import category_encoders as ce
-from catboost import CatBoostClassifier
+from catboost import CatBoostClassifier, Pool
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import (
@@ -350,18 +350,31 @@ class CatBoostNativeWrapper(ClassifierMixin, BaseEstimator):
     def _cat_indices(self, X: pd.DataFrame) -> list[int]:
         return [i for i, col in enumerate(X.columns) if col in self.cat_cols]
 
-    def fit(self, X, y):
+    def _pool(self, X, y=None) -> Pool:
         X = self._prepare(X)
+        return Pool(X, y, cat_features=self._cat_indices(X),
+                    baseline=np.tile(self._init, (len(X), 1)))
+
+    def fit(self, X, y):
+        # Boost from the training prior, as XGBoost and LightGBM do. CatBoost
+        # starts from uniform probabilities, which an undertrained fit (free
+        # under PR AUC tuning) never leaves: ECE 0.155 on the 29 datasets where
+        # Optuna chose learning_rate * n_estimators < 5. boost_from_average does
+        # the same for Logloss but CatBoost refuses it for MultiClass.
+        _, counts = np.unique(y, return_counts=True)
+        log_prior = np.log(counts / counts.sum())
+        # Logloss takes one raw score, the log-odds of the second class.
+        self._init = log_prior[1:] - log_prior[0] if len(counts) == 2 else log_prior
         self._model = CatBoostClassifier(**self.catboost_params)
-        self._model.fit(X, y, cat_features=self._cat_indices(X))
+        self._model.fit(self._pool(X, y))
         self.classes_ = self._model.classes_
         return self
 
     def predict_proba(self, X) -> np.ndarray:
-        return self._model.predict_proba(self._prepare(X))
+        return self._model.predict_proba(self._pool(X))
 
     def predict(self, X) -> np.ndarray:
-        return self._model.predict(self._prepare(X))
+        return self._model.predict(self._pool(X))
 
     def get_params(self, deep: bool = True) -> dict:
         params: dict = {"cat_cols": self.cat_cols}

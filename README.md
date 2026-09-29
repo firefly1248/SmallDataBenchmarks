@@ -19,6 +19,16 @@ Results are produced in `figures.ipynb` (all models including AutoML) and `figur
 | `benchmark_autogluon.py` | AutoGluon 1.6.3 with a 300s wall-clock budget per fold (`best_quality` preset, 16 CPUs) |
 | `benchmark_mljar.py` | MLJAR Supervised 1.3.2 with a 300s wall-clock budget per fold (`Compete` mode, `n_jobs=16`) |
 
+Foundation-model weights carry their own licences, separate from the code:
+
+| Model | Code | Weights |
+|---|---|---|
+| TabPFN-3, TabPFN-3.5, TabPFN-3.5-fast | Apache-2.0 | Prior Labs licence: non-commercial and non-production use only, outputs included |
+| TabFM | Apache-2.0 | `tabfm-non-commercial-v1.0` |
+| TabICL | BSD-3-Clause | BSD-3-Clause |
+
+`results/datasets.csv` gives each dataset's size, features, classes and minority share; `results/best_params.csv` every outer fold's chosen hyperparameters.
+
 The AutoML figures come from the **300s-per-fold** runs (`results/*_sec_300.joblib`, ~20 min per dataset), the budget both frameworks share. They were re-run in September 2026 with probabilities stored: the 300s numbers published before then were the upstream project's 2020 results, scored by ROC AUC rather than PR AUC, and ranked both frameworks first — see [Findings_notes.md](Findings_notes.md#the-published-automl-numbers-were-roc-auc). A 1000s MLJAR run also exists (PR AUC, correctly scored) but the matching AutoGluon run was abandoned after 11 datasets, so plotting it would compare the two at different budgets.
 
 FT-Transformer is **not in this iteration**. It and TabNet were previously reported on numbers produced by runs in which they were largely failing to train; TabNet is now measured properly. See [Findings_notes.md](Findings_notes.md#the-bug-that-produced-two-published-results) and [FT_transformer_notes.md](FT_transformer_notes.md).
@@ -109,7 +119,7 @@ predictions, both AutoML frameworks included.
 - **Ensembling never helped.** Averaging stored predictions — probability, logit and rank — across every combination tried failed to beat the best single model. The strongest, a logit average of the three foundation models available at the time, ties it to within 0.0001 and wins on 39% of datasets. Adding CatBoost to that trio makes it worse. The two TabPFN-3.5 variants arrived later and have not been put through that analysis.
 - **Where foundation models win big is synthetic structured noise**, not small data generally: on `hill-valley-with-noise` CatBoost scores 0.5560 against TabICL's 0.9967.
 - **The TabPFN line is the coverage answer.** All three of its versions score every dataset they are given — 131 of 131 — while TabICL refuses 4 and TabFM 20 on feature or class limits. On the 20 datasets TabICL or TabFM refuses, TabPFN beats the best of eleven classical models on 18.
-- **PR AUC rank does not predict calibration.** TabFM has the lowest ECE (0.0367); AutoGluon (0.0391) and TabICL (0.0405) are next, in an order that depends on how ECE is binned; MLJAR (0.0456) is ahead of every classical model. CatBoost, among the strongest classical models on PR AUC, is near the bottom at 0.0848, level with TabNet and ahead only of SGD. Anything that consumes the probability rather than the ordering — a threshold, a cost model, a downstream expected value — gets a different answer from these two rankings.
+- **PR AUC rank does not predict calibration.** TabFM has the lowest ECE (0.0367); AutoGluon (0.0391) and TabICL (0.0405) are next, in an order that depends on how ECE is binned; MLJAR (0.0456) is ahead of every classical model. CatBoost, among the strongest classical models on PR AUC, is near the bottom at 0.0848, level with TabNet and ahead only of SGD — mostly a tail of undertrained fits that started from uniform probabilities rather than the class prior; its median is the best of the boosters, and a corrected re-run is in progress ([details](Findings_notes.md#catboost-started-from-uniform-probabilities)). Anything that consumes the probability rather than the ordering — a threshold, a cost model, a downstream expected value — gets a different answer from these two rankings.
 - **Trained-from-scratch neural networks lose.** ResNet spends 207.7 h to land below Random Forest, and TabNet 485.3 h to finish last. The line is not "neural loses" — TabICL is a neural model and is both cheap and strong — but between *trained from scratch on your 1500 rows* and *pretrained, used in context*.
 - Non-linear models outperform linear ones even on datasets with fewer than 100 samples.
 - Proper categorical feature handling gives a meaningful boost on datasets with string features (~30% of the benchmark).
