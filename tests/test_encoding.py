@@ -158,6 +158,16 @@ class TestCatBoostNativeWrapper:
         wrapper.fit(X, y)
         wrapper.predict_proba(X_nan)
 
+    @pytest.mark.parametrize("prior", [[0.85, 0.15], [0.6, 0.25, 0.1, 0.05]])
+    def test_undertrained_fit_sits_at_the_prior(self, prior):
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame({"num": rng.normal(size=400)})
+        y = rng.choice(len(prior), size=400, p=prior)
+        wrapper = CatBoostNativeWrapper(cat_cols=[], iterations=5, learning_rate=1e-3,
+                                        verbose=0, random_state=0)
+        proba = wrapper.fit(X, y).predict_proba(X)
+        np.testing.assert_allclose(proba.mean(axis=0), np.bincount(y) / len(y), atol=0.01)
+
     def test_get_params_contains_cat_cols(self, cat_data):
         wrapper = CatBoostNativeWrapper(cat_cols=["cat"], iterations=5, verbose=0)
         params = wrapper.get_params()

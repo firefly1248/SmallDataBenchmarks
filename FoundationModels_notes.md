@@ -273,6 +273,7 @@ rested entirely on the blind-spot table, and that table was a scoring bug.
   foundation models.
 - **Subsampling to 10 000 rows is unstratified** and runs after the per-class
   filter. Worst case measured: `kr-vs-k` rarest class 27 -> 11.
-- **Model weights for TabPFN-3 and TabFM are non-commercial.** Both were used under
-  the evaluation terms their licences permit. The code is separately licensed
-  (Apache 2.0 with attribution for TabPFN, Apache 2.0 for TabFM).
+- **Model weights for TabPFN-3, TabPFN-3.5 and TabFM are non-commercial.** All were
+  used under the evaluation terms their licences permit. The code is separately
+  licensed (Apache 2.0 with attribution for TabPFN, Apache 2.0 for TabFM). TabICL's
+  weights are BSD-3-Clause.

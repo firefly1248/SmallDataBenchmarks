@@ -376,8 +376,10 @@ TabFM has the lowest ECE. AutoGluon and TabICL are close behind it, and which of
 the two comes second depends on the binning; MLJAR is ahead of every classical
 model. On this axis AutoML is closer to the foundation models than it is on
 ranking. CatBoost — the top classical model on PR AUC, tied there with LightGBM
-Linear — sits near the bottom, level with TabNet and ahead only of SGD. Rank by PR
-AUC and rank by calibration disagree about which classical model to reach for.
+Linear — sits near the bottom, level with TabNet and ahead only of SGD. Most of
+that is one defect, described in the next section; a corrected run is in
+progress. Rank by PR AUC and rank by calibration disagree about which classical
+model to reach for.
 
 The two TabPFN-3.5 variants land a little ahead of TabPFN-3 and a little behind
 TabFM and TabICL. Calibration is the one axis where the new generation did not move
@@ -395,6 +397,40 @@ For the single models this cost nothing to measure: the per-fold probabilities a
 labels have been in `results/ckpt/<model>.joblib` all along. The AutoML runners
 stored scores only, so both frameworks were re-run to keep theirs, in
 `results/<framework>_sec_300_ckpt.joblib`.
+
+## CatBoost started from uniform probabilities
+
+Every CatBoost number above comes from fits that started boosting at uniform
+probabilities (0.5, or 1/K). That is CatBoost's default for Logloss and
+MultiClass; XGBoost and LightGBM start from the class prior. It matters only
+when a fit stays close to its start, and the tuning makes that common: Optuna
+maximises PR AUC, which ignores probability scale, so it is free to choose a
+tiny `learning_rate * n_estimators`.
+
+The mean ECE of 0.0848 is a tail. CatBoost's median is 0.0498, the lowest of the
+boosters (XGBoost 0.0549, LightGBM 0.0510). On the 29 of 108 datasets where the
+median fold has `learning_rate * n_estimators` below 5, its ECE is 0.155 and it is
+underconfident, by 0.119 on average: on `led7digit` (10 classes, learning rate
+0.002) the top class gets a mean probability of 0.29 and is right 74 % of the
+time. On the other 79 it averages 0.059 and is level with XGBoost (p = 0.44) and
+LightGBM (p = 0.67). XGBoost and LightGBM end up in the same regime about as often
+(34 and 44 datasets), but staying near the prior costs them far less: ECE 0.080
+and 0.078.
+
+The fix is in `CatBoostNativeWrapper`: each fit starts from the training fold's
+log class prior, passed as a `Pool` baseline, and prediction adds the same
+baseline. On Logloss this is `boost_from_average=True` to 1e-8; CatBoost 1.2.10
+refuses that option for MultiClass, which covers 56 of the 108 datasets and the
+worst cases. On the four worst datasets a full nested CV with the fix moved ECE
+from 0.451 to 0.267 (`led7digit`), 0.240 to 0.118, 0.280 to 0.110 and 0.238 to
+0.195, with PR AUC within fold noise. CatBoost is being re-run on all 131
+datasets; its significance, calibration and repair numbers here will be replaced
+when it finishes.
+
+`scripts/catboost_calibration.py` reproduces the figures above and writes the
+per-dataset diagnostics to `results/catboost_calibration.csv`; every fold's
+chosen parameters are in `results/best_params.csv`, the uniform-start run under
+`catboost_uniform_start`.
 
 ## Post-hoc calibration does not buy the gap, and it is not free
 
