@@ -23,7 +23,8 @@ def _load_checkpoint(
 ) -> dict[str, dict]:
     """Load the checkpoint, migrating the old positional tuple format if needed.
 
-    New: ``{dataset_name: {'scores': list[float], 'time': float}}``
+    New: ``{dataset_name: {'scores', 'time', 'preds', 'labels'}}``, one entry
+    per outer fold in each list
     Old: ``(ndarray of shape (n, folds), ndarray of shape (n,))``
     """
     try:
