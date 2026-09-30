@@ -49,6 +49,7 @@ if __name__ == "__main__":
     ALL_MODELS = ["svc", "logreg", "tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl", "tabfm",
                   "random_forest", "xgboost", "sgd",
                   "catboost", "lgbm", "lgbm_linear", "hgb",
+                  "xgboost_logloss", "catboost_logloss", "lgbm_logloss",
                   "tabnet", "ft_transformer", "resnet"]
 
     parser = argparse.ArgumentParser(description="Optuna nested CV benchmark")
@@ -57,6 +58,8 @@ if __name__ == "__main__":
                        help="Run only these models (default: all)")
     group.add_argument("--skip", nargs="+", choices=ALL_MODELS, metavar="MODEL",
                        help="Run all models except these")
+    parser.add_argument("--datasets", nargs="+", metavar="DATASET",
+                        help="Run only these datasets, in this order (default: all)")
     args = parser.parse_args()
 
     if args.models:
@@ -74,6 +77,11 @@ if __name__ == "__main__":
     # The work loop skips the UCI++ duplicates; the aggregate below still spans
     # every dataset, so the scores already stored for them stay published.
     run_datasets = datasets_to_run()
+    if args.datasets:
+        unknown = set(args.datasets) - set(run_datasets)
+        if unknown:
+            sys.exit(f"Not in the run list: {sorted(unknown)}")
+        run_datasets = args.datasets
     all_datasets = evaluated_datasets()
 
     ckpt = load_by_model(MODEL_NAMES)

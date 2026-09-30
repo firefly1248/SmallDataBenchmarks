@@ -7,7 +7,7 @@ from sklearn.datasets import load_iris
 from sklearn.dummy import DummyClassifier
 from sklearn.model_selection import cross_val_score
 
-from benchmark.metrics import PR_AUC_SCORER, pr_auc_baseline, pr_auc_score
+from benchmark.metrics import LOG_LOSS_SCORER, PR_AUC_SCORER, pr_auc_baseline, pr_auc_score
 
 
 class TestPrAucScore:
@@ -93,3 +93,24 @@ class TestPrAucScorer:
         assert PR_AUC_SCORER(clf, X[keep], y[keep]) == pytest.approx(
             pr_auc_score(y[keep], clf.predict_proba(X[keep]))
         )
+
+
+class TestLogLossScorer:
+    def test_prior_scores_the_class_entropy(self):
+        X, y = load_iris(return_X_y=True)
+        clf = DummyClassifier(strategy="prior").fit(X, y)
+        assert LOG_LOSS_SCORER(clf, X, y) == pytest.approx(-np.log(3))
+
+    def test_scorer_on_fold_missing_a_trained_class(self):
+        """sklearn's own neg_log_loss raises here: it infers labels from the fold."""
+        X, y = load_iris(return_X_y=True)
+        clf = DummyClassifier(strategy="prior").fit(X, y)
+        keep = y != 2
+        assert LOG_LOSS_SCORER(clf, X[keep], y[keep]) == pytest.approx(-np.log(3))
+
+    def test_scorer_binary(self, binary_df):
+        X, y = binary_df
+        clf = DummyClassifier(strategy="prior").fit(X, y)
+        share = y.mean()
+        entropy = -(share * np.log(share) + (1 - share) * np.log(1 - share))
+        assert LOG_LOSS_SCORER(clf, X, y) == pytest.approx(-entropy)

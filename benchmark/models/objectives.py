@@ -37,7 +37,8 @@ def rf_objective(trial, X_train, y_train, inner_cv) -> float:
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
-def xgb_objective(trial, X_train, y_train, inner_cv, n_classes: int) -> float:
+def xgb_objective(trial, X_train, y_train, inner_cv, n_classes: int,
+                  scoring=PR_AUC_SCORER) -> float:
     params = {
         "learning_rate":    trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
         "n_estimators":     trial.suggest_int("n_estimators", 50, 500),
@@ -56,7 +57,7 @@ def xgb_objective(trial, X_train, y_train, inner_cv, n_classes: int) -> float:
                               random_state=RANDOM_STATE, n_jobs=1, verbosity=0)),
     ])
     return float(np.mean(cross_val_score(model, X_train, y_train,
-                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
+                                         cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))
 
 
 def sgd_objective(trial, X_train, y_train, inner_cv) -> float:
@@ -89,7 +90,7 @@ def sgd_objective(trial, X_train, y_train, inner_cv) -> float:
 
 
 def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
-                       cat_cols: list[str]) -> float:
+                       cat_cols: list[str], scoring=PR_AUC_SCORER) -> float:
     params = {
         "learning_rate":      trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
         "depth":              trial.suggest_int("depth", 2, 10),
@@ -107,7 +108,7 @@ def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
         random_state=RANDOM_STATE, verbose=0, thread_count=INNER_FIT_THREADS, **params,
     )
     return float(np.mean(cross_val_score(model, X_train, y_train,
-                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
+                                         cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))
 
 
 def tabnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> float:
@@ -186,7 +187,7 @@ def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
 
 
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
-                   linear_tree: bool = False) -> float:
+                   linear_tree: bool = False, scoring=PR_AUC_SCORER) -> float:
     max_leaves = 128 if linear_tree else 256
     max_child  = 50  if linear_tree else 100
     params = {
@@ -210,4 +211,4 @@ def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                                 n_jobs=1, verbose=-1)),
     ])
     return float(np.mean(cross_val_score(model, X_train, y_train,
-                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
+                                         cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))

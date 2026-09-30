@@ -556,26 +556,34 @@ ranking than the ranking differences this benchmark is able to detect.
 ## Ensembles over the stored predictions never help
 
 Every model stores per-fold probability matrices, so combining them costs arithmetic
-rather than compute. 126 datasets covered by all nine models tested; probability,
-logit and rank averaging.
+rather than compute. `scripts/ensembles.py` tries every combination of two or more
+of eight models (the five foundation models, LightGBM, LightGBM-linear, XGBoost)
+with probability, logit and rank averaging: 741 blends on the 111 datasets all
+eight score, in `results/ensembles.csv`. The best single model is TabFM at 0.8634,
+with TabPFN-3.5 at 0.8632.
 
-| ensemble | best combiner | mean | vs best single | win rate |
-|---|---|---|---|---|
-| TabFM + TabICL + TabPFN-3 | logit | 0.8654 | **+0.0001** | 38.9 % |
-| 3 foundation + CatBoost | logit | 0.8647 | −0.0006 | 42.1 % |
-| TabICL + TabPFN-3 | logit | 0.8636 | −0.0017 | 34.1 % |
-| all 9 models | logit | 0.8620 | −0.0033 | 30.2 % |
-| TabICL + CatBoost | logit | 0.8612 | −0.0041 | 29.4 % |
-| CatBoost + LightGBM-linear + XGBoost | logit | 0.8491 | −0.0162 | 17.5 % |
+| ensemble | combiner | mean | vs best single | win rate | p |
+|---|---|---|---|---|---|
+| TabFM + TabPFN-3.5 | logit | 0.8648 | **+0.0015** | 49.5 % | 0.04 |
+| TabFM + TabPFN-3 + TabPFN-3.5 | logit | 0.8644 | +0.0010 | 46.0 % | 0.31 |
+| TabFM + TabICL + TabPFN-3.5 | logit | 0.8643 | +0.0009 | 48.6 % | 0.29 |
+| all five foundation models | logit | 0.8641 | +0.0007 | 45.0 % | 0.54 |
+| TabFM + TabICL + TabPFN-3, the previous best | logit | 0.8636 | +0.0002 | 40.5 % | 0.61 |
+| best blend with a booster (4 foundation + XGBoost) | logit | 0.8636 | +0.0002 | 46.8 % | 0.79 |
 
-Best single model is TabFM at 0.8653. Nothing beats it. The strongest ensemble ties
-it to within 0.0001 and wins on 39 % of datasets — worse than a coin flip.
+The best blend gains 0.0015 and wins on half the datasets. Its p of 0.04 is the
+best of 741 tries; Holm-adjusted over them it is 1. Of the 643 blends that do
+separate from TabFM at raw p < 0.05, 642 are worse. Only 40 blends beat it on the
+mean at all, 6 of them with a booster in, none by more than 0.0002.
 
-Two specifics worth stating. **Adding CatBoost to the foundation trio makes it
-worse** (−0.0006), which refutes the "always co-train a cheap classical
-baseline" advice independently of the blind-spot table, itself a scoring bug. And
-logit averaging beats probability averaging beats rank averaging, consistently, in
-every combination — but the ordering does not matter much when none of them wins.
+Two specifics. **A booster never helps a foundation blend**, which refutes the
+"always co-train a cheap classical baseline" advice independently of the
+blind-spot table, itself a scoring bug. And logit averaging is the best combiner
+for 25 of the 26 foundation-only sets; with a booster in the mix, probability
+averaging wins about as often. Rank averaging is never best. CatBoost is left out
+until its prior-start re-run: a logit blend weighs members by confidence, and the
+uniform-start CatBoost was underconfident. The earlier version of this table put
+the uniform-start CatBoost in the foundation trio at -0.0006.
 
 ## Cost does not track performance
 

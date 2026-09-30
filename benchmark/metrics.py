@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
-from sklearn.metrics import average_precision_score, make_scorer
+from sklearn.metrics import average_precision_score, log_loss, make_scorer
 from sklearn.preprocessing import label_binarize
 
 
@@ -45,3 +45,17 @@ Wrapping ``average_precision_score`` directly instead raises on any inner fold
 whose labels miss a trained class: sklearn calls the metric binary on the fold's
 labels while passing the full probability matrix.
 """
+
+
+def neg_log_loss_score(y_true: np.ndarray, y_prob: np.ndarray) -> float:
+    """Negative log loss over the trained label set, for the same reason as above.
+
+    On binary data sklearn's scorer passes the positive-class column alone.
+    """
+    n_classes = 2 if y_prob.ndim == 1 else y_prob.shape[1]
+    return -float(log_loss(y_true, y_prob, labels=np.arange(n_classes)))
+
+
+LOG_LOSS_SCORER = make_scorer(neg_log_loss_score, response_method="predict_proba")
+"""Tuning on this rather than PR AUC separates what a model does from what the
+selection metric rewards: PR AUC ignores probability scale, log loss does not."""
