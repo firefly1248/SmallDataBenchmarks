@@ -336,8 +336,9 @@ class CatBoostNativeWrapper(ClassifierMixin, BaseEstimator):
     1.7's ``get_tags()`` identifies this as a classifier.
     """
 
-    def __init__(self, cat_cols: list[str], **catboost_params) -> None:
+    def __init__(self, cat_cols: list[str], prior_start: bool = True, **catboost_params) -> None:
         self.cat_cols = cat_cols
+        self.prior_start = prior_start
         self.catboost_params = catboost_params
 
     def _prepare(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -352,19 +353,24 @@ class CatBoostNativeWrapper(ClassifierMixin, BaseEstimator):
 
     def _pool(self, X, y=None) -> Pool:
         X = self._prepare(X)
-        return Pool(X, y, cat_features=self._cat_indices(X),
-                    baseline=np.tile(self._init, (len(X), 1)))
+        baseline = None if self._init is None else np.tile(self._init, (len(X), 1))
+        return Pool(X, y, cat_features=self._cat_indices(X), baseline=baseline)
 
     def fit(self, X, y):
-        # Boost from the training prior, as XGBoost and LightGBM do. CatBoost
-        # starts from uniform probabilities, which an undertrained fit (free
-        # under PR AUC tuning) never leaves: ECE 0.155 on the 29 datasets where
-        # Optuna chose learning_rate * n_estimators < 5. boost_from_average does
-        # the same for Logloss but CatBoost refuses it for MultiClass.
-        _, counts = np.unique(y, return_counts=True)
-        log_prior = np.log(counts / counts.sum())
-        # Logloss takes one raw score, the log-odds of the second class.
-        self._init = log_prior[1:] - log_prior[0] if len(counts) == 2 else log_prior
+        # Boost from the training prior, as XGBoost 3.2 and LightGBM 4.6 do for
+        # binary and multiclass alike. CatBoost starts from uniform probabilities,
+        # and an undertrained fit (free under PR AUC tuning) stays near its start.
+        # boost_from_average does this for Logloss only; a baseline covers
+        # MultiClass too. prior_start=False reproduces the uniform start.
+        self._init = None
+        if self.prior_start:
+            _, counts = np.unique(y, return_counts=True)
+            log_prior = np.log(counts / counts.sum())
+            # Branch on the loss, not the fold: a multiclass fold can hold two
+            # classes. Logloss takes one raw score, the log-odds of the second;
+            # MultiClass one per class. No other loss is supported here.
+            loss = self.catboost_params["loss_function"]
+            self._init = log_prior[1:] - log_prior[0] if loss == "Logloss" else log_prior
         self._model = CatBoostClassifier(**self.catboost_params)
         self._model.fit(self._pool(X, y))
         self.classes_ = self._model.classes_
@@ -377,11 +383,12 @@ class CatBoostNativeWrapper(ClassifierMixin, BaseEstimator):
         return self._model.predict(self._pool(X))
 
     def get_params(self, deep: bool = True) -> dict:
-        params: dict = {"cat_cols": self.cat_cols}
+        params: dict = {"cat_cols": self.cat_cols, "prior_start": self.prior_start}
         params.update(self.catboost_params)
         return params
 
     def set_params(self, **params) -> "CatBoostNativeWrapper":
         self.cat_cols = params.pop("cat_cols", self.cat_cols)
+        self.prior_start = params.pop("prior_start", self.prior_start)
         self.catboost_params.update(params)
         return self

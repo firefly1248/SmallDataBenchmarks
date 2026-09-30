@@ -4,6 +4,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from catboost import CatBoostClassifier
 from sklearn.base import clone, is_classifier
 
 from benchmark.encoding import (
@@ -129,6 +130,7 @@ class TestCatBoostNativeWrapper:
         X, y = cat_data
         wrapper = CatBoostNativeWrapper(
             cat_cols=["cat"],
+            loss_function="Logloss",
             iterations=5,
             verbose=0,
         )
@@ -138,14 +140,14 @@ class TestCatBoostNativeWrapper:
 
     def test_predict_proba_sums_to_one(self, cat_data):
         X, y = cat_data
-        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], iterations=5, verbose=0)
+        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], loss_function="Logloss", iterations=5, verbose=0)
         wrapper.fit(X, y)
         proba = wrapper.predict_proba(X)
         np.testing.assert_allclose(proba.sum(axis=1), 1.0, atol=1e-6)
 
     def test_predict_returns_integer_labels(self, cat_data):
         X, y = cat_data
-        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], iterations=5, verbose=0)
+        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], loss_function="Logloss", iterations=5, verbose=0)
         wrapper.fit(X, y)
         preds = wrapper.predict(X)
         assert set(preds).issubset({0, 1})
@@ -154,22 +156,43 @@ class TestCatBoostNativeWrapper:
         X, y = cat_data
         X_nan = X.copy()
         X_nan.loc[0, "cat"] = None
-        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], iterations=5, verbose=0)
+        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], loss_function="Logloss", iterations=5, verbose=0)
         wrapper.fit(X, y)
         wrapper.predict_proba(X_nan)
 
     @pytest.mark.parametrize("prior", [[0.85, 0.15], [0.6, 0.25, 0.1, 0.05]])
     def test_undertrained_fit_sits_at_the_prior(self, prior):
+        """And not at uniform, where CatBoost's own start leaves it: the baseline
+        must reach predict_proba through the Pool, not only fit."""
         rng = np.random.default_rng(0)
         X = pd.DataFrame({"num": rng.normal(size=400)})
         y = rng.choice(len(prior), size=400, p=prior)
-        wrapper = CatBoostNativeWrapper(cat_cols=[], iterations=5, learning_rate=1e-3,
-                                        verbose=0, random_state=0)
+        params = dict(cat_cols=[], loss_function="Logloss" if len(prior) == 2 else "MultiClass",
+                      iterations=1, learning_rate=1e-3, verbose=0, random_state=0)
+        share = np.bincount(y) / len(y)
+        with_prior = CatBoostNativeWrapper(**params).fit(X, y).predict_proba(X).mean(axis=0)
+        uniform = CatBoostNativeWrapper(prior_start=False, **params).fit(X, y).predict_proba(X).mean(axis=0)
+        np.testing.assert_allclose(with_prior, share, atol=0.01)
+        np.testing.assert_allclose(uniform, 1 / len(prior), atol=0.01)
+
+    def test_multiclass_loss_on_a_two_class_fold(self):
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame({"num": rng.normal(size=200)})
+        y = rng.choice(2, size=200, p=[0.8, 0.2])
+        wrapper = CatBoostNativeWrapper(cat_cols=[], loss_function="MultiClass", iterations=1,
+                                        learning_rate=1e-3, verbose=0, random_state=0)
         proba = wrapper.fit(X, y).predict_proba(X)
         np.testing.assert_allclose(proba.mean(axis=0), np.bincount(y) / len(y), atol=0.01)
 
+    def test_uniform_start_is_plain_catboost(self, cat_data):
+        X, y = cat_data
+        params = dict(iterations=20, verbose=0, random_state=0)
+        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], prior_start=False, **params).fit(X, y)
+        plain = CatBoostClassifier(**params).fit(X, y, cat_features=[1])
+        np.testing.assert_array_equal(wrapper.predict_proba(X), plain.predict_proba(X))
+
     def test_get_params_contains_cat_cols(self, cat_data):
-        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], iterations=5, verbose=0)
+        wrapper = CatBoostNativeWrapper(cat_cols=["cat"], loss_function="Logloss", iterations=5, verbose=0)
         params = wrapper.get_params()
         assert "cat_cols" in params
         assert params["cat_cols"] == ["cat"]
