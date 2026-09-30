@@ -5,7 +5,7 @@ import numpy as np
 import optuna
 from sklearn.model_selection import StratifiedKFold
 
-from benchmark.metrics import pr_auc_score
+from benchmark.metrics import LOG_LOSS_SCORER, pr_auc_score
 from benchmark.models.build import build_final_model
 from benchmark.models.grid_search import GRID_SEARCH_MODELS, build_grid_search
 from benchmark.models.objectives import (
@@ -99,6 +99,14 @@ def run_nested_cv(
                                                                        inner_cv, cat_cols),
                 "resnet":        lambda t: resnet_objective(t, X_train, y_train,
                                                              inner_cv, cat_cols),
+                # The same models and search spaces, selected on log loss.
+                "xgboost_logloss":  lambda t: xgb_objective(t, X_train, y_train, inner_cv,
+                                                             n_classes, scoring=LOG_LOSS_SCORER),
+                "catboost_logloss": lambda t: catboost_objective(t, X_train, y_train, inner_cv,
+                                                                  n_classes, cat_cols,
+                                                                  scoring=LOG_LOSS_SCORER),
+                "lgbm_logloss":     lambda t: lgbm_objective(t, X_train, y_train, inner_cv,
+                                                              n_classes, scoring=LOG_LOSS_SCORER),
             }
             n_trials = N_TRIALS_NN if model_name in _NN_MODELS else N_TRIALS
             study = optuna.create_study(
@@ -109,7 +117,8 @@ def run_nested_cv(
             study.optimize(_objectives[model_name], n_trials=n_trials,
                            catch=(Exception,))
             best_params = dict(study.best_params)
-            model = build_final_model(model_name, study.best_params, n_classes, cat_cols)
+            model = build_final_model(model_name.removesuffix("_logloss"), study.best_params,
+                                      n_classes, cat_cols)
             model.fit(X_train, y_train)
 
         y_pred = model.predict_proba(X_test)

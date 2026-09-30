@@ -153,3 +153,4 @@ results/ckpt/
 # Point-in-time backups taken before destructive reruns
 *.bak-*
 *.log.part*
+.venv-lama/

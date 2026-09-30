@@ -40,6 +40,12 @@ uv run python run_all.py
 # AutoGluon must use the venv Python directly (Ray incompatibility with uv run),
 # and stdout must be unbuffered to see progress in log files:
 PYTHONUNBUFFERED=1 .venv/bin/python -u benchmark_autogluon.py
+# LightAutoML pins xgboost<3 and statsmodels<=0.14.0, so it has its own venv.
+# torch 2.14 with lightgbm 4.7 deadlocks there on macOS; the file pins the pair
+# the main env uses.
+uv venv .venv-lama --python 3.11
+uv pip install --python .venv-lama/bin/python -r requirements-lightautoml.txt
+PYTHONUNBUFFERED=1 .venv-lama/bin/python -u benchmark_lightautoml.py
 ```
 
 Runs skip the 15 UCI++ duplicates listed in `config.DUPLICATE_DATASETS`, which every
@@ -116,7 +122,7 @@ predictions, both AutoML frameworks included.
 
 - **Cost does not track performance.** The two most expensive models — TabNet (485.3 h) and ResNet (207.7 h) — finish last and fourth from last, both below Random Forest at 7.6 h. CatBoost spends 75.7 h to beat Random Forest by 0.003. Full ladder in [Findings_notes.md](Findings_notes.md#cost-does-not-track-performance).
 - **Foundation models have no shared blind spot.** They match or beat the best of eleven classical models on 109 of 131 datasets (83.2%), and only 3 datasets have any classical model ahead by more than 0.02. An earlier version of this README claimed a blind spot on small imbalanced medical data; that was a scoring bug, described in [Findings_notes.md](Findings_notes.md#label-ordering-silently-changed-the-metric).
-- **Ensembling never helped.** Averaging stored predictions — probability, logit and rank — across every combination tried failed to beat the best single model. The strongest, a logit average of the three foundation models available at the time, ties it to within 0.0001 and wins on 39% of datasets. Adding CatBoost to that trio makes it worse. The two TabPFN-3.5 variants arrived later and have not been put through that analysis.
+- **Ensembling never helped.** Averaging stored predictions — probability, logit and rank — over all 741 blends of the five foundation models and three boosters fails to beat the best single model. The strongest, a logit average of TabFM and TabPFN-3.5, gains 0.0015 and wins on half the datasets; the best of 741 tries at p = 0.04, it is nowhere near significant once corrected for them. No booster improves a foundation blend. CatBoost joins the analysis after its re-run.
 - **Where foundation models win big is synthetic structured noise**, not small data generally: on `hill-valley-with-noise` CatBoost scores 0.5560 against TabICL's 0.9967.
 - **The TabPFN line is the coverage answer.** All three of its versions score every dataset they are given — 131 of 131 — while TabICL refuses 4 and TabFM 20 on feature or class limits. On the 20 datasets TabICL or TabFM refuses, TabPFN beats the best of eleven classical models on 18.
 - **PR AUC rank does not predict calibration.** TabFM has the lowest ECE (0.0367); AutoGluon (0.0391) and TabICL (0.0405) are next, in an order that depends on how ECE is binned; MLJAR (0.0456) is ahead of every classical model. CatBoost, among the strongest classical models on PR AUC, is near the bottom at 0.0848, level with TabNet and ahead only of SGD — mostly a tail of undertrained fits, made worse on imbalanced data by starting from uniform probabilities rather than the class prior; its median is the best of the boosters, and a re-run from the prior is in progress ([details](Findings_notes.md#catboost-started-from-uniform-probabilities)). Anything that consumes the probability rather than the ordering — a threshold, a cost model, a downstream expected value — gets a different answer from these two rankings.
