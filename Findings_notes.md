@@ -403,7 +403,8 @@ stored scores only, so both frameworks were re-run to keep theirs, in
 Every CatBoost number above comes from fits that started boosting at uniform
 probabilities (0.5, or 1/K). That is CatBoost's default for Logloss and
 MultiClass; XGBoost 3.2 and LightGBM 4.6 start from the class prior, on binary and
-multiclass data alike. It matters only
+multiclass data alike (LightGBM's docs list its `boost_from_average` for binary and
+`multiclassova` only, but 4.6 applies it to softmax multiclass too). It matters only
 when a fit stays close to its start, and the tuning makes that common: Optuna
 maximises PR AUC, which ignores probability scale, so it is free to choose a
 tiny `learning_rate * n_estimators`.
