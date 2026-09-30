@@ -402,7 +402,8 @@ stored scores only, so both frameworks were re-run to keep theirs, in
 
 Every CatBoost number above comes from fits that started boosting at uniform
 probabilities (0.5, or 1/K). That is CatBoost's default for Logloss and
-MultiClass; XGBoost and LightGBM start from the class prior. It matters only
+MultiClass; XGBoost 3.2 and LightGBM 4.6 start from the class prior, on binary and
+multiclass data alike. It matters only
 when a fit stays close to its start, and the tuning makes that common: Optuna
 maximises PR AUC, which ignores probability scale, so it is free to choose a
 tiny `learning_rate * n_estimators`.
@@ -420,15 +421,42 @@ and 0.078.
 The fix is in `CatBoostNativeWrapper`: each fit starts from the training fold's
 log class prior, passed as a `Pool` baseline, and prediction adds the same
 baseline. On Logloss this is `boost_from_average=True` to 1e-8; CatBoost 1.2.10
-refuses that option for MultiClass, which covers 56 of the 108 datasets and the
-worst cases. On the four worst datasets a full nested CV with the fix moved ECE
-from 0.451 to 0.267 (`led7digit`), 0.240 to 0.118, 0.280 to 0.110 and 0.238 to
-0.195, with PR AUC within fold noise. CatBoost is being re-run on all 131
-datasets; its significance, calibration and repair numbers here will be replaced
-when it finishes.
+refuses that option for MultiClass, which covers 56 of the 108 datasets.
 
-`scripts/catboost_calibration.py` reproduces the figures above and writes the
-per-dataset diagnostics to `results/catboost_calibration.csv`; every fold's
+The start's own effect comes from refitting every outer fold's final model with the
+hyperparameters the uniform-start run chose, once from each start
+(`scripts/catboost_start_effect.py`, `results/catboost_start_effect.csv`; the
+uniform arm reproduces the stored predictions exactly on all 108). On the 78
+imbalanced datasets Brier improves on 51 (p = 0.0005), the mean absolute confidence
+gap falls from 0.050 to 0.029 and ECE from 0.078 to 0.060. On the 30 nearly balanced
+ones (KL(prior || uniform) below 0.01, up to about 56/44 on binary data), where the
+prior is close to the uniform start, nothing changes on average (p = 0.72), though
+single datasets move, since any change in the start changes the trees: Brier worsens
+by up to 0.026 and improves by at most 0.005. PR AUC does not move
+(p = 0.53), and ECE over all 108 goes from 0.0848 to 0.0720. Among the
+small-budget datasets the gap goes from -0.099 to -0.006 on the 21 imbalanced ones
+and stays at -0.17 on the 8 balanced ones: the start removes the offset, and what
+is left is undertraining. On the 14 datasets where all three boosters got a small
+budget it takes CatBoost's gap from -0.096 to -0.025, against -0.038 for XGBoost and
+-0.034 for LightGBM, so the start accounts for CatBoost's excess. On the 8 balanced
+small-budget datasets, where it cannot help, the tuning gave XGBoost and LightGBM
+larger budgets (median `learning_rate * n_estimators` 6.2 and 4.3 against 1.4), and
+their gap is -0.086 and -0.034 against -0.172. With learning rate, trees, depth and
+L2 matched, CatBoost from the prior keeps pace with both in log loss
+([demo notebook](https://github.com/firefly1248/demo-notebooks/blob/main/notebooks/catboost_boost_from_average.ipynb)).
+
+An earlier version of this section credited the fix with `led7digit`'s ECE falling
+from 0.451 to 0.267. That was a full nested CV, in which the tuning also chose
+different hyperparameters; `led7digit`'s prior is nearly uniform, and with the same
+hyperparameters the start moves it from 0.451 to 0.437. The CatBoost re-run on all
+131 datasets re-tunes too, so its before-and-after is the start and the tuning
+change together. Its significance, calibration and repair numbers here will be
+replaced when it finishes.
+
+`scripts/catboost_calibration.py` reproduces the uniform-start diagnostics above and
+writes them per dataset to `results/catboost_calibration.csv`;
+`scripts/catboost_start_effect.py` writes the per-dataset comparison of the two
+starts, from which the demo notebook computes the group figures; every fold's
 chosen parameters are in `results/best_params.csv`, the uniform-start run under
 `catboost_uniform_start`.
 

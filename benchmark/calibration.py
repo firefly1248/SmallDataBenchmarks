@@ -30,6 +30,15 @@ def brier_score(y_true: np.ndarray, y_prob: np.ndarray) -> float:
                                   scale_by_half=False))
 
 
+def confidence_gap(y_true: np.ndarray, y_prob: np.ndarray) -> float:
+    """Mean top-class probability minus the share of rows whose top class is right.
+
+    Negative: underconfident. ECE reads the size of the miscalibration; this reads
+    its direction.
+    """
+    return float(y_prob.max(axis=1).mean() - (y_prob.argmax(axis=1) == y_true).mean())
+
+
 def expected_calibration_error(
     y_true: np.ndarray,
     y_prob: np.ndarray,

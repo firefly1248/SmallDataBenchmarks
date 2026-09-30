@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr, wilcoxon
 
-from benchmark.calibration import expected_calibration_error
+from benchmark.calibration import confidence_gap, expected_calibration_error
 from benchmark.checkpoints import ckpt_path
 
 CATBOOST = sys.argv[1] if len(sys.argv) > 1 else "results/ckpt/catboost.joblib.bak-uniform-start"
@@ -35,13 +35,11 @@ for model, path in SOURCES.items():
         if dataset not in population:
             continue
         prob, y = np.vstack(entry["preds"]), np.concatenate(entry["labels"])
-        confidence, correct = prob.max(axis=1), prob.argmax(axis=1) == y
         params = entry["best_params"]
         rows.append(dict(
             model=model, dataset=dataset, n_classes=prob.shape[1],
             ece=expected_calibration_error(y, prob),
-            # Negative: underconfident.
-            confidence_gap=confidence.mean() - correct.mean(),
+            confidence_gap=confidence_gap(y, prob),
             learning_rate=np.median([p.get("learning_rate", np.nan) for p in params]),
             shrink=np.median([p.get("learning_rate", np.nan) * p.get("n_estimators", np.nan)
                               for p in params])))
