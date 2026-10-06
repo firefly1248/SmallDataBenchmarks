@@ -32,11 +32,7 @@ def evaluate_autogluon(X, y):
             verbosity=0,
             path=AG_PATH,
         ).fit(train_df, time_limit=SEC, presets="best_quality", num_cpus=N_JOBS,
-              dynamic_stacking=False,
-              # These are class names, not registry keys (FASTAI, NN_TORCH), so
-              # AutoGluon ignores them and NeuralNetTorch trains anyway. Left as
-              # measured: the published run was produced this way.
-              excluded_model_types=["NeuralNetFastAI", "NeuralNetTorch"])
+              dynamic_stacking=False)
         y_pred = predictor.predict_proba(test_df.drop(columns=["y"])).values
         y_test = test_df["y"].values
         nested_scores.append(pr_auc_score(y_test, y_pred))
