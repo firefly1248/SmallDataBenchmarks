@@ -200,7 +200,8 @@ score: over 5 seeds per device, `abalone-3class` 0.5398 ± 0.0763 on CPU against
 
 A single-seed comparison first looked alarming (0.6252 CPU vs 0.4670 MPS), but
 CPU's own five-seed range on that dataset is [0.4165, 0.6414]. Device comparisons on
-a stochastic model need distributions, not one run each.
+a stochastic model need distributions, not one run each. These runs predate the
+batch-size fix described above; the next section re-measures the seed noise after it.
 
 Small data reverses the result. Below 1024 training rows the batches are tens of
 rows, MPS dispatch overhead outweighs the arithmetic, and CPU wins:
@@ -208,18 +209,33 @@ rows, MPS dispatch overhead outweighs the arithmetic, and CPU wins:
 parallel, against 9 994 s for `autoUniv-au1-1000` (1000 x 20) on MPS with folds in
 sequence. The wrapper picks the device by split size.
 
-## TabNet's seed variance exceeds most between-model gaps
+## TabNet's seed noise is as large as its split noise
 
-That same experiment: on `abalone-3class`, TabNet's PR AUC across 5 seeds spans
-**0.4165 to 0.6414** on CPU, a standard deviation of 0.076.
+On the pipeline as it now runs, each outer fold's final TabNet model was refit from
+its stored parameters under 5 seeds; the seed sets both the early-stopping split and
+the initialisation (`scripts/tabnet_seed_grid.py`, `results/tabnet_seed_grid.csv`).
 
-For scale, the entire classical block of this benchmark — CatBoost, LightGBM,
-LightGBM-linear, XGBoost, Random Forest, HistGradientBoosting, SVC — spans 0.015 in
-mean PR AUC. TabNet's run-to-run noise on one dataset is five times the spread the
-benchmark is trying to resolve between seven different algorithms.
+| dataset | sd across seeds, within a fold | sd across folds, at one seed | sd across seeds of the 4-fold mean |
+|---|---|---|---|
+| `abalone-3class` | 0.050 | 0.043 | 0.029 |
+| `volcanoes-a3` | 0.012 | 0.011 | 0.006 |
 
-Nested CV over 4 outer folds damps this, but not to nothing, and nothing in the
-published single-number-per-model format shows it.
+The seed moves a fold as far as the split does, and the benchmark's own number for a
+dataset, the mean of its four folds, moves by 0.029 on `abalone-3class` from the seed
+alone. `abalone-3class` trains on MPS, which is not deterministic: even seed 0 misses
+the stored run by up to 0.043, where `volcanoes-a3`, on CPU, reproduces it exactly.
+
+These are spreads on one dataset, and they do not compare with the gaps between
+models' means over 108 or 131 datasets. The noise of such a mean is smaller by a
+factor that was not measured: up to the square root of the dataset count if datasets
+were independent and equally noisy, and they are not. Only TabNet's seed noise was
+measured. What the grid does show is that on any one dataset a gap of a few
+hundredths between two models can be the seed. Nothing in the single-number-per-model
+format shows it.
+
+An earlier version of this section quoted 0.4165 to 0.6414 across 5 seeds on
+`abalone-3class` (sd 0.076). That was measured before TabNet's batch-size fix, in a
+setup that was not recorded.
 
 ## SVC's 96 hours were memory thrash, not compute
 
@@ -279,7 +295,7 @@ The weights file was identical and the results still moved.
 ## Which headline gaps the data actually supports
 
 Every ranking in this benchmark is a list of means, and the gaps between neighbours
-run 0.002-0.009 — well inside the seed variance measured on a single model. The
+run 0.002-0.009. The means alone cannot say which of these gaps are real. The
 figures now test them: Friedman as an omnibus, then Wilcoxon signed-rank on every
 pair with Holm correction, over the 108 datasets every model scores. One dataset is
 one observation; the four folds of a dataset share their data and would inflate the
