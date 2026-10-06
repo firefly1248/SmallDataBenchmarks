@@ -18,7 +18,9 @@ SCRIPT_OUTPUTS = {
     "optuna_models.py":           RESULTS / "optuna_models.joblib",
     "benchmark_autogluon.py":     RESULTS / f"autogluon_sec_{AUTOML_SEC}.joblib",
     "benchmark_mljar.py":         RESULTS / f"mljar_sec_{AUTOML_SEC}.joblib",
+    "benchmark_flaml.py":         RESULTS / f"flaml_sec_{AUTOML_SEC}.joblib",
 }
+# benchmark_lightautoml.py is not here: it runs in its own venv (see README).
 
 SCRIPTS = list(SCRIPT_OUTPUTS.keys())
 

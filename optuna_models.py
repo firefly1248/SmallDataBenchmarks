@@ -37,7 +37,7 @@ from benchmark.checkpoints import (
     CKPT_DIR, atomic_dump, available_models, ckpt_path, load_by_model,
 )
 from benchmark.data import datasets_to_run, evaluated_datasets, load_data_df
-from benchmark.nested_cv import run_nested_cv
+from benchmark.nested_cv import STUDY_DIR, drop_studies, run_nested_cv
 from config import RANDOM_STATE, N_OUTER_FOLDS, MAX_DATASET_ROWS, MODELS_TO_RUN
 
 warnings.filterwarnings("ignore")
@@ -49,6 +49,7 @@ if __name__ == "__main__":
     ALL_MODELS = ["svc", "logreg", "tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl", "tabfm",
                   "random_forest", "xgboost", "sgd",
                   "catboost", "lgbm", "lgbm_linear", "hgb",
+                  "xgboost_logloss", "catboost_logloss", "lgbm_logloss",
                   "tabnet", "ft_transformer", "resnet"]
 
     parser = argparse.ArgumentParser(description="Optuna nested CV benchmark")
@@ -57,6 +58,8 @@ if __name__ == "__main__":
                        help="Run only these models (default: all)")
     group.add_argument("--skip", nargs="+", choices=ALL_MODELS, metavar="MODEL",
                        help="Run all models except these")
+    parser.add_argument("--datasets", nargs="+", metavar="DATASET",
+                        help="Run only these datasets, in this order (default: all)")
     args = parser.parse_args()
 
     if args.models:
@@ -74,6 +77,11 @@ if __name__ == "__main__":
     # The work loop skips the UCI++ duplicates; the aggregate below still spans
     # every dataset, so the scores already stored for them stay published.
     run_datasets = datasets_to_run()
+    if args.datasets:
+        unknown = set(args.datasets) - set(run_datasets)
+        if unknown:
+            sys.exit(f"Not in the run list: {sorted(unknown)}")
+        run_datasets = args.datasets
     all_datasets = evaluated_datasets()
 
     ckpt = load_by_model(MODEL_NAMES)
@@ -114,7 +122,7 @@ if __name__ == "__main__":
             signal.signal(signal.SIGALRM, _alarm_handler)
             signal.alarm(DATASET_TIMEOUT)
             try:
-                scores, preds, labels, best_params = run_nested_cv(X, y, model_name, cat_cols)
+                scores, preds, labels, best_params = run_nested_cv(X, y, model_name, cat_cols, dataset_name)
             except _DatasetTimeout:
                 print(f"  {model_name}: TIMEOUT after {DATASET_TIMEOUT // 3600}h")
                 scores = [np.nan] * N_OUTER_FOLDS
@@ -143,12 +151,16 @@ if __name__ == "__main__":
             }
             print(f"  {model_name}: mean={np.nanmean(scores):.4f}  time={elapsed:.1f}s")
             save_checkpoint(model_name)
+            # A timeout or error keeps its trials, so the rerun resumes them.
+            if not failed:
+                drop_studies(model_name, dataset_name)
             if consecutive_failures[model_name] >= MAX_CONSECUTIVE_FAILURES:
                 sys.exit(f"\n{model_name} produced no result on "
                          f"{MAX_CONSECUTIVE_FAILURES} datasets in a row — "
                          f"stopping before it NaNs the whole benchmark. "
                          f"Fix the cause, drop those datasets from "
-                         f"{ckpt_path(model_name)}, and rerun.")
+                         f"{ckpt_path(model_name)}, delete their trials in "
+                         f"{STUDY_DIR}/{model_name}.db, and rerun.")
 
     # Dump every model with a checkpoint, not just this run's, or --models X
     # overwrites the file with X alone. NaN-pad missing datasets so the arrays

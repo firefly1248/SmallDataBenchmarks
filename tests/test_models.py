@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
+import optuna
 import pandas as pd
 import pytest
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
@@ -11,6 +12,7 @@ from benchmark.models.grid_search import (
     TABPFN_VERSIONS,
     build_grid_search,
 )
+from benchmark import nested_cv
 from benchmark.nested_cv import _MODEL_LIMITS, run_nested_cv
 
 
@@ -119,3 +121,54 @@ class TestModelLimits:
         assert _MODEL_LIMITS["tabfm"]["max_classes"] == 10
         assert "max_classes" not in _MODEL_LIMITS["tabicl"]
         assert "tabpfn3" not in _MODEL_LIMITS
+
+
+class TestStudyStorage:
+    """Stored studies resume a cut-off run; they must not change an uninterrupted one."""
+
+    @pytest.fixture(autouse=True)
+    def small_run(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(nested_cv, "STUDY_DIR", str(tmp_path))
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 3)
+
+    @staticmethod
+    def _data():
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame(rng.normal(size=(40, 3)), columns=["a", "b", "c"])
+        return X, (X.a + rng.normal(size=40) > 0).astype(int).to_numpy()
+
+    @staticmethod
+    def _study(fold: int) -> optuna.Study:
+        return optuna.load_study(study_name=f"d/fold{fold}", storage=nested_cv._storage("sgd"))
+
+    def _trials(self, fold: int) -> list[dict]:
+        return [t.params for t in self._study(fold).trials if t.state.is_finished()]
+
+    def test_stored_run_matches_in_memory(self, monkeypatch):
+        """Past TPE's 10 random startup trials, so the model-based sampling is covered too."""
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 12)
+        X, y = self._data()
+        in_memory = run_nested_cv(X, y, "sgd", cat_cols=[])
+        stored = run_nested_cv(X, y, "sgd", cat_cols=[], dataset_name="d")
+        assert in_memory[3] == stored[3]
+        assert in_memory[0] == stored[0]
+
+    def test_rerun_adds_only_the_missing_trials(self, monkeypatch):
+        X, y = self._data()
+        run_nested_cv(X, y, "sgd", cat_cols=[], dataset_name="d")
+        first = [self._trials(fold) for fold in range(4)]
+        self._study(0).ask()  # a trial the kill cut off: RUNNING forever, and not counted
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 5)
+        run_nested_cv(X, y, "sgd", cat_cols=[], dataset_name="d")
+        for fold in range(4):
+            trials = self._trials(fold)
+            assert len(trials) == 5
+            assert trials[:3] == first[fold]
+
+    def test_drop_studies_removes_one_dataset(self):
+        X, y = self._data()
+        for name in ("d", "e"):
+            run_nested_cv(X, y, "sgd", cat_cols=[], dataset_name=name)
+        nested_cv.drop_studies("sgd", "d")
+        names = optuna.study.get_all_study_names(nested_cv._storage("sgd"))
+        assert sorted(names) == [f"e/fold{fold}" for fold in range(4)]

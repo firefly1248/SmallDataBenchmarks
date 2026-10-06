@@ -15,7 +15,7 @@ dependencies = [
     "matplotlib",
     "jupyter",
     "category-encoders>=2.9.0",
-    "autogluon.tabular==1.6.3",
+    "autogluon.tabular[fastai]==1.6.3",
     "mljar-supervised==1.3.2",
     "torch",
     "tabpfn>=9.0.0",  # v3.5 and v3.5-fast
@@ -23,6 +23,7 @@ dependencies = [
     "rtdl>=0.14.0.dev5",
     "tabicl",
     "tabfm[pytorch]>=1.0.1",
+    "flaml==2.7.0",
 ]
 
 [dependency-groups]
