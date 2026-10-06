@@ -1,0 +1,1507 @@
+members,size,combiner,mean,vs_best_single,win_rate,p
+TabFM + TabPFN-3.5,2,logit,0.86484,0.00146,0.4955,0.03977
+TabFM + TabPFN-3.5,2,probability,0.86451,0.00113,0.4955,0.08194
+TabFM + TabPFN-3 + TabPFN-3.5,3,logit,0.86441,0.00104,0.45946,0.3103
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast,3,logit,0.8644,0.00103,0.48649,0.2144
+TabFM + TabICL + TabPFN-3.5,3,logit,0.86431,0.00094,0.48649,0.28822
+TabFM + TabICL + TabPFN-3.5,3,probability,0.86416,0.00078,0.4955,0.2761
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast,4,logit,0.86416,0.00078,0.45946,0.59365
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5,4,logit,0.86415,0.00077,0.44144,0.4745
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,5,logit,0.86412,0.00074,0.45045,0.54313
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,4,logit,0.86408,0.0007,0.48649,0.56354
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast,3,probability,0.86403,0.00065,0.45946,0.83232
+TabFM + TabICL + TabPFN-3.5-fast,3,logit,0.86402,0.00065,0.48649,0.57503
+TabFM + TabPFN-3.5-fast,2,logit,0.86395,0.00058,0.5045,0.356
+TabFM + TabICL,2,logit,0.86395,0.00057,0.43243,0.85352
+TabFM + TabPFN-3 + TabPFN-3.5,3,probability,0.86394,0.00056,0.46847,0.68259
+TabFM + TabPFN-3.5-fast,2,probability,0.86392,0.00055,0.45946,0.80599
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5,4,probability,0.86389,0.00052,0.45045,0.6732
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast,4,probability,0.86384,0.00047,0.43243,0.98269
+TabFM + TabICL,2,probability,0.86382,0.00044,0.43243,0.91771
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast,4,logit,0.86373,0.00035,0.42342,0.85884
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,4,probability,0.86367,0.0003,0.44144,0.85302
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,5,probability,0.86366,0.00028,0.44144,0.88552
+TabFM + TabPFN-3,2,logit,0.86365,0.00028,0.41441,0.59178
+TabFM + TabPFN-3 + TabPFN-3.5-fast,3,logit,0.86364,0.00027,0.44144,0.94278
+TabFM + TabICL + TabPFN-3,3,logit,0.86363,0.00025,0.40541,0.60603
+TabFM + TabICL + TabPFN-3.5-fast,3,probability,0.86363,0.00025,0.43243,0.70725
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,logit,0.86361,0.00023,0.46847,0.79328
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,logit,0.8636,0.00022,0.40541,0.34928
+TabFM + TabPFN-3.5,2,rank,0.86358,0.0002,0.30631,0.06447
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,6,logit,0.86355,0.00018,0.48649,0.83709
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,6,logit,0.86352,0.00015,0.44144,0.58981
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5,4,rank,0.86351,0.00013,0.3964,0.33178
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,logit,0.86351,0.00013,0.43243,0.31804
+TabFM + TabICL + TabPFN-3,3,probability,0.86349,0.00012,0.40541,0.48346
+TabFM + TabICL + TabPFN-3.5 + XGBoost,4,logit,0.86349,0.00011,0.42342,0.32009
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,5,rank,0.86347,9e-05,0.41441,0.39374
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost,5,logit,0.86345,7e-05,0.41441,0.3284
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast,3,rank,0.86344,7e-05,0.38739,0.37907
+TabFM + TabICL + TabPFN-3.5,3,rank,0.86343,5e-05,0.40541,0.29341
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + CatBoost,5,logit,0.86341,4e-05,0.45946,0.77661
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,4,rank,0.8634,2e-05,0.36036,0.16646
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast,4,probability,0.86339,2e-05,0.40541,0.49058
+TabFM + TabICL + TabPFN-3.5 + CatBoost,4,logit,0.86338,1e-05,0.47748,0.78656
+TabFM + TabPFN-3 + TabPFN-3.5-fast,3,probability,0.86337,-1e-05,0.36937,0.2174
+TabFM + TabPFN-3 + TabPFN-3.5,3,rank,0.86335,-2e-05,0.38739,0.20841
+TabFM + TabPFN-3,2,probability,0.86335,-3e-05,0.36937,0.17059
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast,3,logit,0.86335,-3e-05,0.42342,0.64273
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,logit,0.86333,-5e-05,0.46847,0.85335
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,logit,0.86332,-5e-05,0.46847,0.87064
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost,4,logit,0.86331,-7e-05,0.40541,0.17268
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,logit,0.86328,-0.0001,0.45946,0.64285
+TabICL + TabPFN-3.5,2,logit,0.86325,-0.00012,0.41441,0.41822
+TabFM + TabPFN-3.5 + XGBoost,3,logit,0.86325,-0.00013,0.37838,0.09411
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast,4,rank,0.86323,-0.00014,0.38739,0.14682
+TabFM + TabPFN-3 + TabPFN-3.5 + CatBoost,4,logit,0.86322,-0.00015,0.45045,0.69717
+TabFM + TabICL + TabPFN-3.5-fast,3,rank,0.86314,-0.00024,0.37838,0.09685
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,4,logit,0.86312,-0.00026,0.40541,0.2759
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost,5,logit,0.8631,-0.00027,0.40541,0.18599
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast,3,probability,0.8631,-0.00028,0.43243,0.45764
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,3,logit,0.86308,-0.00029,0.41441,0.45508
+TabPFN-3.5 + TabPFN-3.5-fast,2,probability,0.86308,-0.00029,0.38739,0.30466
+TabFM + TabPFN-3.5 + CatBoost,3,logit,0.86307,-0.00031,0.44144,0.58144
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + CatBoost,5,logit,0.86304,-0.00033,0.43243,0.38781
+TabPFN-3.5 + TabPFN-3.5-fast,2,logit,0.86304,-0.00034,0.38739,0.34226
+TabICL + TabPFN-3 + TabPFN-3.5,3,logit,0.86303,-0.00034,0.3964,0.2311
+TabPFN-3 + TabPFN-3.5,2,logit,0.86303,-0.00035,0.40541,0.28021
+TabFM + TabPFN-3.5-fast,2,rank,0.863,-0.00038,0.32432,0.00887
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast,4,rank,0.86296,-0.00041,0.35135,0.0494
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,4,probability,0.86296,-0.00042,0.41441,0.2174
+TabICL + TabPFN-3.5,2,probability,0.86295,-0.00043,0.42342,0.33015
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost,4,logit,0.86294,-0.00043,0.41441,0.10798
+TabFM + TabICL + TabPFN-3.5-fast + CatBoost,4,logit,0.86294,-0.00044,0.45045,0.35782
+TabPFN-3 + TabPFN-3.5,2,probability,0.86293,-0.00044,0.36036,0.14959
+TabFM + TabPFN-3 + TabPFN-3.5-fast,3,rank,0.86293,-0.00045,0.35135,0.04589
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,3,probability,0.86291,-0.00047,0.40541,0.24877
+TabICL + TabPFN-3 + TabPFN-3.5,3,probability,0.86289,-0.00049,0.40541,0.18474
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,6,logit,0.86287,-0.0005,0.38739,0.16205
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,5,logit,0.86285,-0.00053,0.40541,0.20412
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,7,logit,0.86284,-0.00054,0.44144,0.25294
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,probability,0.86282,-0.00055,0.3964,0.1574
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,logit,0.86278,-0.00059,0.41441,0.17838
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,logit,0.86278,-0.0006,0.42342,0.18907
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,logit,0.86276,-0.00062,0.41441,0.15084
+TabFM + TabICL + TabPFN-3.5 + CatBoost,4,probability,0.86276,-0.00062,0.38739,0.11881
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,probability,0.86275,-0.00063,0.42342,0.16319
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,6,probability,0.86274,-0.00064,0.43243,0.1732
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear,4,logit,0.86271,-0.00067,0.41441,0.21785
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,probability,0.8627,-0.00067,0.36937,0.03496
+TabFM + TabPFN-3 + TabPFN-3.5-fast + CatBoost,4,logit,0.8627,-0.00068,0.45045,0.29169
+TabFM + TabICL + TabPFN-3,3,rank,0.86268,-0.0007,0.37838,0.06916
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost,5,probability,0.86268,-0.0007,0.35135,0.02564
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,6,probability,0.86266,-0.00071,0.41441,0.08958
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,probability,0.86264,-0.00073,0.38739,0.07717
+TabICL + TabPFN-3 + TabPFN-3.5-fast,3,logit,0.86264,-0.00074,0.38739,0.09796
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,probability,0.86264,-0.00074,0.43243,0.14449
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost,4,logit,0.86262,-0.00075,0.38739,0.05184
+TabFM + TabICL,2,rank,0.86262,-0.00075,0.31532,0.0157
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + CatBoost,5,probability,0.86261,-0.00077,0.3964,0.10083
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,logit,0.8626,-0.00077,0.41441,0.09241
+TabFM + TabICL + TabPFN-3 + CatBoost,4,logit,0.8626,-0.00078,0.41441,0.14096
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,probability,0.86259,-0.00078,0.43243,0.18835
+TabFM + TabPFN-3.5 + CatBoost,3,probability,0.86259,-0.00079,0.36937,0.06888
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,probability,0.86258,-0.00079,0.43243,0.20482
+TabFM + TabPFN-3.5-fast + CatBoost,3,logit,0.86258,-0.00079,0.3964,0.2012
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,4,logit,0.86258,-0.00079,0.37838,0.08161
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,4,probability,0.86257,-0.00081,0.35135,0.05287
+TabFM + TabPFN-3.5-fast + XGBoost,3,logit,0.86256,-0.00082,0.36036,0.01933
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,7,logit,0.86255,-0.00082,0.40541,0.13921
+TabFM + TabICL + CatBoost,3,logit,0.86255,-0.00082,0.36036,0.06494
+TabFM + TabICL + TabPFN-3.5 + XGBoost,4,probability,0.86255,-0.00083,0.36036,0.03474
+TabFM + TabPFN-3.5 + XGBoost,3,probability,0.86255,-0.00083,0.2973,0.00756
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,5,logit,0.86255,-0.00083,0.37838,0.08021
+TabFM + TabICL + TabPFN-3 + XGBoost,4,logit,0.86254,-0.00083,0.35135,0.06121
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,logit,0.86254,-0.00084,0.37838,0.06644
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,6,rank,0.86253,-0.00084,0.37838,0.06258
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost,4,probability,0.86252,-0.00086,0.33333,0.00963
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,6,probability,0.86251,-0.00087,0.43243,0.20714
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,logit,0.8625,-0.00087,0.38739,0.0735
+TabFM + TabPFN-3 + TabPFN-3.5 + CatBoost,4,probability,0.86249,-0.00088,0.3964,0.06454
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,probability,0.86249,-0.00089,0.36036,0.01028
+TabICL + TabPFN-3.5-fast,2,logit,0.86248,-0.00089,0.38739,0.10083
+TabFM + TabPFN-3.5 + LightGBM Linear,3,probability,0.86248,-0.0009,0.37838,0.06789
+TabFM + TabICL + TabPFN-3.5-fast + CatBoost,4,probability,0.86247,-0.0009,0.38739,0.08479
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,probability,0.86247,-0.0009,0.3964,0.09206
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear,4,logit,0.86247,-0.0009,0.3964,0.10517
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM,5,probability,0.86245,-0.00093,0.36036,0.03117
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,6,logit,0.86244,-0.00093,0.40541,0.10389
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,probability,0.86244,-0.00094,0.43243,0.10201
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,7,logit,0.86243,-0.00095,0.3964,0.06259
+TabFM + TabICL + XGBoost,3,logit,0.86243,-0.00095,0.36937,0.04512
+TabFM + TabICL + TabPFN-3.5 + XGBoost + CatBoost,5,logit,0.86242,-0.00095,0.3964,0.09363
+TabFM + TabPFN-3.5 + LightGBM Linear,3,logit,0.86242,-0.00095,0.3964,0.12374
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,4,rank,0.86242,-0.00096,0.34234,0.02865
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear,4,probability,0.86242,-0.00096,0.3964,0.07937
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast,3,rank,0.86241,-0.00096,0.36036,0.06167
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,6,probability,0.86241,-0.00097,0.3964,0.07423
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + CatBoost,5,probability,0.8624,-0.00097,0.40541,0.07811
+TabICL + TabPFN-3 + TabPFN-3.5-fast,3,probability,0.8624,-0.00097,0.37838,0.07783
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,6,logit,0.8624,-0.00098,0.36937,0.05204
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,logit,0.86238,-0.00099,0.3964,0.07979
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,5,probability,0.86238,-0.00099,0.41441,0.11735
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,logit,0.86237,-0.00101,0.43243,0.15316
+TabFM + TabICL + TabPFN-3.5 + LightGBM,4,probability,0.86237,-0.00101,0.37838,0.04074
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost,5,probability,0.86233,-0.00104,0.34234,0.01785
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,logit,0.86232,-0.00106,0.3964,0.12674
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,6,logit,0.86231,-0.00107,0.41441,0.12811
+TabICL + TabPFN-3.5-fast,2,probability,0.86229,-0.00109,0.3964,0.08652
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM,5,logit,0.86228,-0.00109,0.36937,0.04412
+TabFM + TabICL + TabPFN-3 + LightGBM Linear,4,logit,0.86228,-0.00109,0.36937,0.0809
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,probability,0.86228,-0.0011,0.38739,0.0308
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,rank,0.86227,-0.0011,0.37838,0.02819
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,probability,0.86227,-0.0011,0.3964,0.02421
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + CatBoost,5,rank,0.86227,-0.00111,0.30631,0.00872
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,6,logit,0.86225,-0.00113,0.36937,0.04403
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast,3,rank,0.86225,-0.00113,0.32432,0.00783
+TabFM + TabPFN-3 + XGBoost,3,logit,0.86224,-0.00114,0.36036,0.0313
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,logit,0.86224,-0.00114,0.36937,0.02203
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost,4,probability,0.86224,-0.00114,0.35135,0.01546
+TabFM + TabPFN-3,2,rank,0.86223,-0.00114,0.31532,0.00534
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,logit,0.86223,-0.00114,0.38739,0.02929
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,rank,0.86222,-0.00115,0.35135,0.03066
+TabICL + TabPFN-3 + TabPFN-3.5,3,rank,0.86221,-0.00116,0.34234,0.02282
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,logit,0.86221,-0.00116,0.35135,0.01685
+TabFM + TabPFN-3.5-fast + CatBoost,3,probability,0.8622,-0.00117,0.37838,0.04386
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,7,logit,0.86219,-0.00118,0.36937,0.02164
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,logit,0.86219,-0.00119,0.36937,0.02137
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,logit,0.86219,-0.00119,0.35135,0.03505
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,6,logit,0.86219,-0.00119,0.36036,0.02282
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,logit,0.86219,-0.00119,0.36937,0.04024
+TabFM + TabPFN-3 + TabPFN-3.5-fast + CatBoost,4,probability,0.86218,-0.0012,0.3964,0.04933
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,logit,0.86215,-0.00123,0.38739,0.02525
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,7,logit,0.86213,-0.00125,0.36937,0.03053
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,5,logit,0.86212,-0.00126,0.36036,0.0161
+TabFM + TabICL + TabPFN-3.5 + LightGBM,4,logit,0.86212,-0.00126,0.38739,0.02582
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear,4,probability,0.8621,-0.00128,0.41441,0.07164
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,logit,0.86209,-0.00128,0.36036,0.00806
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,4,logit,0.86208,-0.00129,0.37838,0.0381
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,probability,0.86207,-0.0013,0.36937,0.03079
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + CatBoost,5,logit,0.86207,-0.00131,0.38739,0.05616
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost,4,probability,0.86207,-0.00131,0.35135,0.00678
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,logit,0.86206,-0.00132,0.3964,0.05053
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,5,probability,0.86206,-0.00132,0.36036,0.02453
+TabPFN-3.5 + TabPFN-3.5-fast,2,rank,0.86205,-0.00132,0.33333,0.0084
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM,4,probability,0.86205,-0.00132,0.35135,0.00313
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,logit,0.86205,-0.00133,0.37838,0.01311
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM,5,probability,0.86204,-0.00134,0.37838,0.02991
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost,4,logit,0.862,-0.00137,0.36036,0.01253
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,6,rank,0.86198,-0.00139,0.37838,0.02762
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,probability,0.86198,-0.00139,0.37838,0.0334
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,6,rank,0.86198,-0.00139,0.33333,0.01079
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM,5,logit,0.86197,-0.0014,0.36937,0.02746
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + CatBoost,5,logit,0.86197,-0.00141,0.35135,0.02442
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM,4,probability,0.86196,-0.00141,0.36937,0.02128
+TabFM + TabPFN-3.5-fast + XGBoost,3,probability,0.86196,-0.00141,0.33333,0.00518
+TabFM + TabICL + CatBoost,3,probability,0.86195,-0.00142,0.37838,0.05574
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,6,rank,0.86195,-0.00143,0.34234,0.01559
+TabICL + TabPFN-3.5,2,rank,0.86194,-0.00143,0.31532,0.00626
+TabFM + TabICL + TabPFN-3 + CatBoost,4,probability,0.86194,-0.00144,0.36036,0.01418
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,logit,0.86193,-0.00144,0.33333,0.00504
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,4,probability,0.86193,-0.00145,0.36036,0.01191
+TabICL + TabPFN-3 + TabPFN-3.5 + CatBoost,4,logit,0.86192,-0.00145,0.35135,0.02641
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,logit,0.86192,-0.00145,0.34234,0.02168
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + CatBoost,5,rank,0.86192,-0.00146,0.35135,0.01101
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,3,logit,0.86191,-0.00147,0.32432,0.00198
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,logit,0.86191,-0.00147,0.40541,0.05551
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,logit,0.86189,-0.00148,0.36937,0.02496
+TabFM + TabPFN-3 + CatBoost,3,logit,0.86189,-0.00149,0.3964,0.03765
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,7,probability,0.86189,-0.00149,0.37838,0.02462
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,6,logit,0.86188,-0.00149,0.35135,0.01122
+TabICL + TabPFN-3 + TabPFN-3.5-fast,3,rank,0.86188,-0.00149,0.35135,0.00993
+TabFM + TabPFN-3.5-fast + LightGBM Linear,3,probability,0.86188,-0.0015,0.34234,0.00708
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,logit,0.86188,-0.0015,0.36937,0.00805
+TabPFN-3 + TabPFN-3.5-fast,2,logit,0.86187,-0.0015,0.35135,0.01348
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,probability,0.86187,-0.00151,0.33333,0.00822
+TabICL + TabPFN-3.5 + XGBoost,3,logit,0.86185,-0.00153,0.36937,0.01746
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM,4,logit,0.86184,-0.00154,0.34234,0.00837
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,7,probability,0.86183,-0.00154,0.36937,0.02421
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,logit,0.86183,-0.00155,0.36036,0.01472
+TabPFN-3 + TabPFN-3.5-fast,2,probability,0.86182,-0.00156,0.33333,0.00645
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,6,logit,0.86181,-0.00156,0.35135,0.00677
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost,5,logit,0.86181,-0.00157,0.36036,0.00994
+TabFM + TabICL + TabPFN-3 + LightGBM,4,probability,0.8618,-0.00157,0.32432,0.00428
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,probability,0.8618,-0.00158,0.36937,0.01863
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM,4,probability,0.8618,-0.00158,0.32432,0.00178
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,rank,0.8618,-0.00158,0.34234,0.00655
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,probability,0.86179,-0.00159,0.3964,0.04302
+TabFM + TabPFN-3.5 + XGBoost + CatBoost,4,logit,0.86178,-0.00159,0.32432,0.00642
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,6,probability,0.86178,-0.00159,0.36036,0.02024
+TabFM + TabICL + LightGBM Linear,3,probability,0.86178,-0.0016,0.35135,0.0133
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,5,logit,0.86176,-0.00161,0.35135,0.01656
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,7,probability,0.86176,-0.00161,0.35135,0.00651
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,probability,0.86176,-0.00162,0.34234,0.00608
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,probability,0.86175,-0.00163,0.36036,0.01088
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,probability,0.86175,-0.00163,0.36036,0.02932
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,8,logit,0.86175,-0.00163,0.37838,0.02462
+TabFM + TabICL + TabPFN-3 + XGBoost,4,probability,0.86175,-0.00163,0.32432,0.00364
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,rank,0.86174,-0.00163,0.36937,0.01993
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,rank,0.86174,-0.00164,0.28829,0.00259
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,5,logit,0.86174,-0.00164,0.38739,0.02474
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,logit,0.86173,-0.00164,0.34234,0.00562
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM,4,logit,0.86173,-0.00164,0.36036,0.00891
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,5,logit,0.86173,-0.00164,0.37838,0.01305
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,6,logit,0.86173,-0.00165,0.36937,0.01094
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,probability,0.86173,-0.00165,0.36937,0.02296
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,7,probability,0.86173,-0.00165,0.36937,0.01955
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,logit,0.86172,-0.00166,0.35135,0.00716
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,probability,0.86171,-0.00166,0.36937,0.01492
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,7,probability,0.86171,-0.00167,0.33333,0.00359
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,rank,0.8617,-0.00168,0.36036,0.01109
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,logit,0.86168,-0.0017,0.35135,0.01525
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,logit,0.86168,-0.0017,0.38739,0.01377
+TabFM + TabPFN-3.5 + LightGBM,3,probability,0.86167,-0.00171,0.34234,0.00185
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,6,probability,0.86167,-0.00171,0.36937,0.02232
+TabICL + TabPFN-3,2,logit,0.86166,-0.00171,0.36036,0.03676
+TabFM + TabICL + TabPFN-3.5 + LightGBM + CatBoost,5,probability,0.86166,-0.00171,0.36036,0.01153
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,7,logit,0.86166,-0.00172,0.33333,0.01109
+TabICL + TabPFN-3.5 + CatBoost,3,logit,0.86165,-0.00173,0.36937,0.01961
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,6,probability,0.86165,-0.00173,0.36937,0.02243
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,7,probability,0.86165,-0.00173,0.32432,0.00365
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,logit,0.86164,-0.00173,0.33333,0.01247
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,probability,0.86164,-0.00174,0.45045,0.14982
+TabFM + TabICL + TabPFN-3.5 + CatBoost,4,rank,0.86163,-0.00175,0.34234,0.00488
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,rank,0.86162,-0.00175,0.27928,0.00028
+TabFM + TabICL + TabPFN-3 + LightGBM Linear,4,probability,0.86162,-0.00175,0.31532,0.00278
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,6,probability,0.86161,-0.00176,0.32432,0.00198
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,rank,0.86161,-0.00177,0.32432,0.00378
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,5,rank,0.8616,-0.00177,0.32432,0.0035
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,probability,0.8616,-0.00177,0.33333,0.00483
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,probability,0.8616,-0.00178,0.36937,0.01808
+TabFM + TabICL + TabPFN-3 + LightGBM,4,logit,0.8616,-0.00178,0.35135,0.00809
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,8,logit,0.86159,-0.00179,0.36937,0.01135
+TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,3,logit,0.86159,-0.00179,0.3964,0.05049
+TabFM + TabICL + LightGBM Linear,3,logit,0.86158,-0.00179,0.36937,0.03547
+TabPFN-3 + TabPFN-3.5,2,rank,0.86158,-0.00179,0.31532,0.00273
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,probability,0.86158,-0.0018,0.33333,0.00776
+TabFM + TabICL + TabPFN-3.5 + LightGBM + CatBoost,5,logit,0.86157,-0.00181,0.32432,0.00276
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,probability,0.86157,-0.00181,0.36036,0.00783
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,logit,0.86155,-0.00182,0.38739,0.02589
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,6,probability,0.86155,-0.00182,0.37838,0.01922
+TabFM + TabICL + TabPFN-3.5 + XGBoost + CatBoost,5,probability,0.86154,-0.00183,0.36036,0.01372
+TabFM + TabPFN-3 + TabPFN-3.5 + CatBoost,4,rank,0.86154,-0.00184,0.2973,0.00102
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,logit,0.86153,-0.00184,0.32432,0.00544
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + CatBoost,5,probability,0.86153,-0.00184,0.36937,0.01598
+TabFM + TabICL + XGBoost,3,probability,0.86153,-0.00185,0.37838,0.00904
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,5,probability,0.86152,-0.00185,0.33333,0.00441
+TabICL + TabPFN-3 + TabPFN-3.5-fast + CatBoost,4,logit,0.86151,-0.00187,0.37838,0.01408
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,probability,0.8615,-0.00187,0.34234,0.00359
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,6,logit,0.8615,-0.00188,0.34234,0.00367
+TabFM + TabICL + TabPFN-3.5 + XGBoost + LightGBM,5,logit,0.8615,-0.00188,0.33333,0.00284
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,probability,0.86149,-0.00188,0.33333,0.00332
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,logit,0.86149,-0.00189,0.36937,0.00747
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,rank,0.86148,-0.00189,0.35135,0.00219
+TabFM + TabPFN-3.5-fast + LightGBM Linear,3,logit,0.86148,-0.0019,0.36937,0.00593
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,6,logit,0.86148,-0.0019,0.31532,0.00363
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,logit,0.86147,-0.00191,0.36036,0.0059
+TabICL + TabPFN-3,2,probability,0.86147,-0.00191,0.36937,0.02633
+TabICL + TabPFN-3 + TabPFN-3.5 + CatBoost,4,probability,0.86146,-0.00191,0.36036,0.0139
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,probability,0.86146,-0.00192,0.36036,0.0123
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM,4,logit,0.86146,-0.00192,0.32432,0.00212
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM,5,rank,0.86146,-0.00192,0.28829,0.00112
+TabFM + TabICL + TabPFN-3 + XGBoost + CatBoost,5,logit,0.86146,-0.00192,0.34234,0.00708
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,rank,0.86144,-0.00193,0.27928,0.00044
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,6,probability,0.86144,-0.00194,0.34234,0.00529
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost,4,logit,0.86144,-0.00194,0.33333,0.00355
+TabPFN-3 + TabPFN-3.5 + XGBoost,3,logit,0.86143,-0.00194,0.28829,0.00085
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,probability,0.86143,-0.00195,0.32432,0.00111
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,logit,0.86143,-0.00195,0.33333,0.00688
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,probability,0.86143,-0.00195,0.34234,0.00508
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,probability,0.86142,-0.00195,0.33333,0.00476
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,5,rank,0.8614,-0.00198,0.31532,0.00138
+TabFM + TabPFN-3 + TabPFN-3.5-fast + CatBoost,4,rank,0.86139,-0.00198,0.32432,0.00332
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,logit,0.86139,-0.00198,0.36036,0.00939
+TabFM + TabPFN-3.5 + LightGBM,3,logit,0.86138,-0.00199,0.35135,0.00648
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM + CatBoost,5,probability,0.86138,-0.002,0.35135,0.01014
+TabFM + TabPFN-3 + LightGBM Linear,3,probability,0.86137,-0.002,0.30631,0.00105
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,5,probability,0.86137,-0.002,0.34234,0.00887
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,8,logit,0.86137,-0.00201,0.34234,0.00681
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost,5,rank,0.86137,-0.00201,0.31532,0.00204
+TabICL + TabPFN-3.5 + CatBoost,3,probability,0.86136,-0.00201,0.34234,0.01143
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,6,probability,0.86136,-0.00201,0.30631,0.00088
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,6,probability,0.86135,-0.00202,0.35135,0.0127
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost,4,probability,0.86134,-0.00203,0.30631,0.00306
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,5,logit,0.86134,-0.00204,0.35135,0.00348
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,probability,0.86133,-0.00204,0.34234,0.00446
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,logit,0.86133,-0.00205,0.36036,0.00626
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,logit,0.86131,-0.00206,0.37838,0.00988
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,rank,0.86131,-0.00207,0.31532,0.00028
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,logit,0.86131,-0.00207,0.36036,0.00855
+TabFM + TabPFN-3 + LightGBM Linear,3,logit,0.8613,-0.00207,0.34234,0.00691
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,8,probability,0.8613,-0.00208,0.32432,0.00398
+TabICL + TabPFN-3.5-fast,2,rank,0.8613,-0.00208,0.32432,0.00142
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,probability,0.8613,-0.00208,0.37838,0.00922
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,5,probability,0.86129,-0.00208,0.32432,0.001
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + CatBoost,5,logit,0.86129,-0.00208,0.35135,0.01247
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,probability,0.86129,-0.00209,0.35135,0.00774
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,logit,0.86128,-0.00209,0.31532,0.00329
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,probability,0.86128,-0.00209,0.2973,0.0011
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + CatBoost,5,probability,0.86128,-0.00209,0.34234,0.00858
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,rank,0.86128,-0.0021,0.30631,0.00072
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,probability,0.86128,-0.0021,0.32432,0.00144
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,probability,0.86127,-0.0021,0.33333,0.00099
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,7,logit,0.86127,-0.0021,0.34234,0.00904
+TabFM + TabICL + TabPFN-3.5-fast + CatBoost,4,rank,0.86127,-0.00211,0.34234,0.00242
+TabFM + TabPFN-3.5-fast + LightGBM,3,probability,0.86126,-0.00211,0.33333,0.00141
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,4,probability,0.86126,-0.00211,0.36036,0.02236
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,5,rank,0.86126,-0.00212,0.33333,0.0042
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,logit,0.86126,-0.00212,0.36036,0.00535
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,logit,0.86125,-0.00212,0.36937,0.01066
+TabICL + TabPFN-3 + TabPFN-3.5-fast + CatBoost,4,probability,0.86125,-0.00213,0.34234,0.00739
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,4,logit,0.86125,-0.00213,0.36036,0.01414
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,probability,0.86125,-0.00213,0.35135,0.00625
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost,5,logit,0.86125,-0.00213,0.35135,0.00851
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,5,probability,0.86123,-0.00215,0.33333,0.00207
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM,5,probability,0.86123,-0.00215,0.30631,0.00083
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,5,logit,0.86123,-0.00215,0.34234,0.00259
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM + CatBoost,5,logit,0.86123,-0.00215,0.32432,0.00169
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,8,logit,0.86122,-0.00215,0.31532,0.00177
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,logit,0.86122,-0.00215,0.35135,0.00426
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM,5,rank,0.8612,-0.00217,0.2973,0.00055
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,logit,0.86119,-0.00218,0.32432,0.00225
+TabFM + TabPFN-3 + CatBoost,3,probability,0.86118,-0.00219,0.35135,0.00247
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,logit,0.86117,-0.0022,0.36036,0.00812
+TabFM + TabPFN-3 + XGBoost,3,probability,0.86116,-0.00221,0.32432,0.00089
+TabFM + TabPFN-3.5-fast + LightGBM,3,logit,0.86116,-0.00222,0.34234,0.00283
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,5,probability,0.86116,-0.00222,0.33333,0.00336
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,4,rank,0.86116,-0.00222,0.28829,0.00024
+TabFM + TabPFN-3.5-fast + XGBoost + CatBoost,4,logit,0.86115,-0.00222,0.33333,0.00506
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,7,logit,0.86115,-0.00223,0.33333,0.00393
+TabICL + TabPFN-3.5-fast + CatBoost,3,logit,0.86115,-0.00223,0.34234,0.00362
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,probability,0.86114,-0.00223,0.30631,0.00078
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear,4,rank,0.86114,-0.00223,0.27928,0.0002
+TabFM + TabPFN-3.5 + LightGBM Linear + CatBoost,4,logit,0.86114,-0.00224,0.34234,0.00887
+TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,3,probability,0.86113,-0.00224,0.35135,0.01025
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,probability,0.86113,-0.00224,0.36036,0.00904
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,8,probability,0.86113,-0.00224,0.33333,0.00285
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,probability,0.86113,-0.00224,0.31532,0.00087
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,5,probability,0.86113,-0.00225,0.30631,0.00039
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,logit,0.86113,-0.00225,0.33333,0.00273
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,5,logit,0.86112,-0.00226,0.36937,0.00451
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,probability,0.86111,-0.00226,0.2973,0.0004
+TabFM + TabICL + TabPFN-3.5 + LightGBM,4,rank,0.86111,-0.00226,0.30631,0.00096
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,probability,0.86111,-0.00226,0.2973,0.00056
+TabFM + TabICL + TabPFN-3.5 + XGBoost + LightGBM,5,probability,0.86111,-0.00227,0.31532,0.00093
+TabFM + TabPFN-3.5 + XGBoost + CatBoost,4,probability,0.8611,-0.00227,0.33333,0.00245
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,probability,0.86109,-0.00228,0.33333,0.0032
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,probability,0.86109,-0.00228,0.34234,0.00643
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,probability,0.86108,-0.00229,0.34234,0.00254
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,probability,0.86108,-0.0023,0.31532,0.00118
+TabPFN-3 + TabPFN-3.5 + CatBoost,3,logit,0.86107,-0.0023,0.33333,0.00259
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM,4,probability,0.86107,-0.0023,0.2973,0.00068
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,5,logit,0.86106,-0.00231,0.2973,0.00089
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,logit,0.86106,-0.00232,0.35135,0.01014
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + LightGBM,5,logit,0.86106,-0.00232,0.32432,0.0014
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,logit,0.86105,-0.00233,0.36036,0.00199
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,logit,0.86105,-0.00233,0.32432,0.00117
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,logit,0.86104,-0.00233,0.33333,0.00116
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost,5,probability,0.86103,-0.00235,0.30631,0.00027
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,logit,0.86102,-0.00235,0.30631,0.00157
+TabFM + TabICL + LightGBM,3,probability,0.86102,-0.00236,0.32432,0.00167
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,logit,0.86102,-0.00236,0.33333,0.00292
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,logit,0.86101,-0.00236,0.34234,0.0087
+TabFM + TabICL + TabPFN-3 + LightGBM + CatBoost,5,logit,0.86101,-0.00236,0.32432,0.0026
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,logit,0.86101,-0.00237,0.32432,0.00139
+TabICL + TabPFN-3.5-fast + XGBoost,3,logit,0.86101,-0.00237,0.31532,0.0007
+TabFM + TabICL + TabPFN-3.5 + XGBoost,4,rank,0.861,-0.00237,0.33333,0.00174
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM,4,rank,0.861,-0.00238,0.2973,0.00017
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,6,probability,0.86099,-0.00239,0.31532,0.00127
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,5,probability,0.86099,-0.00239,0.35135,0.00436
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,3,probability,0.86098,-0.00239,0.27928,0.00039
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost,5,rank,0.86098,-0.0024,0.34234,0.00099
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,7,logit,0.86098,-0.0024,0.34234,0.00385
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,logit,0.86097,-0.0024,0.33333,0.00562
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,9,logit,0.86097,-0.00241,0.31532,0.00146
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM,5,logit,0.86097,-0.00241,0.31532,0.00118
+TabFM + TabICL + XGBoost + CatBoost,4,logit,0.86096,-0.00241,0.34234,0.00476
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,logit,0.86096,-0.00242,0.33333,0.00562
+TabICL + TabPFN-3.5-fast + CatBoost,3,probability,0.86096,-0.00242,0.36036,0.00711
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,8,probability,0.86096,-0.00242,0.33333,0.00559
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,7,rank,0.86096,-0.00242,0.32432,0.00138
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,7,rank,0.86095,-0.00242,0.30631,0.00064
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,5,rank,0.86094,-0.00244,0.30631,0.00086
+TabFM + TabPFN-3.5 + LightGBM Linear + CatBoost,4,probability,0.86093,-0.00245,0.34234,0.00267
+TabFM + TabICL + TabPFN-3 + LightGBM + CatBoost,5,probability,0.86093,-0.00245,0.35135,0.00299
+TabFM + TabICL + TabPFN-3 + CatBoost,4,rank,0.86091,-0.00246,0.32432,0.00192
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost,4,rank,0.86091,-0.00246,0.27928,6e-05
+TabICL + TabPFN-3.5 + LightGBM Linear,3,probability,0.86091,-0.00247,0.35135,0.00872
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,logit,0.8609,-0.00247,0.31532,0.00218
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,5,logit,0.8609,-0.00248,0.33333,0.00118
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost,4,probability,0.8609,-0.00248,0.31532,0.00163
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,logit,0.8609,-0.00248,0.2973,0.00051
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,rank,0.8609,-0.00248,0.30631,0.00073
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,3,probability,0.86089,-0.00248,0.34234,0.00455
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,5,logit,0.86089,-0.00249,0.34234,0.00179
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,logit,0.86088,-0.00249,0.31532,0.00055
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,5,rank,0.86088,-0.00249,0.27928,0.00022
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,logit,0.86088,-0.0025,0.32432,0.00106
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,probability,0.86088,-0.0025,0.2973,0.0006
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,probability,0.86087,-0.0025,0.31532,0.00149
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,probability,0.86087,-0.0025,0.33333,0.00296
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,7,logit,0.86087,-0.00251,0.2973,0.00069
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,4,probability,0.86086,-0.00251,0.35135,0.00603
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost,4,logit,0.86086,-0.00252,0.34234,0.00149
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear,4,rank,0.86085,-0.00252,0.27027,0.00011
+TabFM + TabICL + LightGBM,3,logit,0.86085,-0.00252,0.28829,0.00043
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,probability,0.86085,-0.00253,0.31532,0.0003
+TabICL + TabPFN-3.5 + XGBoost,3,probability,0.86085,-0.00253,0.2973,0.00108
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,logit,0.86084,-0.00253,0.30631,0.00067
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,probability,0.86083,-0.00254,0.31532,0.00107
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + LightGBM,5,probability,0.86083,-0.00254,0.31532,0.00085
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,7,probability,0.86083,-0.00255,0.33333,0.00166
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + CatBoost,5,probability,0.86081,-0.00256,0.35135,0.00249
+TabFM + TabPFN-3 + XGBoost + CatBoost,4,logit,0.86081,-0.00257,0.34234,0.00272
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,8,probability,0.8608,-0.00258,0.2973,0.00038
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,logit,0.86079,-0.00259,0.34234,0.00187
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,4,logit,0.86079,-0.00259,0.34234,0.00355
+TabFM + TabICL + TabPFN-3 + XGBoost + LightGBM,5,logit,0.86079,-0.00259,0.2973,0.00031
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,logit,0.86078,-0.0026,0.31532,0.00116
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,logit,0.86078,-0.0026,0.33333,0.0045
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,probability,0.86077,-0.0026,0.32432,0.00206
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,probability,0.86076,-0.00261,0.2973,0.0004
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,probability,0.86076,-0.00262,0.32432,0.0012
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,probability,0.86076,-0.00262,0.35135,0.00437
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,7,probability,0.86076,-0.00262,0.32432,0.00179
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,logit,0.86075,-0.00262,0.34234,0.00167
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM,4,rank,0.86075,-0.00262,0.27928,8e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,probability,0.86074,-0.00263,0.33333,0.00175
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,rank,0.86074,-0.00263,0.32432,0.00075
+TabPFN-3 + TabPFN-3.5-fast,2,rank,0.86074,-0.00264,0.28829,0.00013
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,probability,0.86073,-0.00265,0.32432,0.00121
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,logit,0.86072,-0.00265,0.31532,0.00112
+TabFM + TabPFN-3 + LightGBM,3,logit,0.86072,-0.00265,0.28829,0.00014
+TabFM + TabICL + LightGBM Linear + CatBoost,4,logit,0.86072,-0.00266,0.33333,0.00427
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,7,rank,0.86072,-0.00266,0.35135,0.00345
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,7,rank,0.86071,-0.00266,0.2973,0.00016
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,probability,0.86071,-0.00267,0.31532,0.00074
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,6,logit,0.86071,-0.00267,0.35135,0.00709
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,5,logit,0.8607,-0.00267,0.32432,0.00455
+TabFM + TabICL + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,logit,0.8607,-0.00267,0.31532,0.00096
+TabFM + TabPFN-3 + LightGBM,3,probability,0.8607,-0.00267,0.2973,7e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,5,probability,0.8607,-0.00267,0.2973,0.00029
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,probability,0.8607,-0.00268,0.32432,0.00143
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,rank,0.8607,-0.00268,0.2973,0.00053
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,logit,0.8607,-0.00268,0.33333,0.00289
+TabFM + TabICL + TabPFN-3 + LightGBM Linear,4,rank,0.86069,-0.00268,0.27027,8e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,5,rank,0.86068,-0.0027,0.32432,0.00055
+TabFM + TabPFN-3.5 + CatBoost,3,rank,0.86068,-0.0027,0.24324,1e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,probability,0.86066,-0.00271,0.32432,0.00329
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,logit,0.86066,-0.00271,0.31532,0.00139
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,logit,0.86066,-0.00272,0.2973,0.00058
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,probability,0.86064,-0.00273,0.31532,0.00052
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost,4,rank,0.86064,-0.00273,0.27027,3e-05
+TabFM + TabICL + TabPFN-3 + XGBoost + CatBoost,5,probability,0.86064,-0.00273,0.33333,0.00241
+TabICL + TabPFN-3.5 + LightGBM Linear,3,logit,0.86064,-0.00274,0.33333,0.00204
+TabFM + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,probability,0.86063,-0.00274,0.34234,0.00295
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM,4,rank,0.86063,-0.00274,0.28829,0.00014
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,probability,0.86063,-0.00275,0.33333,0.0012
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,logit,0.86063,-0.00275,0.32432,0.0012
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,7,rank,0.86062,-0.00275,0.27027,2e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM,4,logit,0.86062,-0.00275,0.31532,0.00025
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,4,rank,0.86062,-0.00275,0.27928,3e-05
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear,3,probability,0.86062,-0.00276,0.30631,0.00064
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,logit,0.86062,-0.00276,0.30631,0.0002
+TabICL + TabPFN-3.5 + LightGBM,3,probability,0.86061,-0.00277,0.30631,0.00073
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,probability,0.8606,-0.00278,0.28829,0.00021
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,6,rank,0.86059,-0.00278,0.26126,0.00014
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,probability,0.86059,-0.00279,0.32432,0.00151
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,7,probability,0.86059,-0.00279,0.32432,0.00191
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,logit,0.86059,-0.00279,0.31532,0.00092
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,probability,0.86058,-0.0028,0.34234,0.00395
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,rank,0.86058,-0.0028,0.31532,0.00072
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,4,rank,0.86057,-0.0028,0.2973,0.00028
+TabICL + TabPFN-3 + TabPFN-3.5 + CatBoost,4,rank,0.86057,-0.00281,0.32432,0.00076
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,probability,0.86056,-0.00281,0.27027,4e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,rank,0.86056,-0.00282,0.2973,0.00028
+TabFM + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,logit,0.86055,-0.00282,0.30631,0.00154
+TabFM + TabICL + TabPFN-3 + LightGBM,4,rank,0.86055,-0.00282,0.2973,0.00022
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,7,rank,0.86053,-0.00284,0.28829,0.00015
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + LightGBM,5,probability,0.86053,-0.00285,0.27928,9e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,logit,0.86053,-0.00285,0.32432,0.00154
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,logit,0.86052,-0.00285,0.32432,0.00193
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,logit,0.86052,-0.00285,0.33333,0.00174
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,rank,0.86052,-0.00285,0.30631,0.00037
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + LightGBM,5,logit,0.86052,-0.00286,0.30631,0.00056
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,rank,0.86052,-0.00286,0.30631,0.00062
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost,4,rank,0.86052,-0.00286,0.31532,0.00021
+TabFM + TabICL + LightGBM Linear + XGBoost,4,logit,0.86051,-0.00286,0.32432,0.00106
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM,4,probability,0.86051,-0.00286,0.32432,0.00069
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,logit,0.86051,-0.00287,0.2973,0.00055
+TabFM + TabPFN-3.5-fast + XGBoost + CatBoost,4,probability,0.8605,-0.00287,0.33333,0.00132
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,6,rank,0.8605,-0.00288,0.28829,0.00053
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,5,logit,0.86049,-0.00288,0.34234,0.00097
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,logit,0.86049,-0.00289,0.31532,0.00038
+TabFM + TabPFN-3.5 + LightGBM + CatBoost,4,probability,0.86048,-0.0029,0.31532,0.00012
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,4,logit,0.86046,-0.00291,0.2973,0.00072
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,9,probability,0.86046,-0.00292,0.34234,0.00107
+TabFM + TabPFN-3.5 + XGBoost + LightGBM,4,logit,0.86046,-0.00292,0.33333,0.00049
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,probability,0.86046,-0.00292,0.31532,0.00061
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,logit,0.86045,-0.00292,0.35135,0.00185
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,3,probability,0.86044,-0.00293,0.28829,0.0002
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,probability,0.86044,-0.00294,0.30631,0.00052
+TabFM + TabPFN-3.5 + LightGBM + CatBoost,4,logit,0.86044,-0.00294,0.33333,0.00079
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,logit,0.86043,-0.00295,0.2973,0.00042
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,logit,0.86042,-0.00295,0.30631,0.00013
+TabICL + TabPFN-3.5 + XGBoost + CatBoost,4,logit,0.86041,-0.00296,0.34234,0.00263
+TabICL + TabPFN-3 + CatBoost,3,logit,0.86041,-0.00296,0.34234,0.00289
+TabFM + TabPFN-3.5 + LightGBM Linear + LightGBM,4,probability,0.86041,-0.00296,0.27928,2e-05
+TabICL + TabPFN-3,2,rank,0.8604,-0.00297,0.28829,0.00057
+TabPFN-3 + TabPFN-3.5-fast + XGBoost,3,logit,0.8604,-0.00297,0.30631,0.00031
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,rank,0.86039,-0.00298,0.27027,0.0001
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,probability,0.86039,-0.00298,0.31532,0.00043
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,logit,0.86039,-0.00299,0.32432,0.0005
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,probability,0.86039,-0.00299,0.2973,0.00032
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,5,probability,0.86039,-0.00299,0.32432,0.00149
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost,4,probability,0.86038,-0.00299,0.27027,3e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,7,probability,0.86038,-0.003,0.30631,0.00028
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,5,logit,0.86037,-0.003,0.32432,0.00144
+TabFM + TabICL + LightGBM Linear + CatBoost,4,probability,0.86037,-0.003,0.31532,0.00048
+TabICL + TabPFN-3.5-fast + LightGBM Linear,3,probability,0.86037,-0.00301,0.35135,0.00242
+TabFM + TabPFN-3.5 + LightGBM Linear,3,rank,0.86036,-0.00302,0.22523,0.0
+TabPFN-3 + TabPFN-3.5-fast + CatBoost,3,logit,0.86033,-0.00305,0.32432,0.00086
+TabPFN-3 + TabPFN-3.5 + CatBoost,3,probability,0.86032,-0.00305,0.35135,0.00148
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,logit,0.86032,-0.00306,0.2973,0.00086
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,rank,0.86031,-0.00306,0.27027,2e-05
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear,3,logit,0.86031,-0.00306,0.30631,0.00078
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,5,probability,0.8603,-0.00307,0.32432,0.00089
+TabFM + XGBoost,2,logit,0.8603,-0.00307,0.27027,0.0
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,probability,0.8603,-0.00307,0.32432,0.00065
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost,5,probability,0.86029,-0.00308,0.2973,0.00016
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,logit,0.86029,-0.00308,0.30631,0.00021
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,logit,0.86029,-0.00309,0.28829,0.00039
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,4,rank,0.86029,-0.00309,0.27928,0.00012
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,logit,0.86029,-0.00309,0.30631,0.00048
+TabFM + TabICL + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,probability,0.86029,-0.00309,0.31532,0.00086
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,rank,0.86029,-0.00309,0.27027,8e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,probability,0.86028,-0.00309,0.33333,0.00144
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,logit,0.86028,-0.0031,0.31532,0.0005
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,6,rank,0.86027,-0.0031,0.30631,0.00046
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,rank,0.86027,-0.0031,0.24324,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,probability,0.86026,-0.00312,0.30631,0.00045
+TabFM + CatBoost,2,logit,0.86025,-0.00312,0.30631,7e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,logit,0.86025,-0.00313,0.31532,0.00027
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,logit,0.86024,-0.00313,0.32432,0.00123
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,logit,0.86024,-0.00314,0.28829,0.00012
+TabFM + TabICL + TabPFN-3 + XGBoost + LightGBM,5,probability,0.86023,-0.00314,0.2973,0.00026
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,logit,0.86023,-0.00314,0.2973,0.00021
+TabICL + TabPFN-3.5-fast + XGBoost,3,probability,0.86023,-0.00315,0.30631,0.00048
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,3,logit,0.86022,-0.00315,0.30631,0.00059
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,5,probability,0.86022,-0.00315,0.34234,0.00185
+TabFM + TabPFN-3 + LightGBM Linear + CatBoost,4,logit,0.86022,-0.00316,0.34234,0.00183
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,5,logit,0.86022,-0.00316,0.30631,0.0003
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,rank,0.86022,-0.00316,0.28829,0.00028
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,logit,0.86021,-0.00317,0.31532,0.0004
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,probability,0.8602,-0.00317,0.31532,0.00068
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,5,probability,0.8602,-0.00317,0.30631,0.00017
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM,4,rank,0.8602,-0.00318,0.28829,0.00014
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,probability,0.8602,-0.00318,0.33333,0.00094
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,probability,0.8602,-0.00318,0.26126,8e-05
+TabICL + TabPFN-3.5 + LightGBM,3,logit,0.8602,-0.00318,0.2973,0.0002
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,probability,0.86019,-0.00318,0.32432,0.00074
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,probability,0.86019,-0.00319,0.31532,0.00031
+TabPFN-3 + TabPFN-3.5 + XGBoost,3,probability,0.86018,-0.0032,0.26126,0.00014
+TabFM + TabPFN-3.5-fast + CatBoost,3,rank,0.86017,-0.0032,0.27928,2e-05
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,rank,0.86017,-0.0032,0.28829,3e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,probability,0.86017,-0.00321,0.26126,4e-05
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost,4,logit,0.86017,-0.00321,0.32432,0.00048
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,4,rank,0.86016,-0.00321,0.27027,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,5,logit,0.86016,-0.00322,0.2973,8e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,logit,0.86015,-0.00322,0.30631,0.00071
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,probability,0.86015,-0.00322,0.27928,0.00017
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,probability,0.86015,-0.00323,0.32432,0.00092
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,logit,0.86015,-0.00323,0.31532,0.00071
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,probability,0.86014,-0.00324,0.32432,0.00044
+TabICL + TabPFN-3 + XGBoost,3,logit,0.86013,-0.00324,0.36937,0.00329
+TabFM + TabICL + TabPFN-3 + XGBoost + LightGBM + CatBoost,6,logit,0.86013,-0.00325,0.31532,0.00076
+TabFM + TabICL + LightGBM + CatBoost,4,logit,0.86013,-0.00325,0.30631,0.00072
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,probability,0.86012,-0.00326,0.30631,9e-05
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,logit,0.8601,-0.00328,0.27928,0.00015
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,probability,0.86009,-0.00328,0.30631,0.00033
+TabFM + TabPFN-3 + LightGBM Linear + CatBoost,4,probability,0.86009,-0.00328,0.32432,0.00048
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,probability,0.86009,-0.00329,0.28829,0.00012
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,probability,0.86009,-0.00329,0.30631,0.00021
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,5,probability,0.86007,-0.0033,0.31532,0.00066
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,4,rank,0.86007,-0.00331,0.26126,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM,4,logit,0.86006,-0.00331,0.2973,8e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,5,probability,0.86006,-0.00331,0.30631,0.0004
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear,4,rank,0.86006,-0.00332,0.23423,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,rank,0.86005,-0.00332,0.24324,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,probability,0.86005,-0.00333,0.35135,0.00078
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,6,rank,0.86005,-0.00333,0.22523,1e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,6,logit,0.86005,-0.00333,0.31532,0.00104
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,rank,0.86004,-0.00333,0.25225,1e-05
+TabPFN-3 + TabPFN-3.5-fast + CatBoost,3,probability,0.86004,-0.00333,0.33333,0.00065
+TabFM + TabICL + CatBoost,3,rank,0.86004,-0.00333,0.30631,0.0002
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,5,probability,0.86004,-0.00334,0.32432,0.0013
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,6,rank,0.86004,-0.00334,0.2973,0.00027
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,probability,0.86002,-0.00335,0.31532,0.00024
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,logit,0.86001,-0.00336,0.28829,5e-05
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,probability,0.86001,-0.00336,0.33333,0.00081
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,logit,0.86,-0.00337,0.30631,0.00032
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,probability,0.86,-0.00337,0.30631,0.00039
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost,4,rank,0.86,-0.00338,0.27928,5e-05
+TabFM + TabPFN-3.5-fast + LightGBM + CatBoost,4,probability,0.86,-0.00338,0.28829,5e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,probability,0.85999,-0.00338,0.30631,0.00033
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85999,-0.00338,0.30631,0.00061
+TabFM + TabPFN-3.5-fast + LightGBM + CatBoost,4,logit,0.85999,-0.00339,0.30631,0.00025
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,logit,0.85998,-0.0034,0.28829,0.00016
+TabFM + TabICL + TabPFN-3 + XGBoost,4,rank,0.85997,-0.0034,0.26126,5e-05
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,rank,0.85997,-0.0034,0.25225,1e-05
+TabICL + TabPFN-3.5 + LightGBM Linear + CatBoost,4,logit,0.85997,-0.0034,0.32432,0.00189
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,probability,0.85997,-0.00341,0.28829,0.0001
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,probability,0.85996,-0.00341,0.32432,0.00071
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,5,rank,0.85996,-0.00341,0.26126,2e-05
+TabFM + TabPFN-3.5-fast + XGBoost + LightGBM,4,logit,0.85995,-0.00343,0.30631,8e-05
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85994,-0.00343,0.28829,6e-05
+TabFM + TabICL + XGBoost + LightGBM,4,logit,0.85993,-0.00344,0.30631,0.00019
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,6,rank,0.85993,-0.00344,0.25225,4e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,3,logit,0.85993,-0.00345,0.28829,5e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,5,probability,0.85993,-0.00345,0.31532,0.00026
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,6,rank,0.85992,-0.00346,0.22523,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,probability,0.85991,-0.00346,0.31532,0.00044
+TabICL + TabPFN-3 + CatBoost,3,probability,0.85991,-0.00347,0.31532,0.00046
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,probability,0.8599,-0.00347,0.32432,0.00049
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + CatBoost,5,rank,0.8599,-0.00347,0.26126,8e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,logit,0.8599,-0.00347,0.31532,0.00048
+TabFM + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,probability,0.8599,-0.00347,0.27027,3e-05
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,rank,0.8599,-0.00347,0.27928,4e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,6,rank,0.8599,-0.00348,0.27027,1e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,6,probability,0.8599,-0.00348,0.33333,0.00051
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,logit,0.85989,-0.00348,0.28829,4e-05
+TabFM + TabPFN-3.5-fast + LightGBM Linear,3,rank,0.85989,-0.00348,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM,4,rank,0.85989,-0.00348,0.24324,2e-05
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85989,-0.00349,0.26126,2e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,probability,0.85989,-0.00349,0.32432,0.00088
+TabICL + TabPFN-3.5-fast + LightGBM Linear,3,logit,0.85989,-0.00349,0.31532,0.00025
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,logit,0.85987,-0.0035,0.30631,0.00015
+TabFM + TabICL + XGBoost + CatBoost,4,probability,0.85987,-0.00351,0.31532,0.00077
+TabFM + TabPFN-3.5 + LightGBM Linear + LightGBM,4,logit,0.85987,-0.00351,0.27027,2e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,logit,0.85986,-0.00351,0.2973,0.00046
+TabFM + TabPFN-3.5 + XGBoost + LightGBM,4,probability,0.85986,-0.00351,0.27027,1e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,logit,0.85986,-0.00352,0.27928,8e-05
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,3,probability,0.85985,-0.00352,0.31532,0.0001
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,8,rank,0.85985,-0.00353,0.26126,3e-05
+TabICL + TabPFN-3.5-fast + XGBoost + CatBoost,4,logit,0.85985,-0.00353,0.34234,0.00115
+TabICL + TabPFN-3 + TabPFN-3.5-fast + CatBoost,4,rank,0.85984,-0.00354,0.30631,0.00016
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,logit,0.85983,-0.00354,0.28829,6e-05
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,rank,0.85983,-0.00354,0.26126,1e-05
+TabICL + TabPFN-3.5-fast + LightGBM,3,probability,0.85983,-0.00354,0.2973,0.00015
+TabFM + LightGBM Linear,2,probability,0.85983,-0.00355,0.27027,1e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,logit,0.85982,-0.00355,0.30631,0.00087
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,6,logit,0.85981,-0.00357,0.27928,7e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,logit,0.85981,-0.00357,0.2973,0.00019
+TabICL + TabPFN-3.5 + LightGBM Linear + CatBoost,4,probability,0.85981,-0.00357,0.32432,0.00076
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,probability,0.8598,-0.00358,0.2973,9e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,probability,0.85979,-0.00359,0.2973,0.00017
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,8,rank,0.85979,-0.00359,0.24324,1e-05
+TabFM + TabICL + LightGBM Linear + LightGBM,4,probability,0.85978,-0.00359,0.28829,5e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,5,logit,0.85978,-0.0036,0.2973,0.00018
+TabFM + TabPFN-3 + LightGBM + CatBoost,4,logit,0.85977,-0.00361,0.28829,0.00011
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,logit,0.85977,-0.00361,0.30631,0.00084
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,6,rank,0.85976,-0.00361,0.2973,7e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,logit,0.85976,-0.00362,0.30631,0.00026
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85976,-0.00362,0.2973,0.0001
+TabPFN-3.5 + CatBoost,2,logit,0.85974,-0.00363,0.28829,0.00019
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,probability,0.85974,-0.00363,0.27027,8e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,8,rank,0.85974,-0.00363,0.27928,3e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,6,rank,0.85973,-0.00364,0.27928,5e-05
+TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,4,logit,0.85973,-0.00365,0.2973,8e-05
+TabPFN-3 + TabPFN-3.5 + LightGBM,3,probability,0.85972,-0.00365,0.26126,1e-05
+TabPFN-3.5 + XGBoost,2,logit,0.85972,-0.00365,0.26126,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,rank,0.85972,-0.00366,0.25225,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85971,-0.00366,0.27928,5e-05
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,rank,0.85971,-0.00367,0.25225,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,5,probability,0.8597,-0.00368,0.28829,9e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,rank,0.85969,-0.00368,0.22523,0.0
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,rank,0.85969,-0.00368,0.27027,4e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,probability,0.85969,-0.00368,0.30631,0.00031
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,logit,0.85969,-0.00369,0.31532,0.00052
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85969,-0.00369,0.27928,0.0002
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,logit,0.85969,-0.00369,0.27928,6e-05
+TabFM + TabICL + LightGBM + CatBoost,4,probability,0.85967,-0.0037,0.31532,0.0001
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,5,logit,0.85967,-0.0037,0.31532,0.00016
+TabFM + TabPFN-3.5 + LightGBM,3,rank,0.85966,-0.00371,0.22523,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,rank,0.85966,-0.00372,0.24324,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85966,-0.00372,0.2973,0.00022
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,4,rank,0.85965,-0.00372,0.25225,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,probability,0.85965,-0.00373,0.30631,0.00019
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,5,logit,0.85964,-0.00373,0.27928,3e-05
+TabFM + TabICL + LightGBM Linear + LightGBM,4,logit,0.85962,-0.00375,0.27928,9e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,probability,0.85962,-0.00375,0.31532,0.00051
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,5,rank,0.85962,-0.00376,0.24324,0.0
+TabICL + TabPFN-3.5-fast + LightGBM,3,logit,0.85962,-0.00376,0.27928,4e-05
+TabICL + TabPFN-3.5 + XGBoost + CatBoost,4,probability,0.8596,-0.00377,0.32432,0.00092
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,probability,0.85959,-0.00378,0.32432,0.00059
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,rank,0.85959,-0.00379,0.24324,0.0
+TabFM + LightGBM Linear,2,logit,0.85958,-0.0038,0.28829,3e-05
+TabFM + TabPFN-3 + XGBoost + CatBoost,4,probability,0.85958,-0.0038,0.2973,3e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,probability,0.85957,-0.0038,0.31532,0.00025
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,6,rank,0.85957,-0.00381,0.24324,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,probability,0.85956,-0.00381,0.31532,0.00049
+TabICL + TabPFN-3 + LightGBM Linear,3,probability,0.85956,-0.00381,0.32432,0.00045
+TabICL + TabPFN-3.5 + CatBoost,3,rank,0.85956,-0.00381,0.2973,8e-05
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85956,-0.00382,0.27928,8e-05
+TabFM + TabICL + LightGBM Linear + XGBoost,4,probability,0.85955,-0.00382,0.27928,2e-05
+TabFM + TabPFN-3 + CatBoost,3,rank,0.85955,-0.00382,0.22523,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + CatBoost,3,rank,0.85954,-0.00384,0.25225,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,6,rank,0.85953,-0.00384,0.30631,0.00018
+TabFM + TabICL + LightGBM Linear,3,rank,0.85953,-0.00384,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM,3,logit,0.85952,-0.00386,0.25225,1e-05
+TabFM + CatBoost,2,probability,0.85951,-0.00386,0.2973,5e-05
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost,4,probability,0.85951,-0.00387,0.27928,2e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,logit,0.85951,-0.00387,0.2973,0.0001
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,4,probability,0.8595,-0.00387,0.2973,0.00027
+TabFM + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,logit,0.8595,-0.00387,0.28829,3e-05
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,logit,0.8595,-0.00388,0.30631,0.0005
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,logit,0.8595,-0.00388,0.28829,0.00011
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,6,probability,0.85949,-0.00388,0.31532,0.0003
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,6,rank,0.85949,-0.00389,0.24324,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85948,-0.00389,0.33333,0.00079
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,probability,0.85946,-0.00391,0.2973,5e-05
+TabFM + TabICL + TabPFN-3 + XGBoost + LightGBM + CatBoost,6,probability,0.85945,-0.00392,0.2973,7e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,probability,0.85944,-0.00393,0.2973,0.00028
+TabICL + TabPFN-3.5 + LightGBM + CatBoost,4,probability,0.85943,-0.00394,0.31532,0.00027
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost,4,rank,0.85943,-0.00394,0.26126,1e-05
+TabFM + TabPFN-3.5 + XGBoost,3,rank,0.85942,-0.00395,0.26126,0.0
+TabFM + TabPFN-3 + LightGBM Linear + LightGBM,4,probability,0.85942,-0.00395,0.27027,1e-05
+TabICL + TabPFN-3 + LightGBM,3,probability,0.85942,-0.00395,0.27928,8e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,5,rank,0.85942,-0.00396,0.27027,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost,3,probability,0.85942,-0.00396,0.2973,7e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,8,rank,0.85941,-0.00396,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,6,rank,0.85941,-0.00396,0.21622,0.0
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,rank,0.85939,-0.00399,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,probability,0.85939,-0.00399,0.27928,3e-05
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85938,-0.00399,0.30631,0.00021
+TabICL + TabPFN-3 + LightGBM Linear,3,logit,0.85938,-0.004,0.30631,0.00047
+TabFM + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,logit,0.85938,-0.004,0.2973,8e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,rank,0.85938,-0.004,0.25225,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,5,rank,0.85938,-0.004,0.23423,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,4,probability,0.85937,-0.00401,0.33333,0.00049
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,logit,0.85937,-0.00401,0.26126,2e-05
+TabICL + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,logit,0.85936,-0.00401,0.30631,0.00042
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,4,probability,0.85936,-0.00402,0.2973,0.0001
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,6,rank,0.85935,-0.00402,0.22523,0.0
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85935,-0.00403,0.27928,2e-05
+TabICL + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,probability,0.85935,-0.00403,0.33333,0.00087
+TabICL + TabPFN-3.5 + LightGBM + CatBoost,4,logit,0.85935,-0.00403,0.2973,0.00011
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + CatBoost,5,rank,0.85934,-0.00403,0.24324,1e-05
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost,4,logit,0.85934,-0.00404,0.2973,0.00014
+TabFM + TabPFN-3.5-fast + XGBoost + LightGBM,4,probability,0.85933,-0.00405,0.27027,1e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear,3,rank,0.85932,-0.00406,0.24324,1e-05
+TabFM + TabICL + TabPFN-3.5 + XGBoost + CatBoost,5,rank,0.8593,-0.00407,0.26126,1e-05
+TabFM + TabPFN-3 + LightGBM Linear,3,rank,0.8593,-0.00408,0.1982,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,probability,0.8593,-0.00408,0.27928,2e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85929,-0.00409,0.32432,0.00039
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,rank,0.85928,-0.00409,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,logit,0.85928,-0.0041,0.28829,0.00019
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,rank,0.85928,-0.0041,0.23423,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,3,logit,0.85927,-0.00411,0.30631,9e-05
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85927,-0.00411,0.2973,0.00012
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,probability,0.85927,-0.00411,0.30631,0.00012
+TabFM + TabPFN-3 + LightGBM Linear + LightGBM,4,logit,0.85926,-0.00412,0.2973,6e-05
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85926,-0.00412,0.27928,9e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,5,rank,0.85926,-0.00412,0.23423,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,4,logit,0.85925,-0.00413,0.31532,0.00039
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,rank,0.85924,-0.00413,0.26126,1e-05
+TabICL + TabPFN-3.5-fast + XGBoost + CatBoost,4,probability,0.85924,-0.00413,0.31532,0.00074
+TabICL + TabPFN-3.5 + LightGBM Linear,3,rank,0.85924,-0.00413,0.23423,0.0
+TabFM + TabICL + TabPFN-3.5 + LightGBM + CatBoost,5,rank,0.85924,-0.00414,0.25225,1e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,logit,0.85923,-0.00415,0.27928,6e-05
+TabFM + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85922,-0.00415,0.27928,1e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85922,-0.00415,0.25225,2e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,logit,0.85922,-0.00416,0.30631,6e-05
+TabICL + TabPFN-3 + XGBoost,3,probability,0.85921,-0.00416,0.26126,6e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,probability,0.8592,-0.00417,0.28829,0.0001
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,7,rank,0.8592,-0.00418,0.25225,1e-05
+TabFM + TabPFN-3 + LightGBM + CatBoost,4,probability,0.85919,-0.00418,0.28829,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,logit,0.85918,-0.0042,0.27928,4e-05
+TabFM + TabICL + XGBoost + LightGBM,4,probability,0.85918,-0.0042,0.2973,3e-05
+TabFM + TabPFN-3.5-fast + LightGBM,3,rank,0.85918,-0.0042,0.24324,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost,4,probability,0.85917,-0.0042,0.27027,2e-05
+TabPFN-3 + TabPFN-3.5 + CatBoost,3,rank,0.85917,-0.00421,0.25225,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM,3,probability,0.85917,-0.00421,0.27027,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,5,probability,0.85917,-0.00421,0.26126,2e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,logit,0.85914,-0.00423,0.28829,5e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,rank,0.85914,-0.00424,0.25225,1e-05
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM,5,rank,0.85914,-0.00424,0.22523,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85914,-0.00424,0.27928,4e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,logit,0.85913,-0.00425,0.28829,0.00016
+TabFM + TabPFN-3.5-fast + XGBoost,3,rank,0.85912,-0.00425,0.24324,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,rank,0.85912,-0.00426,0.25225,1e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,rank,0.85911,-0.00426,0.24324,0.0
+TabFM + TabPFN-3 + LightGBM,3,rank,0.85911,-0.00426,0.23423,0.0
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85911,-0.00426,0.27928,4e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,5,rank,0.85911,-0.00426,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,probability,0.85911,-0.00427,0.2973,0.00014
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,probability,0.8591,-0.00427,0.27027,2e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,probability,0.8591,-0.00428,0.26126,1e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,probability,0.8591,-0.00428,0.2973,3e-05
+TabFM + TabICL + XGBoost + LightGBM + CatBoost,5,logit,0.85909,-0.00428,0.30631,0.00013
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85909,-0.00429,0.30631,0.00016
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,5,rank,0.85908,-0.00429,0.27027,0.0
+TabFM + TabICL + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85908,-0.00429,0.30631,0.00016
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85908,-0.0043,0.30631,8e-05
+TabICL + TabPFN-3.5 + XGBoost + LightGBM,4,logit,0.85908,-0.0043,0.2973,5e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,logit,0.85908,-0.0043,0.27928,2e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,rank,0.85908,-0.0043,0.26126,0.0
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost,5,rank,0.85908,-0.0043,0.22523,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM,4,probability,0.85907,-0.00431,0.27928,3e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,rank,0.85906,-0.00432,0.23423,0.0
+TabFM + XGBoost,2,probability,0.85905,-0.00433,0.24324,0.0
+TabPFN-3.5 + CatBoost,2,probability,0.85905,-0.00433,0.27928,7e-05
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + CatBoost,5,rank,0.85904,-0.00433,0.27027,0.0
+TabICL + TabPFN-3.5-fast + LightGBM + CatBoost,4,probability,0.85903,-0.00434,0.31532,0.00011
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,rank,0.85903,-0.00435,0.26126,1e-05
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,4,logit,0.85902,-0.00436,0.28829,2e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,probability,0.85901,-0.00437,0.30631,0.00013
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,logit,0.859,-0.00437,0.25225,1e-05
+TabFM + TabPFN-3 + XGBoost + LightGBM,4,logit,0.859,-0.00438,0.28829,2e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,probability,0.859,-0.00438,0.27928,7e-05
+TabFM + TabPFN-3 + XGBoost,3,rank,0.859,-0.00438,0.20721,0.0
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM + CatBoost,5,rank,0.859,-0.00438,0.27027,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,probability,0.859,-0.00438,0.27027,4e-05
+TabFM + TabICL + TabPFN-3 + LightGBM + CatBoost,5,rank,0.85899,-0.00439,0.22523,0.0
+TabPFN-3.5 + XGBoost,2,probability,0.85899,-0.00439,0.25225,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,logit,0.85898,-0.0044,0.27027,1e-05
+TabICL + TabPFN-3 + LightGBM,3,logit,0.85898,-0.0044,0.26126,1e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,logit,0.85897,-0.00441,0.27928,5e-05
+TabICL + TabPFN-3.5-fast + CatBoost,3,rank,0.85897,-0.00441,0.26126,1e-05
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear,3,rank,0.85896,-0.00442,0.21622,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85895,-0.00442,0.27027,2e-05
+TabPFN-3.5 + LightGBM Linear,2,probability,0.85895,-0.00442,0.28829,3e-05
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,4,logit,0.85895,-0.00443,0.2973,7e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,5,rank,0.85894,-0.00443,0.23423,0.0
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,rank,0.85893,-0.00444,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,probability,0.85893,-0.00444,0.27928,4e-05
+TabPFN-3.5 + LightGBM Linear,2,logit,0.85893,-0.00444,0.28829,0.00014
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85892,-0.00445,0.30631,5e-05
+TabICL + TabPFN-3 + XGBoost + CatBoost,4,logit,0.85891,-0.00446,0.27928,6e-05
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85888,-0.00449,0.27027,1e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM,3,rank,0.85887,-0.0045,0.26126,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,4,logit,0.85887,-0.00451,0.27928,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,probability,0.85886,-0.00451,0.27027,2e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,5,rank,0.85886,-0.00452,0.25225,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,5,rank,0.85885,-0.00453,0.18919,0.0
+TabICL + TabPFN-3.5 + XGBoost + LightGBM,4,probability,0.85885,-0.00453,0.27928,2e-05
+TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,4,probability,0.85884,-0.00453,0.27027,4e-05
+TabICL + TabPFN-3.5 + LightGBM,3,rank,0.85884,-0.00454,0.24324,0.0
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,rank,0.85884,-0.00454,0.22523,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85882,-0.00456,0.2973,1e-05
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85882,-0.00456,0.23423,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,7,rank,0.85881,-0.00456,0.25225,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,rank,0.85881,-0.00456,0.27928,1e-05
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,logit,0.85881,-0.00457,0.28829,6e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,5,rank,0.85879,-0.00458,0.23423,0.0
+TabFM + TabICL + LightGBM,3,rank,0.85877,-0.00461,0.20721,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85876,-0.00462,0.28829,4e-05
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,probability,0.85876,-0.00462,0.2973,5e-05
+TabFM + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,logit,0.85875,-0.00463,0.28829,2e-05
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85874,-0.00463,0.28829,0.00014
+TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,4,probability,0.85874,-0.00463,0.27928,2e-05
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,rank,0.85874,-0.00463,0.23423,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,probability,0.85874,-0.00464,0.31532,8e-05
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,rank,0.85874,-0.00464,0.22523,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,rank,0.85874,-0.00464,0.22523,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,rank,0.85873,-0.00464,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85873,-0.00465,0.27027,2e-05
+TabFM + TabPFN-3.5 + LightGBM Linear + CatBoost,4,rank,0.85872,-0.00465,0.23423,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,5,rank,0.85872,-0.00465,0.23423,0.0
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,rank,0.85872,-0.00466,0.23423,0.0
+TabFM + TabICL + TabPFN-3 + XGBoost + CatBoost,5,rank,0.85871,-0.00466,0.24324,0.0
+TabFM + LightGBM,2,logit,0.85871,-0.00466,0.24324,0.0
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,rank,0.85871,-0.00467,0.24324,0.0
+TabICL + TabPFN-3.5-fast + LightGBM + CatBoost,4,logit,0.8587,-0.00468,0.2973,4e-05
+TabICL + TabPFN-3.5 + XGBoost,3,rank,0.85869,-0.00468,0.22523,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,probability,0.85869,-0.00468,0.27928,3e-05
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,4,probability,0.85869,-0.00469,0.26126,1e-05
+TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,probability,0.85868,-0.00469,0.27928,3e-05
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost,3,rank,0.85868,-0.00469,0.21622,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,7,rank,0.85868,-0.00469,0.23423,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,9,rank,0.85868,-0.00469,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,probability,0.85868,-0.00469,0.2973,4e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85868,-0.0047,0.28829,4e-05
+TabICL + TabPFN-3.5-fast + LightGBM Linear,3,rank,0.85868,-0.0047,0.25225,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,probability,0.85867,-0.0047,0.27027,2e-05
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,4,probability,0.85867,-0.0047,0.28829,2e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,rank,0.85867,-0.00471,0.22523,0.0
+TabFM + TabICL + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85866,-0.00471,0.28829,1e-05
+TabFM + XGBoost + CatBoost,3,logit,0.85866,-0.00472,0.31532,2e-05
+TabFM + TabICL + XGBoost,3,rank,0.85866,-0.00472,0.25225,0.0
+TabFM + TabICL + TabPFN-3.5 + XGBoost + LightGBM,5,rank,0.85865,-0.00473,0.21622,0.0
+TabICL + TabPFN-3 + LightGBM Linear + CatBoost,4,logit,0.85864,-0.00473,0.31532,0.00027
+TabPFN-3 + TabPFN-3.5 + LightGBM,3,rank,0.85864,-0.00474,0.1982,0.0
+TabICL + CatBoost,2,logit,0.85863,-0.00475,0.33333,0.00083
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85863,-0.00475,0.26126,1e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85862,-0.00475,0.26126,2e-05
+TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM,4,logit,0.85861,-0.00477,0.26126,1e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + LightGBM,5,rank,0.8586,-0.00477,0.23423,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,7,rank,0.8586,-0.00477,0.24324,0.0
+TabPFN-3 + TabPFN-3.5-fast + CatBoost,3,rank,0.85859,-0.00479,0.24324,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,rank,0.85858,-0.0048,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,5,rank,0.85858,-0.0048,0.20721,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85857,-0.0048,0.28829,2e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,probability,0.85857,-0.00481,0.2973,5e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,rank,0.85857,-0.00481,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,4,logit,0.85857,-0.00481,0.26126,1e-05
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,logit,0.85856,-0.00481,0.2973,5e-05
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,rank,0.85856,-0.00482,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,4,probability,0.85854,-0.00483,0.27027,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,logit,0.85854,-0.00483,0.27027,3e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,logit,0.85854,-0.00484,0.27027,1e-05
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,7,rank,0.85854,-0.00484,0.23423,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,5,rank,0.85854,-0.00484,0.23423,0.0
+TabFM + TabPFN-3 + XGBoost + LightGBM,4,probability,0.85852,-0.00485,0.26126,0.0
+TabICL + TabPFN-3 + LightGBM Linear + CatBoost,4,probability,0.85851,-0.00486,0.26126,4e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85851,-0.00486,0.28829,9e-05
+TabFM + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85851,-0.00487,0.30631,2e-05
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,5,rank,0.85851,-0.00487,0.20721,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,4,logit,0.8585,-0.00487,0.27027,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM,3,logit,0.8585,-0.00488,0.23423,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,logit,0.85849,-0.00489,0.25225,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,5,rank,0.85849,-0.00489,0.20721,0.0
+TabPFN-3.5-fast + CatBoost,2,logit,0.85848,-0.00489,0.28829,5e-05
+TabICL + TabPFN-3.5-fast + XGBoost + LightGBM,4,logit,0.85848,-0.00489,0.27027,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85848,-0.0049,0.27928,5e-05
+TabICL + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,logit,0.85847,-0.0049,0.28829,3e-05
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear,3,rank,0.85846,-0.00491,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,5,rank,0.85845,-0.00493,0.22523,0.0
+TabICL + XGBoost,2,logit,0.85845,-0.00493,0.28829,6e-05
+TabFM + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,probability,0.85845,-0.00493,0.25225,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85844,-0.00493,0.27928,4e-05
+TabPFN-3 + TabPFN-3.5 + XGBoost,3,rank,0.85841,-0.00497,0.20721,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,7,rank,0.85838,-0.00499,0.24324,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85837,-0.00501,0.28829,2e-05
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost,4,logit,0.85837,-0.00501,0.30631,0.00011
+TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85836,-0.00501,0.27928,3e-05
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85836,-0.00501,0.26126,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,rank,0.85835,-0.00503,0.22523,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85833,-0.00504,0.28829,0.00015
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + LightGBM,5,rank,0.85833,-0.00504,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85833,-0.00504,0.30631,0.00011
+TabFM + TabPFN-3 + XGBoost + LightGBM + CatBoost,5,logit,0.8583,-0.00507,0.28829,1e-05
+TabFM + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,rank,0.8583,-0.00507,0.23423,0.0
+TabICL + TabPFN-3.5-fast + XGBoost + LightGBM,4,probability,0.8583,-0.00507,0.27027,1e-05
+TabFM + LightGBM,2,probability,0.8583,-0.00508,0.25225,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,rank,0.8583,-0.00508,0.20721,0.0
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85829,-0.00509,0.20721,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85828,-0.00509,0.25225,0.0
+TabFM + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85827,-0.0051,0.27027,0.0
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85827,-0.00511,0.24324,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85826,-0.00511,0.24324,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,rank,0.85826,-0.00511,0.21622,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM,3,rank,0.85826,-0.00512,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,rank,0.85825,-0.00513,0.20721,0.0
+TabICL + TabPFN-3 + LightGBM Linear + LightGBM,4,probability,0.85825,-0.00513,0.26126,1e-05
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,4,probability,0.85824,-0.00513,0.2973,2e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost,5,rank,0.85823,-0.00514,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85823,-0.00515,0.26126,1e-05
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85822,-0.00516,0.26126,0.0
+TabPFN-3.5-fast + XGBoost,2,logit,0.85821,-0.00516,0.24324,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,logit,0.85821,-0.00516,0.25225,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85819,-0.00518,0.2973,5e-05
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85819,-0.00519,0.27928,1e-05
+TabICL + TabPFN-3 + LightGBM + CatBoost,4,probability,0.85819,-0.00519,0.24324,0.0
+TabICL + TabPFN-3.5-fast + LightGBM,3,rank,0.85818,-0.0052,0.20721,0.0
+TabICL + TabPFN-3 + XGBoost + CatBoost,4,probability,0.85818,-0.0052,0.27928,4e-05
+TabFM + LightGBM Linear + CatBoost,3,probability,0.85817,-0.0052,0.28829,0.0
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85817,-0.00521,0.21622,0.0
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85816,-0.00521,0.23423,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85816,-0.00522,0.2973,2e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85815,-0.00522,0.27027,1e-05
+TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,4,logit,0.85815,-0.00522,0.25225,0.0
+TabICL + TabPFN-3 + CatBoost,3,rank,0.85815,-0.00523,0.26126,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,5,rank,0.85814,-0.00524,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,5,rank,0.85814,-0.00524,0.1982,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,4,probability,0.85813,-0.00524,0.28829,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85813,-0.00525,0.23423,0.0
+TabICL + CatBoost,2,probability,0.85813,-0.00525,0.27928,8e-05
+TabICL + TabPFN-3 + LightGBM + CatBoost,4,logit,0.85812,-0.00526,0.25225,1e-05
+TabICL + TabPFN-3 + LightGBM Linear,3,rank,0.85811,-0.00527,0.1982,0.0
+TabPFN-3.5 + LightGBM,2,probability,0.85811,-0.00527,0.26126,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,5,rank,0.85811,-0.00527,0.23423,0.0
+TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,4,probability,0.8581,-0.00527,0.23423,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,logit,0.8581,-0.00528,0.2973,3e-05
+TabFM + LightGBM Linear + CatBoost,3,logit,0.85809,-0.00528,0.2973,1e-05
+TabICL + TabPFN-3.5-fast + XGBoost,3,rank,0.85809,-0.00529,0.24324,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85808,-0.0053,0.27928,1e-05
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,7,rank,0.85807,-0.0053,0.20721,0.0
+TabPFN-3.5-fast + CatBoost,2,probability,0.85807,-0.00531,0.31532,5e-05
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,probability,0.85804,-0.00533,0.27928,2e-05
+TabPFN-3 + TabPFN-3.5-fast + XGBoost,3,rank,0.85804,-0.00534,0.21622,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,logit,0.858,-0.00538,0.23423,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,7,rank,0.85799,-0.00539,0.21622,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,probability,0.85798,-0.0054,0.27027,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,rank,0.85796,-0.00541,0.21622,0.0
+TabPFN-3.5-fast + LightGBM Linear,2,probability,0.85796,-0.00542,0.2973,2e-05
+TabFM + TabICL + TabPFN-3 + XGBoost + LightGBM,5,rank,0.85796,-0.00542,0.20721,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,logit,0.85795,-0.00542,0.27928,2e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85795,-0.00542,0.27928,1e-05
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85795,-0.00543,0.27027,2e-05
+TabFM + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,probability,0.85795,-0.00543,0.27928,1e-05
+TabICL + TabPFN-3 + XGBoost + LightGBM,4,logit,0.85794,-0.00543,0.27027,1e-05
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85794,-0.00544,0.24324,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85793,-0.00544,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,5,rank,0.85793,-0.00545,0.22523,0.0
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85791,-0.00546,0.23423,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,4,logit,0.85791,-0.00546,0.24324,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,probability,0.8579,-0.00547,0.27027,1e-05
+TabICL + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,logit,0.85789,-0.00548,0.27928,1e-05
+TabPFN-3.5-fast + XGBoost,2,probability,0.85787,-0.00551,0.23423,0.0
+TabFM + TabICL + LightGBM Linear + CatBoost,4,rank,0.85787,-0.00551,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,5,rank,0.85786,-0.00551,0.1982,0.0
+TabFM + TabICL + XGBoost + LightGBM + CatBoost,5,probability,0.85786,-0.00551,0.27928,1e-05
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85785,-0.00552,0.23423,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,5,rank,0.85783,-0.00555,0.22523,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85783,-0.00555,0.27928,0.0
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85782,-0.00556,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85781,-0.00556,0.25225,1e-05
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,5,logit,0.8578,-0.00557,0.28829,7e-05
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,probability,0.85779,-0.00558,0.26126,1e-05
+TabFM + TabPFN-3.5 + LightGBM Linear + LightGBM,4,rank,0.85779,-0.00559,0.1982,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85777,-0.0056,0.2973,4e-05
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85777,-0.0056,0.26126,1e-05
+TabPFN-3.5 + LightGBM Linear + CatBoost,3,probability,0.85774,-0.00563,0.28829,4e-05
+TabFM + TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,rank,0.85774,-0.00563,0.21622,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost,4,probability,0.85774,-0.00564,0.27928,1e-05
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,logit,0.85774,-0.00564,0.28829,1e-05
+TabICL + TabPFN-3 + LightGBM Linear + LightGBM,4,logit,0.85773,-0.00564,0.26126,1e-05
+TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,4,logit,0.85772,-0.00565,0.25225,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85771,-0.00566,0.28829,1e-05
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,rank,0.8577,-0.00568,0.24324,0.0
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85769,-0.00568,0.22523,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85768,-0.00569,0.24324,0.0
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85768,-0.0057,0.23423,0.0
+TabICL + TabPFN-3 + LightGBM,3,rank,0.85764,-0.00574,0.1982,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85764,-0.00574,0.22523,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,rank,0.85763,-0.00574,0.20721,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85763,-0.00575,0.26126,0.0
+TabICL + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,probability,0.85763,-0.00575,0.25225,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,logit,0.85763,-0.00575,0.28829,1e-05
+TabFM + TabPFN-3 + LightGBM Linear + CatBoost,4,rank,0.85761,-0.00576,0.20721,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,logit,0.8576,-0.00577,0.27027,1e-05
+TabFM + LightGBM Linear + XGBoost,3,logit,0.85759,-0.00579,0.23423,0.0
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85758,-0.0058,0.27027,0.0
+TabICL + LightGBM Linear,2,probability,0.85758,-0.0058,0.23423,1e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85757,-0.0058,0.21622,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85757,-0.00581,0.21622,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85757,-0.00581,0.24324,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85753,-0.00585,0.21622,0.0
+TabFM + TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,rank,0.85752,-0.00586,0.22523,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85752,-0.00586,0.24324,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,5,rank,0.85751,-0.00586,0.20721,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85749,-0.00588,0.23423,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + CatBoost,4,rank,0.85749,-0.00588,0.25225,0.0
+TabFM + TabPFN-3.5 + LightGBM + CatBoost,4,rank,0.85749,-0.00589,0.23423,0.0
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85749,-0.00589,0.1982,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85739,-0.00598,0.27027,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,4,probability,0.85738,-0.00599,0.23423,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85738,-0.00599,0.25225,0.0
+TabPFN-3.5 + XGBoost + CatBoost,3,logit,0.85736,-0.00601,0.24324,0.0
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,rank,0.85736,-0.00602,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85735,-0.00602,0.21622,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85735,-0.00603,0.27027,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85733,-0.00605,0.20721,0.0
+TabFM + LightGBM + CatBoost,3,logit,0.85733,-0.00605,0.26126,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85732,-0.00605,0.22523,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,probability,0.85731,-0.00606,0.27027,0.0
+TabICL + TabPFN-3 + XGBoost + LightGBM,4,probability,0.85731,-0.00606,0.24324,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,probability,0.85731,-0.00607,0.25225,0.0
+TabFM + TabPFN-3.5-fast + LightGBM + CatBoost,4,rank,0.85729,-0.00608,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85729,-0.00609,0.22523,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,8,rank,0.85728,-0.00609,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85727,-0.0061,0.23423,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,probability,0.85725,-0.00613,0.27027,0.0
+TabICL + TabPFN-3 + XGBoost,3,rank,0.85724,-0.00613,0.21622,0.0
+TabPFN-3.5 + LightGBM,2,logit,0.85724,-0.00614,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + CatBoost,4,rank,0.85724,-0.00614,0.20721,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost,4,rank,0.85723,-0.00614,0.18919,0.0
+TabPFN-3.5 + LightGBM Linear + CatBoost,3,logit,0.85723,-0.00615,0.27928,2e-05
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85723,-0.00615,0.18018,0.0
+TabICL + XGBoost,2,probability,0.85722,-0.00616,0.24324,0.0
+TabPFN-3.5-fast + LightGBM Linear,2,logit,0.85721,-0.00616,0.24324,0.0
+TabFM + LightGBM Linear + XGBoost,3,probability,0.8572,-0.00617,0.21622,0.0
+TabFM + TabPFN-3 + XGBoost + LightGBM + CatBoost,5,probability,0.8572,-0.00617,0.24324,0.0
+TabICL + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,5,probability,0.8572,-0.00618,0.26126,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,rank,0.85719,-0.00619,0.20721,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,logit,0.85719,-0.00619,0.22523,0.0
+TabICL + TabPFN-3 + XGBoost + LightGBM + CatBoost,5,logit,0.85719,-0.00619,0.25225,0.0
+TabFM + TabPFN-3.5 + XGBoost + CatBoost,4,rank,0.85718,-0.0062,0.21622,0.0
+TabICL + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,probability,0.85716,-0.00621,0.25225,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,rank,0.85714,-0.00623,0.25225,0.0
+TabICL + LightGBM Linear,2,logit,0.85714,-0.00624,0.2973,3e-05
+TabFM + TabICL + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85713,-0.00624,0.25225,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,4,logit,0.85711,-0.00626,0.24324,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85709,-0.00628,0.22523,0.0
+TabFM + TabICL + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,rank,0.85708,-0.0063,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,6,rank,0.85708,-0.0063,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,logit,0.85708,-0.0063,0.25225,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,6,rank,0.85705,-0.00632,0.22523,0.0
+TabFM + LightGBM Linear + LightGBM,3,probability,0.85705,-0.00632,0.20721,0.0
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85703,-0.00635,0.20721,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85702,-0.00636,0.22523,0.0
+TabPFN-3.5-fast + LightGBM Linear + CatBoost,3,probability,0.857,-0.00637,0.31532,2e-05
+TabICL + XGBoost + CatBoost,3,logit,0.85699,-0.00639,0.27928,1e-05
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85699,-0.00639,0.23423,0.0
+TabICL + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85697,-0.0064,0.26126,1e-05
+TabFM + LightGBM Linear + LightGBM,3,logit,0.85697,-0.0064,0.20721,0.0
+TabFM + TabPFN-3.5-fast + XGBoost + CatBoost,4,rank,0.85696,-0.00641,0.21622,0.0
+TabFM + XGBoost + LightGBM,3,logit,0.85695,-0.00642,0.26126,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + CatBoost,4,rank,0.85692,-0.00646,0.21622,0.0
+TabFM + TabICL + LightGBM Linear + LightGBM,4,rank,0.85691,-0.00647,0.22523,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,5,probability,0.8569,-0.00647,0.24324,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,rank,0.85689,-0.00648,0.1982,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,rank,0.85689,-0.00649,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85684,-0.00653,0.24324,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85683,-0.00654,0.24324,0.0
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85683,-0.00655,0.1982,0.0
+TabICL + LightGBM,2,probability,0.85678,-0.0066,0.24324,0.0
+TabFM + TabPFN-3 + LightGBM Linear + LightGBM,4,rank,0.85678,-0.0066,0.20721,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost,3,probability,0.85677,-0.00661,0.23423,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM + CatBoost,4,rank,0.85677,-0.00661,0.21622,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,rank,0.85676,-0.00662,0.22523,0.0
+TabFM + TabICL + LightGBM + CatBoost,4,rank,0.85675,-0.00662,0.24324,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,rank,0.85675,-0.00663,0.20721,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85675,-0.00663,0.22523,0.0
+TabICL + LightGBM,2,logit,0.85675,-0.00663,0.28829,0.0
+TabFM + TabICL + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,rank,0.85674,-0.00663,0.20721,0.0
+TabFM + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,rank,0.85674,-0.00664,0.20721,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85673,-0.00664,0.22523,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85673,-0.00664,0.26126,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85673,-0.00665,0.25225,0.0
+TabFM + LightGBM Linear + XGBoost + CatBoost,4,logit,0.85672,-0.00665,0.27027,0.0
+TabPFN-3.5-fast + LightGBM,2,probability,0.85672,-0.00665,0.25225,0.0
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85672,-0.00665,0.20721,0.0
+TabPFN-3.5 + LightGBM Linear + LightGBM,3,probability,0.85671,-0.00667,0.23423,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + CatBoost,4,rank,0.85671,-0.00667,0.1982,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85669,-0.00669,0.20721,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,rank,0.85667,-0.00671,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,probability,0.85665,-0.00672,0.23423,0.0
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85663,-0.00674,0.23423,0.0
+TabICL + TabPFN-3.5 + LightGBM + CatBoost,4,rank,0.85662,-0.00675,0.25225,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,probability,0.8566,-0.00677,0.22523,0.0
+TabFM + XGBoost + CatBoost,3,probability,0.8566,-0.00678,0.25225,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM,4,rank,0.8566,-0.00678,0.20721,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,logit,0.85659,-0.00678,0.24324,0.0
+TabICL + LightGBM Linear + CatBoost,3,logit,0.85659,-0.00679,0.25225,2e-05
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,5,probability,0.85658,-0.00679,0.23423,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost,3,logit,0.85657,-0.0068,0.24324,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85657,-0.00681,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,rank,0.85656,-0.00681,0.1982,0.0
+TabFM + TabPFN-3 + XGBoost + CatBoost,4,rank,0.85655,-0.00683,0.21622,0.0
+TabFM + TabPFN-3 + LightGBM + CatBoost,4,rank,0.85654,-0.00683,0.1982,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85651,-0.00687,0.23423,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.8565,-0.00688,0.25225,0.0
+TabICL + LightGBM Linear + CatBoost,3,probability,0.85647,-0.0069,0.25225,1e-05
+TabFM + TabICL + XGBoost + CatBoost,4,rank,0.85647,-0.00691,0.23423,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM + CatBoost,4,rank,0.85646,-0.00692,0.18919,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost,4,rank,0.85643,-0.00695,0.21622,0.0
+TabPFN-3.5-fast + LightGBM Linear + CatBoost,3,logit,0.85643,-0.00695,0.26126,0.0
+TabICL + TabPFN-3.5 + XGBoost + CatBoost,4,rank,0.8564,-0.00697,0.22523,0.0
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost,4,rank,0.85639,-0.00699,0.1982,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost,4,rank,0.85639,-0.00699,0.21622,0.0
+TabICL + TabPFN-3 + LightGBM Linear + CatBoost,4,rank,0.85638,-0.00699,0.18018,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM,4,rank,0.85637,-0.00701,0.18919,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85637,-0.00701,0.25225,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85637,-0.00701,0.25225,0.0
+TabFM + TabICL + TabPFN-3 + XGBoost + LightGBM + CatBoost,6,rank,0.85636,-0.00701,0.21622,0.0
+TabFM + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85636,-0.00702,0.1982,0.0
+TabPFN-3 + TabPFN-3.5 + XGBoost + CatBoost,4,rank,0.85636,-0.00702,0.18919,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85635,-0.00702,0.24324,0.0
+TabFM + TabPFN-3.5 + XGBoost + LightGBM,4,rank,0.85634,-0.00703,0.18018,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85634,-0.00704,0.26126,0.0
+TabICL + TabPFN-3.5-fast + LightGBM + CatBoost,4,rank,0.85633,-0.00704,0.21622,0.0
+TabPFN-3 + LightGBM Linear,2,probability,0.85633,-0.00705,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,6,rank,0.85632,-0.00705,0.20721,0.0
+TabPFN-3 + XGBoost,2,logit,0.8563,-0.00708,0.24324,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,6,rank,0.85625,-0.00713,0.21622,0.0
+TabICL + TabPFN-3 + XGBoost + LightGBM + CatBoost,5,probability,0.85623,-0.00714,0.24324,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85621,-0.00716,0.1982,0.0
+TabFM + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.8562,-0.00717,0.20721,0.0
+TabFM + LightGBM Linear + LightGBM + CatBoost,4,logit,0.85619,-0.00718,0.23423,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM + CatBoost,4,rank,0.85619,-0.00719,0.1982,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,probability,0.85617,-0.00721,0.23423,0.0
+TabFM + LightGBM Linear,2,rank,0.85615,-0.00722,0.13514,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + CatBoost,4,rank,0.85615,-0.00723,0.18018,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,logit,0.85615,-0.00723,0.24324,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,rank,0.85614,-0.00724,0.1982,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85614,-0.00724,0.18018,0.0
+TabFM + TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85612,-0.00725,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,6,rank,0.85612,-0.00725,0.20721,0.0
+TabPFN-3 + CatBoost,2,logit,0.8561,-0.00728,0.24324,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost,4,rank,0.85608,-0.0073,0.1982,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM,4,rank,0.85607,-0.0073,0.21622,0.0
+TabFM + TabPFN-3.5-fast + XGBoost + LightGBM,4,rank,0.85604,-0.00734,0.18018,0.0
+TabPFN-3.5 + XGBoost + CatBoost,3,probability,0.85599,-0.00738,0.24324,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85599,-0.00739,0.18919,0.0
+TabFM + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85597,-0.00741,0.1982,0.0
+TabICL + TabPFN-3.5-fast + XGBoost + CatBoost,4,rank,0.85595,-0.00742,0.24324,0.0
+TabPFN-3.5-fast + XGBoost + CatBoost,3,logit,0.85592,-0.00745,0.24324,0.0
+TabFM + TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85592,-0.00746,0.21622,0.0
+TabFM + CatBoost,2,rank,0.85591,-0.00747,0.1982,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,rank,0.8559,-0.00747,0.18919,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,rank,0.8559,-0.00748,0.21622,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost,3,probability,0.85589,-0.00748,0.24324,0.0
+TabPFN-3 + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85589,-0.00749,0.20721,0.0
+TabFM + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85587,-0.0075,0.1982,0.0
+TabFM + LightGBM + CatBoost,3,probability,0.85587,-0.0075,0.25225,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,logit,0.85586,-0.00751,0.22523,0.0
+TabICL + LightGBM Linear + XGBoost,3,logit,0.85583,-0.00755,0.23423,0.0
+TabICL + LightGBM + CatBoost,3,logit,0.85581,-0.00757,0.25225,0.0
+TabFM + LightGBM Linear + XGBoost + CatBoost,4,probability,0.8558,-0.00757,0.22523,0.0
+TabPFN-3 + LightGBM Linear,2,logit,0.8558,-0.00757,0.25225,0.0
+TabPFN-3 + LightGBM Linear + CatBoost,3,probability,0.8558,-0.00757,0.26126,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,4,logit,0.8558,-0.00757,0.24324,0.0
+TabICL + TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85578,-0.0076,0.20721,0.0
+TabPFN-3 + CatBoost,2,probability,0.85577,-0.0076,0.24324,0.0
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85575,-0.00762,0.1982,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85575,-0.00763,0.20721,0.0
+TabFM + XGBoost + LightGBM + CatBoost,4,logit,0.85573,-0.00764,0.26126,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM,4,rank,0.85572,-0.00765,0.18018,0.0
+TabPFN-3.5-fast + LightGBM Linear + LightGBM,3,probability,0.85572,-0.00766,0.23423,0.0
+TabPFN-3.5 + LightGBM + CatBoost,3,logit,0.85571,-0.00766,0.24324,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.85567,-0.0077,0.22523,0.0
+TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,4,probability,0.85566,-0.00771,0.24324,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,logit,0.85565,-0.00772,0.24324,0.0
+TabPFN-3.5-fast + LightGBM,2,logit,0.85565,-0.00773,0.21622,0.0
+TabFM + TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85564,-0.00773,0.1982,0.0
+TabPFN-3.5 + LightGBM + CatBoost,3,probability,0.85563,-0.00775,0.27928,0.0
+TabFM + LightGBM Linear + LightGBM + CatBoost,4,probability,0.85561,-0.00776,0.18919,0.0
+TabPFN-3.5 + LightGBM Linear + LightGBM,3,logit,0.8556,-0.00777,0.21622,0.0
+TabFM + TabICL + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85559,-0.00779,0.20721,0.0
+TabICL + TabPFN-3 + LightGBM Linear + LightGBM,4,rank,0.85557,-0.00781,0.18919,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,4,probability,0.85556,-0.00781,0.22523,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost,4,rank,0.85555,-0.00783,0.21622,0.0
+TabICL + TabPFN-3 + XGBoost + CatBoost,4,rank,0.85555,-0.00783,0.20721,0.0
+TabICL + TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85554,-0.00784,0.20721,0.0
+TabPFN-3.5 + LightGBM Linear,2,rank,0.85551,-0.00787,0.14414,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,probability,0.8555,-0.00788,0.21622,0.0
+TabICL + TabPFN-3 + LightGBM + CatBoost,4,rank,0.85549,-0.00788,0.22523,0.0
+TabFM + LightGBM Linear + XGBoost + LightGBM,4,logit,0.85546,-0.00792,0.20721,0.0
+TabICL + LightGBM Linear + XGBoost + CatBoost,4,logit,0.85545,-0.00793,0.27027,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85541,-0.00796,0.1982,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost,4,rank,0.85538,-0.00799,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85538,-0.00799,0.18919,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85538,-0.008,0.17117,0.0
+TabICL + TabPFN-3.5 + XGBoost + LightGBM,4,rank,0.85537,-0.008,0.18018,0.0
+TabFM + TabICL + XGBoost + LightGBM,4,rank,0.85537,-0.00801,0.18018,0.0
+TabPFN-3 + XGBoost,2,probability,0.85533,-0.00804,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85531,-0.00806,0.18919,0.0
+TabICL + LightGBM Linear + LightGBM,3,probability,0.85531,-0.00807,0.21622,0.0
+TabICL + TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,7,rank,0.85529,-0.00808,0.1982,0.0
+TabFM + TabPFN-3 + XGBoost + LightGBM,4,rank,0.85528,-0.00809,0.20721,0.0
+TabFM + XGBoost + LightGBM,3,probability,0.85525,-0.00813,0.21622,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85524,-0.00814,0.20721,0.0
+TabPFN-3.5 + CatBoost,2,rank,0.85523,-0.00814,0.18018,0.0
+TabPFN-3 + LightGBM,2,probability,0.8552,-0.00817,0.1982,0.0
+TabPFN-3.5 + XGBoost + LightGBM,3,logit,0.85518,-0.0082,0.20721,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85517,-0.00821,0.1982,0.0
+TabPFN-3.5-fast + XGBoost + CatBoost,3,probability,0.85512,-0.00825,0.25225,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85512,-0.00826,0.1982,0.0
+TabICL + XGBoost + LightGBM,3,logit,0.85511,-0.00826,0.25225,0.0
+TabICL + LightGBM Linear + XGBoost,3,probability,0.85511,-0.00826,0.21622,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85509,-0.00828,0.18018,0.0
+TabFM + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,logit,0.85508,-0.00829,0.21622,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost,3,logit,0.85505,-0.00832,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM,4,rank,0.85505,-0.00832,0.17117,0.0
+TabICL + XGBoost + CatBoost,3,probability,0.85505,-0.00833,0.26126,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85503,-0.00834,0.16216,0.0
+TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,4,logit,0.855,-0.00838,0.23423,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85498,-0.0084,0.18018,0.0
+TabICL + LightGBM Linear + LightGBM,3,logit,0.85498,-0.0084,0.23423,0.0
+TabFM + LightGBM,2,rank,0.85498,-0.0084,0.17117,0.0
+TabICL + TabPFN-3.5-fast + XGBoost + LightGBM,4,rank,0.85496,-0.00841,0.1982,0.0
+TabICL + LightGBM Linear + LightGBM + CatBoost,4,logit,0.85496,-0.00842,0.23423,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,5,rank,0.85495,-0.00843,0.18919,0.0
+TabICL + TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,5,rank,0.85494,-0.00844,0.1982,0.0
+TabPFN-3 + LightGBM Linear + CatBoost,3,logit,0.85493,-0.00845,0.27027,0.0
+TabPFN-3.5 + XGBoost + LightGBM,3,probability,0.85488,-0.0085,0.1982,0.0
+TabPFN-3.5-fast + LightGBM + CatBoost,3,probability,0.85482,-0.00856,0.27027,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,rank,0.8548,-0.00857,0.17117,0.0
+TabFM + LightGBM Linear + XGBoost + LightGBM,4,probability,0.85478,-0.0086,0.18018,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,4,logit,0.85478,-0.0086,0.24324,0.0
+TabPFN-3.5-fast + LightGBM Linear,2,rank,0.85469,-0.00869,0.15315,0.0
+TabFM + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,rank,0.85467,-0.00871,0.21622,0.0
+TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,4,probability,0.85466,-0.00871,0.23423,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM,4,rank,0.85464,-0.00874,0.18919,0.0
+TabPFN-3.5-fast + CatBoost,2,rank,0.85462,-0.00876,0.16216,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,5,rank,0.8546,-0.00878,0.18018,0.0
+TabICL + LightGBM + CatBoost,3,probability,0.85458,-0.0088,0.23423,0.0
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85445,-0.00893,0.18919,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85442,-0.00896,0.1982,0.0
+TabICL + LightGBM Linear + LightGBM + CatBoost,4,probability,0.85441,-0.00897,0.22523,0.0
+TabPFN-3.5 + LightGBM,2,rank,0.85439,-0.00898,0.13514,0.0
+TabPFN-3.5-fast + LightGBM + CatBoost,3,logit,0.85438,-0.009,0.24324,0.0
+TabFM + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,rank,0.85437,-0.00901,0.21622,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,4,probability,0.85436,-0.00901,0.22523,0.0
+TabPFN-3 + LightGBM Linear + XGBoost,3,probability,0.85436,-0.00902,0.21622,0.0
+TabPFN-3 + LightGBM Linear + LightGBM,3,probability,0.85436,-0.00902,0.18919,0.0
+TabICL + TabPFN-3 + XGBoost + LightGBM,4,rank,0.85433,-0.00904,0.18919,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85433,-0.00905,0.18018,0.0
+TabFM + TabPFN-3 + XGBoost + LightGBM + CatBoost,5,rank,0.85425,-0.00913,0.20721,0.0
+TabICL + XGBoost + LightGBM + CatBoost,4,logit,0.85424,-0.00913,0.23423,0.0
+TabPFN-3.5 + XGBoost,2,rank,0.85424,-0.00914,0.14414,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,rank,0.85424,-0.00914,0.21622,0.0
+TabFM + LightGBM Linear + CatBoost,3,rank,0.85424,-0.00914,0.15315,0.0
+TabPFN-3 + LightGBM,2,logit,0.85424,-0.00914,0.1982,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,4,probability,0.8542,-0.00918,0.17117,0.0
+TabFM + XGBoost,2,rank,0.85418,-0.00919,0.12613,0.0
+TabFM + TabICL + XGBoost + LightGBM + CatBoost,5,rank,0.85415,-0.00923,0.1982,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85413,-0.00924,0.18018,0.0
+TabFM + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.8541,-0.00928,0.1982,0.0
+TabPFN-3 + LightGBM Linear + XGBoost,3,logit,0.85407,-0.00931,0.25225,0.0
+TabPFN-3.5 + LightGBM Linear + CatBoost,3,rank,0.85403,-0.00934,0.16216,0.0
+TabICL + CatBoost,2,rank,0.85403,-0.00935,0.14414,0.0
+TabICL + LightGBM Linear + XGBoost + CatBoost,4,probability,0.85398,-0.0094,0.22523,0.0
+TabFM + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85396,-0.00941,0.20721,0.0
+TabPFN-3.5 + XGBoost + LightGBM + CatBoost,4,logit,0.85396,-0.00942,0.21622,0.0
+TabPFN-3 + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,rank,0.85395,-0.00942,0.18919,0.0
+TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,4,logit,0.85393,-0.00944,0.21622,0.0
+TabICL + LightGBM Linear,2,rank,0.85393,-0.00944,0.16216,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,5,rank,0.8539,-0.00948,0.16216,0.0
+TabPFN-3.5-fast + LightGBM,2,rank,0.85387,-0.0095,0.18919,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85385,-0.00952,0.1982,0.0
+TabICL + TabPFN-3.5 + XGBoost + LightGBM + CatBoost,5,rank,0.85384,-0.00954,0.21622,0.0
+TabICL + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,logit,0.85382,-0.00955,0.23423,0.0
+TabPFN-3.5-fast + LightGBM Linear + LightGBM,3,logit,0.85381,-0.00956,0.1982,0.0
+TabICL + LightGBM Linear + XGBoost + LightGBM,4,logit,0.85378,-0.0096,0.1982,0.0
+TabFM + XGBoost + LightGBM + CatBoost,4,probability,0.85377,-0.00961,0.21622,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,4,logit,0.85376,-0.00961,0.1982,0.0
+TabPFN-3.5-fast + XGBoost + LightGBM,3,probability,0.85375,-0.00963,0.21622,0.0
+TabPFN-3 + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,rank,0.85374,-0.00963,0.17117,0.0
+TabPFN-3.5-fast + LightGBM Linear + CatBoost,3,rank,0.85372,-0.00966,0.15315,0.0
+TabFM + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,probability,0.85367,-0.00971,0.18919,0.0
+TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,4,probability,0.85367,-0.00971,0.20721,0.0
+TabPFN-3 + XGBoost + CatBoost,3,logit,0.85366,-0.00971,0.22523,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85365,-0.00972,0.20721,0.0
+TabPFN-3.5 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85359,-0.00978,0.1982,0.0
+TabICL + TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,5,rank,0.85355,-0.00983,0.18919,0.0
+TabPFN-3.5-fast + XGBoost + LightGBM,3,logit,0.85354,-0.00984,0.20721,0.0
+TabPFN-3 + CatBoost,2,rank,0.8535,-0.00988,0.18018,0.0
+TabPFN-3.5 + XGBoost + LightGBM + CatBoost,4,probability,0.85346,-0.00991,0.21622,0.0
+TabICL + XGBoost + LightGBM,3,probability,0.85346,-0.00992,0.22523,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,4,probability,0.85346,-0.00992,0.1982,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,probability,0.85344,-0.00993,0.1982,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,logit,0.85343,-0.00995,0.22523,0.0
+TabFM + TabICL + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85341,-0.00996,0.1982,0.0
+TabPFN-3.5-fast + XGBoost,2,rank,0.8534,-0.00998,0.16216,0.0
+TabPFN-3 + LightGBM Linear,2,rank,0.85338,-0.01,0.12613,0.0
+TabICL + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85329,-0.01008,0.20721,0.0
+TabICL + LightGBM,2,rank,0.85326,-0.01012,0.18919,0.0
+TabICL + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85326,-0.01012,0.20721,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,5,rank,0.85325,-0.01012,0.18919,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,4,probability,0.85325,-0.01012,0.21622,0.0
+TabPFN-3 + LightGBM + CatBoost,3,probability,0.85324,-0.01014,0.1982,0.0
+TabPFN-3 + XGBoost + CatBoost,3,probability,0.8532,-0.01018,0.23423,0.0
+TabICL + TabPFN-3 + XGBoost + LightGBM + CatBoost,5,rank,0.85319,-0.01018,0.18018,0.0
+TabFM + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85318,-0.01019,0.18018,0.0
+TabFM + LightGBM Linear + LightGBM,3,rank,0.85317,-0.0102,0.18919,0.0
+TabICL + LightGBM Linear + CatBoost,3,rank,0.85316,-0.01021,0.16216,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,4,logit,0.85308,-0.01029,0.22523,0.0
+TabPFN-3 + TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85305,-0.01033,0.1982,0.0
+TabPFN-3 + TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85297,-0.01041,0.1982,0.0
+TabICL + LightGBM Linear + XGBoost + LightGBM,4,probability,0.85297,-0.01041,0.17117,0.0
+TabPFN-3 + LightGBM Linear + LightGBM,3,logit,0.85293,-0.01045,0.20721,0.0
+TabICL + TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,6,rank,0.85268,-0.0107,0.18919,0.0
+TabFM + LightGBM Linear + XGBoost,3,rank,0.85265,-0.01072,0.15315,0.0
+TabPFN-3.5 + LightGBM Linear + LightGBM,3,rank,0.85264,-0.01074,0.13514,0.0
+TabPFN-3 + LightGBM,2,rank,0.85259,-0.01079,0.12613,0.0
+TabPFN-3 + LightGBM Linear + CatBoost,3,rank,0.85258,-0.01079,0.14414,0.0
+TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,4,logit,0.85256,-0.01081,0.21622,0.0
+TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,4,probability,0.85253,-0.01084,0.21622,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,4,logit,0.85246,-0.01092,0.18919,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,logit,0.85242,-0.01095,0.20721,0.0
+TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,4,logit,0.85241,-0.01097,0.22523,0.0
+TabICL + XGBoost,2,rank,0.85237,-0.01101,0.18018,0.0
+TabPFN-3.5 + LightGBM + CatBoost,3,rank,0.85236,-0.01102,0.18018,0.0
+TabICL + XGBoost + LightGBM + CatBoost,4,probability,0.85236,-0.01102,0.24324,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost,3,rank,0.85233,-0.01105,0.14414,0.0
+TabICL + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,probability,0.85229,-0.01108,0.21622,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,4,probability,0.85229,-0.01109,0.1982,0.0
+TabFM + LightGBM + CatBoost,3,rank,0.85228,-0.0111,0.18018,0.0
+TabPFN-3 + LightGBM + CatBoost,3,logit,0.85227,-0.01111,0.21622,0.0
+TabFM + LightGBM Linear + LightGBM + CatBoost,4,rank,0.85223,-0.01115,0.15315,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,probability,0.85222,-0.01116,0.18919,0.0
+TabFM + XGBoost + CatBoost,3,rank,0.8522,-0.01117,0.14414,0.0
+TabPFN-3 + XGBoost,2,rank,0.85217,-0.0112,0.12613,0.0
+TabPFN-3 + XGBoost + LightGBM,3,probability,0.85212,-0.01125,0.1982,0.0
+TabPFN-3.5-fast + LightGBM Linear + LightGBM,3,rank,0.85195,-0.01142,0.18018,0.0
+TabPFN-3.5-fast + LightGBM + CatBoost,3,rank,0.85195,-0.01143,0.18018,0.0
+TabPFN-3.5 + XGBoost + CatBoost,3,rank,0.85181,-0.01156,0.15315,0.0
+TabPFN-3.5 + LightGBM Linear + LightGBM + CatBoost,4,rank,0.85181,-0.01156,0.18018,0.0
+TabICL + LightGBM Linear + LightGBM,3,rank,0.85177,-0.01161,0.17117,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost,3,rank,0.85168,-0.0117,0.18018,0.0
+TabFM + LightGBM Linear + XGBoost + CatBoost,4,rank,0.85159,-0.01178,0.13514,0.0
+TabPFN-3.5-fast + LightGBM Linear + LightGBM + CatBoost,4,rank,0.85154,-0.01183,0.18919,0.0
+TabPFN-3 + XGBoost + LightGBM,3,logit,0.85154,-0.01184,0.1982,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,4,logit,0.85153,-0.01184,0.1982,0.0
+TabPFN-3 + LightGBM Linear + LightGBM,3,rank,0.85151,-0.01187,0.15315,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,probability,0.8514,-0.01197,0.22523,0.0
+TabPFN-3.5-fast + XGBoost + CatBoost,3,rank,0.85131,-0.01206,0.16216,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + CatBoost,4,rank,0.85126,-0.01211,0.13514,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,logit,0.85116,-0.01222,0.20721,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + CatBoost,4,rank,0.85112,-0.01226,0.16216,0.0
+TabICL + LightGBM + CatBoost,3,rank,0.85112,-0.01226,0.20721,0.0
+TabICL + XGBoost + CatBoost,3,rank,0.8511,-0.01227,0.17117,0.0
+TabPFN-3 + XGBoost + LightGBM + CatBoost,4,probability,0.85109,-0.01228,0.22523,0.0
+TabPFN-3 + LightGBM Linear + XGBoost,3,rank,0.85104,-0.01234,0.14414,0.0
+TabICL + LightGBM Linear + LightGBM + CatBoost,4,rank,0.85103,-0.01234,0.20721,0.0
+TabICL + LightGBM Linear + XGBoost,3,rank,0.851,-0.01237,0.14414,0.0
+TabICL + LightGBM Linear + XGBoost + CatBoost,4,rank,0.85097,-0.01241,0.17117,0.0
+TabPFN-3 + XGBoost + LightGBM + CatBoost,4,logit,0.85081,-0.01256,0.20721,0.0
+TabPFN-3 + LightGBM + CatBoost,3,rank,0.85073,-0.01264,0.18018,0.0
+TabPFN-3 + LightGBM Linear + LightGBM + CatBoost,4,rank,0.8507,-0.01268,0.17117,0.0
+TabPFN-3 + XGBoost + CatBoost,3,rank,0.85068,-0.0127,0.15315,0.0
+TabFM + XGBoost + LightGBM,3,rank,0.85053,-0.01284,0.17117,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + CatBoost,4,rank,0.85043,-0.01295,0.17117,0.0
+TabPFN-3.5 + XGBoost + LightGBM,3,rank,0.85033,-0.01304,0.16216,0.0
+TabFM + LightGBM Linear + XGBoost + LightGBM,4,rank,0.85018,-0.0132,0.17117,0.0
+TabFM + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,rank,0.84992,-0.01346,0.17117,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM,4,rank,0.84984,-0.01353,0.16216,0.0
+TabFM + XGBoost + LightGBM + CatBoost,4,rank,0.84973,-0.01364,0.18919,0.0
+TabPFN-3.5-fast + XGBoost + LightGBM,3,rank,0.84956,-0.01382,0.18018,0.0
+TabPFN-3.5 + XGBoost + LightGBM + CatBoost,4,rank,0.84951,-0.01386,0.17117,0.0
+TabPFN-3.5 + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,rank,0.84943,-0.01394,0.15315,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM,4,rank,0.84942,-0.01396,0.16216,0.0
+TabICL + LightGBM Linear + XGBoost + LightGBM,4,rank,0.84929,-0.01409,0.18018,0.0
+TabPFN-3.5-fast + XGBoost + LightGBM + CatBoost,4,rank,0.84927,-0.0141,0.18018,0.0
+TabPFN-3.5-fast + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,rank,0.84922,-0.01415,0.16216,0.0
+TabICL + XGBoost + LightGBM,3,rank,0.8489,-0.01448,0.16216,0.0
+TabICL + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,rank,0.84884,-0.01453,0.17117,0.0
+TabPFN-3 + XGBoost + LightGBM,3,rank,0.84881,-0.01457,0.16216,0.0
+TabICL + XGBoost + LightGBM + CatBoost,4,rank,0.84879,-0.01459,0.18919,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + LightGBM,4,rank,0.84872,-0.01466,0.16216,0.0
+TabPFN-3 + LightGBM Linear + XGBoost + LightGBM + CatBoost,5,rank,0.84871,-0.01466,0.16216,0.0
+TabPFN-3 + XGBoost + LightGBM + CatBoost,4,rank,0.84846,-0.01492,0.16216,0.0
+LightGBM Linear + CatBoost,2,logit,0.84529,-0.01809,0.15315,0.0
+LightGBM Linear + XGBoost + CatBoost,3,logit,0.84495,-0.01842,0.12613,0.0
+LightGBM Linear + CatBoost,2,probability,0.84495,-0.01842,0.15315,0.0
+LightGBM Linear + XGBoost + CatBoost,3,probability,0.8444,-0.01898,0.15315,0.0
+LightGBM Linear + LightGBM + CatBoost,3,logit,0.84421,-0.01916,0.13514,0.0
+LightGBM Linear + XGBoost + LightGBM + CatBoost,4,logit,0.84415,-0.01922,0.13514,0.0
+LightGBM Linear + LightGBM + CatBoost,3,probability,0.84406,-0.01932,0.15315,0.0
+LightGBM Linear + XGBoost + LightGBM + CatBoost,4,probability,0.84329,-0.02009,0.14414,0.0
+LightGBM Linear + LightGBM + CatBoost,3,rank,0.84318,-0.0202,0.14414,0.0
+LightGBM Linear + CatBoost,2,rank,0.84281,-0.02057,0.12613,0.0
+LightGBM Linear + XGBoost + CatBoost,3,rank,0.84273,-0.02065,0.09009,0.0
+LightGBM Linear + XGBoost + LightGBM + CatBoost,4,rank,0.84233,-0.02105,0.11712,0.0
+LightGBM Linear + XGBoost,2,logit,0.84221,-0.02117,0.10811,0.0
+LightGBM Linear + XGBoost + LightGBM,3,logit,0.84202,-0.02135,0.10811,0.0
+LightGBM Linear + XGBoost,2,probability,0.84175,-0.02162,0.10811,0.0
+LightGBM Linear + LightGBM,2,probability,0.84167,-0.02171,0.0991,0.0
+LightGBM Linear + XGBoost + LightGBM,3,probability,0.8416,-0.02177,0.10811,0.0
+LightGBM Linear + LightGBM,2,logit,0.84136,-0.02201,0.0991,0.0
+XGBoost + LightGBM + CatBoost,3,logit,0.84078,-0.02259,0.13514,0.0
+LightGBM + CatBoost,2,logit,0.84078,-0.0226,0.13514,0.0
+XGBoost + CatBoost,2,logit,0.84072,-0.02266,0.13514,0.0
+LightGBM Linear + XGBoost + LightGBM,3,rank,0.84051,-0.02286,0.10811,0.0
+LightGBM Linear + LightGBM,2,rank,0.84049,-0.02288,0.08108,0.0
+LightGBM + CatBoost,2,probability,0.84035,-0.02303,0.13514,0.0
+XGBoost + CatBoost,2,probability,0.84023,-0.02315,0.15315,0.0
+XGBoost + LightGBM + CatBoost,3,probability,0.84018,-0.0232,0.15315,0.0
+XGBoost + LightGBM + CatBoost,3,rank,0.84,-0.02338,0.11712,0.0
+LightGBM Linear + XGBoost,2,rank,0.83981,-0.02356,0.09009,0.0
+LightGBM + CatBoost,2,rank,0.83976,-0.02362,0.13514,0.0
+XGBoost + CatBoost,2,rank,0.83929,-0.02408,0.10811,0.0
+XGBoost + LightGBM,2,logit,0.83771,-0.02567,0.09009,0.0
+XGBoost + LightGBM,2,probability,0.83731,-0.02607,0.09009,0.0
+XGBoost + LightGBM,2,rank,0.83611,-0.02727,0.07207,0.0

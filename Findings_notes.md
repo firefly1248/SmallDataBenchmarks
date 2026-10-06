@@ -54,15 +54,16 @@ datasets.
 
 | dataset | prevalence baseline | broken | fixed | CatBoost |
 |---|---|---|---|---|
-| `connectionist-vowel` | 0.0909 | 0.1280 | 0.9853 | 0.9966 |
-| `cnae-9` | 0.1111 | 0.1567 | 0.9419 | 0.9793 |
-| `semeion` | 0.1000 | 0.1406 | 0.9113 | 0.9880 |
-| `dermatology` | 0.2012 | 0.3070 | 0.9903 | 0.9942 |
+| `connectionist-vowel` | 0.0909 | 0.1280 | 0.9853 | 0.9967 |
+| `cnae-9` | 0.1111 | 0.1567 | 0.9419 | 0.9800 |
+| `semeion` | 0.1000 | 0.1406 | 0.9113 | 0.9877 |
+| `dermatology` | 0.2012 | 0.3070 | 0.9903 | 0.9932 |
 
 Below 1024 training rows the batch is now an eighth of the split, and only a
 single-row remainder is dropped, since BatchNorm cannot take one. On the 82 affected
-datasets TabNet moves from 0.4662 to 0.7345 (CatBoost 0.8160); overall from 0.5946 to
-0.7507, and from 2 to 11 datasets ahead of CatBoost. It still ranks last.
+datasets TabNet moves from 0.4662 to 0.7345 (CatBoost 0.8172 on the 80 of them it
+runs on); overall from 0.5946 to 0.7507, and from 2 to 11 datasets ahead of the
+uniform-start CatBoost, 7 ahead of the current one. It still ranks last.
 
 **A full count of scores is not enough either.** An untrained classifier returns a
 valid number on every dataset. The tell is a score sitting on the prevalence
@@ -79,8 +80,8 @@ nothing without it. `benchmark.metrics.pr_auc_baseline` computes it, and a test
 pins it to what a constant predictor actually scores.
 
 `scripts/check_prevalence_baseline.py` compares every stored score against its own
-floor. Ten of roughly 2 300 pairs sit within 0.01 of it, and the two datasets behind
-them are worth knowing about:
+floor. Nine of roughly 2 300 pairs sit within 0.01 of it, seven of them on two
+datasets worth knowing about:
 
 | dataset | baseline | flagged | best model | models above the floor |
 |---|---|---|---|---|
@@ -109,15 +110,16 @@ foundation models supposedly collapsed, and two successive explanations for it �
 first "severe class imbalance", then a correction to "small binary data". Both
 described an artefact.
 
-| dataset | published gap | actual |
+| dataset | published gap | after the fix |
 |---|---|---|
 | `blood-transfusion-service` | +0.3661 | −0.0122 (foundation wins) |
 | `appendicitis` | +0.2361 | −0.0314 (foundation wins) |
 | `seismic-bumps` (TabICL vs CatBoost) | +0.73 | +0.0026 |
 | `thoracic-surgery` (TabICL vs CatBoost) | +0.66 | +0.0002 |
 
-After the fix, exactly 2 of 146 datasets have any classical model ahead of every
-foundation model by more than 0.02.
+The last column is as measured at the time, against the uniform-start CatBoost and
+with TabPFN 2.6 among the foundation models. With the current models, 3 of 146
+datasets have any classical model ahead of every foundation model by more than 0.02.
 
 A finding that is large, clean, and explainable deserves more suspicion than a
 messy one, not less. Both explanations fit the bad data comfortably.
@@ -175,8 +177,8 @@ deliberate test with six competing processes showed no significant shift in MLJA
 scores (p = 0.20).
 
 Scored like everything else, AutoGluon is below every foundation model and above
-every classical model except CatBoost, with which it ties: 0.8427 against CatBoost's
-0.8348 over the same 131 datasets. MLJAR ties CatBoost. What the re-run adds is
+every classical model: 0.8427 against CatBoost's 0.8342 over the same 131 datasets.
+MLJAR ties CatBoost. What the re-run adds is
 calibration: both frameworks now appear in the calibration table, near the
 foundation models rather than the classical ones.
 
@@ -294,8 +296,8 @@ The weights file was identical and the results still moved.
 
 ## Which headline gaps the data actually supports
 
-Every ranking in this benchmark is a list of means, and the gaps between neighbours
-run 0.002-0.009. The means alone cannot say which of these gaps are real. The
+Every ranking in this benchmark is a list of means, and most gaps between neighbours
+are under 0.002. The means alone cannot say which of these gaps are real. The
 figures now test them: Friedman as an omnibus, then Wilcoxon signed-rank on every
 pair with Holm correction, over the 108 datasets every model scores. One dataset is
 one observation; the four folds of a dataset share their data and would inflate the
@@ -315,31 +317,33 @@ stated rather than assumed.
 | comparison | mean gap | wins | raw p | Holm p | verdict |
 |---|---|---|---|---|---|
 | TabPFN-3 over AutoGluon | +0.0104 | 81 / 108 | 9e-10 | 6e-08 | separable |
-| AutoGluon over CatBoost | +0.0111 | 71 / 108 | 0.002 | 0.08 | not separable |
+| AutoGluon over CatBoost | +0.0115 | 74 / 108 | 6e-05 | 0.003 | separable |
 | AutoGluon over MLJAR | +0.0111 | 72 / 108 | 4e-04 | 0.016 | separable |
-| MLJAR over CatBoost | +0.0000 | 49 / 108 | 0.30 | 1 | not separable |
+| MLJAR over CatBoost | +0.0004 | 49 / 108 | 0.31 | 1 | not separable |
 | TabFM over TabPFN-3 | +0.0039 | 74 / 108 | 1e-04 | 0.006 | separable |
-| TabFM over CatBoost | +0.0254 | 91 / 108 | 2e-12 | 2e-10 | separable |
+| TabFM over CatBoost | +0.0257 | 87 / 108 | 1e-12 | 1e-10 | separable |
 | TabPFN-3.5 over TabPFN-3 | +0.0037 | 72 / 108 | 2e-04 | 0.007 | separable |
 | TabPFN-3.5 over TabPFN-3.5-fast | +0.0017 | 66 / 108 | 0.002 | 0.08 | not separable |
-| TabPFN-3.5-fast over TabPFN-3 | +0.0020 | 67 / 108 | 0.026 | 0.75 | not separable |
+| TabPFN-3.5-fast over TabPFN-3 | +0.0020 | 67 / 108 | 0.026 | 0.77 | not separable |
 | TabPFN-3.5 over TabFM | -0.0001 | 38 / 108 | 0.19 | 1 | not separable |
-| CatBoost over HistGradientBoosting | +0.0069 | 77 / 108 | 2e-06 | 0.0001 | separable |
-| CatBoost over Random Forest | +0.0017 | 70 / 108 | 0.002 | 0.08 | not separable |
-| CatBoost over LightGBM Linear | -0.0006 | 61 / 108 | 0.08 | 1 | not separable |
+| CatBoost over HistGradientBoosting | +0.0065 | 69 / 108 | 8e-05 | 0.004 | separable |
+| CatBoost over Random Forest | +0.0014 | 71 / 108 | 0.003 | 0.13 | not separable |
+| CatBoost over LightGBM Linear | -0.0009 | 54 / 108 | 0.64 | 1 | not separable |
 
 The AutoML rows replace the one that used to lead this table, MLJAR over TabFM at
 +0.0295 — ROC AUC set against PR AUC, as the section above explains. On one metric
 the weakest foundation model beats AutoGluon on 81 of 108 datasets, all ten
-foundation-versus-AutoML pairs separate (the largest Holm p is 6e-8), and AutoGluon's
-own lead over CatBoost clears the raw test but not the correction.
+foundation-versus-AutoML pairs separate (the largest Holm p is 6e-8), and AutoGluon
+separates from CatBoost too. It did not while CatBoost started from uniform
+probabilities (Holm p = 0.08): the re-run moved CatBoost's mean by 0.0003, and
+AutoGluon's wins over it from 71 to 74 of 108.
 
 Gaps of 0.004 to 0.007, small enough to read as noise in a table of means, are
 consistent enough across datasets to survive correction for 153 comparisons.
 CatBoost over Random Forest is the marginal case: separable at Holm p = 0.04 on the
 106 datasets of the previous version, not at 0.08 on these 108 with the corrected
-AutoML scores in the family. A verdict that one revision of the population flips was
-never more than borderline.
+AutoML scores in the family, nor at 0.13 after CatBoost's re-run from the prior. A
+verdict that one revision of the population flips was never more than borderline.
 
 Two rows show the correction doing opposite things to near-identical evidence.
 TabPFN-3.5 over TabPFN-3 is +0.0037 on 72 datasets and survives; TabPFN-3.5-fast
@@ -354,8 +358,8 @@ alone is the ranking.
 The critical-difference figure draws a bar only where every pair inside it is
 inseparable. The top bar holds TabFM, TabPFN-3.5, TabICL and TabPFN-3.5-fast;
 TabPFN-3 shares the next one with TabICL and TabPFN-3.5-fast. No bar joins a
-foundation model to anything outside the family. AutoGluon shares a bar only with
-CatBoost, and MLJAR sits inside the gradient-booster group.
+foundation model to anything outside the family. AutoGluon shares no bar at all,
+and CatBoost and MLJAR sit inside the gradient-booster group.
 
 ## PR AUC cannot see calibration
 
@@ -380,22 +384,21 @@ scored by all eighteen models that kept predictions. `ECE T`, `ECE iso` and
 | ResNet | 0.8211 | 0.2446 | 0.0512 | 0.0487 | 0.0459 | 0.0515 | 0.8015 | 0.8099 |
 | XGBoost | 0.8294 | 0.2394 | 0.0627 | 0.0522 | 0.0480 | 0.0552 | 0.8115 | 0.8203 |
 | LightGBM | 0.8311 | 0.2443 | 0.0674 | 0.0604 | 0.0572 | 0.0587 | 0.8098 | 0.8166 |
+| CatBoost | 0.8339 | 0.2394 | 0.0685 | 0.0556 | 0.0480 | 0.0553 | 0.8126 | 0.8223 |
 | Logistic Regression | 0.7838 | 0.3084 | 0.0732 | 0.0687 | 0.0581 | 0.0599 | 0.7564 | 0.7661 |
 | HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 | 0.0561 | 0.0508 | 0.0609 | 0.8094 | 0.8167 |
 | Random Forest | 0.8325 | 0.2410 | 0.0747 | 0.0459 | 0.0463 | 0.0519 | 0.8194 | 0.8256 |
 | LightGBM Linear | 0.8348 | 0.2457 | 0.0756 | 0.0705 | 0.0581 | 0.0630 | 0.8061 | 0.8166 |
-| CatBoost | 0.8342 | 0.2496 | 0.0848 | 0.0665 | 0.0565 | 0.0607 | 0.8087 | 0.8191 |
 | TabNet | 0.7529 | 0.3238 | 0.0851 | 0.0665 | 0.0593 | 0.0602 | 0.7367 | 0.7451 |
 | SGD | 0.7837 | 0.3254 | **0.1000** | 0.0980 | 0.0640 | 0.0656 | 0.7515 | 0.7618 |
 
 TabFM has the lowest ECE. AutoGluon and TabICL are close behind it, and which of
 the two comes second depends on the binning; MLJAR is ahead of every classical
 model. On this axis AutoML is closer to the foundation models than it is on
-ranking. CatBoost — the top classical model on PR AUC, tied there with LightGBM
-Linear — sits near the bottom, level with TabNet and ahead only of SGD. Most of
-that is one defect, described in the next section; a corrected run is in
-progress. Rank by PR AUC and rank by calibration disagree about which classical
-model to reach for.
+ranking. CatBoost, tied with LightGBM Linear at the top of the classical models on
+PR AUC, sat near the bottom at 0.0848, level with TabNet, until it was re-run from
+the class prior (next section); it is now behind XGBoost and LightGBM. Rank by PR
+AUC and rank by calibration disagree about which classical model to reach for.
 
 The two TabPFN-3.5 variants land a little ahead of TabPFN-3 and a little behind
 TabFM and TabICL. Calibration is the one axis where the new generation did not move
@@ -403,7 +406,7 @@ much.
 
 PR AUC is the mean over the four outer folds, as everywhere else in this report.
 Brier and ECE pool the folds first: a 300-row fold spread over 15 bins is mostly
-binning noise, and averaging that per fold inflates ECE by 1.3x to 1.7x. The
+binning noise, and averaging that per fold inflates ECE by 1.3x to 1.8x. The
 ordering barely depends on the bins: against 15 equal-width bins, Spearman is 0.97
 or higher for 5 to 50 equal-width bins and for 15 equal-mass bins, and the same five
 models are on top in every case but 50 bins. Second place is the exception:
@@ -416,8 +419,9 @@ stored scores only, so both frameworks were re-run to keep theirs, in
 
 ## CatBoost started from uniform probabilities
 
-Every CatBoost number above comes from fits that started boosting at uniform
-probabilities (0.5, or 1/K). That is CatBoost's default for Logloss and
+Until the re-run described at the end of this section, every CatBoost number in
+this report came from fits that started boosting at uniform probabilities (0.5, or
+1/K). That is CatBoost's default for Logloss and
 MultiClass; XGBoost 3.2 and LightGBM 4.6 start from the class prior, on binary and
 multiclass data alike (LightGBM's docs list its `boost_from_average` for binary and
 `multiclassova` only, but 4.6 applies it to softmax multiclass too). It matters only
@@ -425,7 +429,7 @@ when a fit stays close to its start, and the tuning makes that common: Optuna
 maximises PR AUC, which ignores probability scale, so it is free to choose a
 tiny `learning_rate * n_estimators`.
 
-The mean ECE of 0.0848 is a tail. CatBoost's median is 0.0498, the lowest of the
+In that run the mean ECE of 0.0848 is a tail. CatBoost's median is 0.0498, the lowest of the
 boosters (XGBoost 0.0549, LightGBM 0.0510). On the 29 of 108 datasets where the
 median fold has `learning_rate * n_estimators` below 5, its ECE is 0.155 and it is
 underconfident, by 0.119 on average: on `led7digit` (10 classes, learning rate
@@ -467,8 +471,25 @@ from 0.451 to 0.267. That was a full nested CV, in which the tuning also chose
 different hyperparameters; `led7digit`'s prior is nearly uniform, and with the same
 hyperparameters the start moves it from 0.451 to 0.437. The CatBoost re-run on all
 131 datasets re-tunes too, so its before-and-after is the start and the tuning
-change together. Its significance, calibration and repair numbers here will be
-replaced when it finishes.
+change together. Over the 108 calibration datasets mean ECE goes from 0.0848 to
+0.0685 (0.0720 with the old hyperparameters), the mean absolute confidence gap from
+0.059 to 0.039 (p = 4e-4) and Brier from 0.250 to 0.239 (p = 0.022); PR AUC does not
+move (p = 0.32). On the 78 imbalanced datasets the re-tuning adds nothing to the
+start: the gap is 0.029 with the old hyperparameters and with the new. On the 30
+nearly balanced ones, where the start cannot help, the re-tuned run's gap is 0.067
+against 0.082, which the test does not separate (p = 0.15). The median fold's `learning_rate * n_estimators` is
+below 5 on 29 of 108 datasets in both runs (8 to 6 balanced, 21 to 23 imbalanced):
+the re-tuning did not end the undertraining a ranking metric permits.
+
+The re-run took 116.4 h against 73.7 h, and the start is not the cost. Refitting
+outer fold 0 of 14 datasets with the same parameters from each start gives a time
+ratio of 1.00 (0.91 to 1.26; the same fit timed twice varies by 0.79 to 1.62). The
+extra hours come from what the re-tuning chose on a few datasets: on
+`multiple-features` (depth 8 to 10 against 5 to 8) the fold-0 parameters fit 15.5
+times slower, 3.1x from depth alone and 2.7x from tree count alone, and
+`plant-species-leaves-shape` took 52.1 h against 25.2. Over all 131 datasets the
+chosen depth went up in a third of folds and down in a third
+(`scripts/catboost_retune_effect.py`, `scripts/catboost_fit_time.py`).
 
 `scripts/catboost_calibration.py` reproduces the uniform-start diagnostics above and
 writes them per dataset to `results/catboost_calibration.csv`;
@@ -487,10 +508,10 @@ calibrator never fits on the labels it is scored against.
 
 **Temperature scaling** divides the log probabilities by one fitted scalar. It can
 only sharpen or soften confidence, never reorder the classes in a row. On binary
-problems that leaves PR AUC unchanged in exact arithmetic but not in float64: on
-81 of 920 binary model/dataset pairs a fitted temperature at its bound (T = 20)
-flattens the scores until neighbours round to the same value, worst on
-`colon32` for LightGBM (-0.060). **Isotonic regression** is the non-parametric
+problems that leaves PR AUC unchanged in exact arithmetic but not in float64: it
+moves on 73 of 936 binary model/dataset pairs, and where the fitted temperature
+sits at its bound (T = 20, 12 pairs) it flattens the scores until neighbours round
+to the same value, worst on `colon32` for LightGBM (-0.060). **Isotonic regression** is the non-parametric
 ceiling: one-vs-rest, then renormalised. **Venn-ABERS** (Vovk et al. 2015) is
 built from the same isotonic fits, applied the same way, but refits with each
 test point inserted once as a positive and once as a negative, and reports
@@ -522,14 +543,14 @@ coverage guarantee is claimed for Venn-ABERS here.
 Three things come out of it.
 
 *The repair is real but small where it matters.* Random Forest gains the most
-(0.0747 to 0.0459, a 39 % cut), then SGD, CatBoost and HistGradientBoosting, all
-around 31-36 %. TabFM and AutoGluon gain least, because they had least to give
+(0.0747 to 0.0459, a 39 % cut), then SGD, HistGradientBoosting, TabNet and
+CatBoost, at 30-36 %. TabFM and AutoGluon gain least, because they had least to give
 back.
 
 *It does not close the gap.* Nothing classical reaches the **untreated** TabFM at
 0.0367, and neither AutoML framework does: AutoGluon's best repair is 0.0382,
 MLJAR's 0.0397. The nearest classical model afterwards is SVC at 0.0436, and repaired
-CatBoost lands at 0.0565, still worse than raw TabPFN-3 at 0.0443. "Just calibrate the
+CatBoost lands at 0.0480, still worse than raw TabPFN-3 at 0.0443. "Just calibrate the
 gradient booster" does not produce a foundation model's probabilities.
 
 Counting how many models clear that 0.0367 line exactly is not worth doing: the two
@@ -540,7 +561,7 @@ the claim is the 0.0069 between the best repaired classical model and the untrea
 foundation floor, not the tie at the line.
 
 *The ceiling costs ranking.* Isotonic loses PR AUC on all eighteen, from -0.0123
-(TabFM) to -0.0322 (SGD). CatBoost gives up 0.0255, fifteen times its 0.0017 lead
+(TabFM) to -0.0322 (SGD). CatBoost gives up 0.0213, fifteen times its 0.0014 lead
 over Random Forest. The loss is ties, not
 reordering: on the binary datasets isotonic maps whole score intervals onto one
 plateau and keeps a median 8 % of a fold's distinct positive-class scores, so
@@ -551,19 +572,19 @@ TabICL (0.0347 against 0.0362). On MLJAR it makes ECE worse, 0.0456 to 0.0477.
 *Venn-ABERS halves the ranking cost, and wins on binary data.* On the binary
 datasets, where it is the method as published, it keeps a median 31 % of a fold's
 distinct positive-class scores against isotonic's 8 %. Over all 108 datasets it gives
-back PR AUC accordingly: -0.0103 from raw on average against -0.0188, better than
+back PR AUC accordingly: -0.0101 from raw on average against -0.0186, better than
 isotonic on all eighteen models and on 107 of 108 datasets (Wilcoxon over datasets,
 averaged across models, p = 9e-19).
 
 On calibration the answer splits by task. On the 52 binary datasets Venn-ABERS beats
-isotonic on Brier for all eighteen models and 40 of the 52 datasets (p = 5e-5), and
-is level on ECE (p = 0.55), with an edge that grows the worse the model started
-(Spearman 0.79 across the eighteen). On the 56 multiclass datasets, where it runs one
-class against the rest and is renormalised, it loses on both: ECE on all eighteen
-models (p = 2e-6), Brier on fourteen (p = 0.02). Pooled, the two cancel on Brier and
+isotonic on Brier for all eighteen models and 39 of the 52 datasets (p = 8e-5), and
+is level on ECE (p = 0.5). On the 56 multiclass datasets, where it runs one class
+against the rest and is renormalised, it loses on both: ECE on all eighteen models
+(p = 9e-7), Brier on fifteen (p = 0.004). Pooled, the two cancel on Brier and
 leave an ECE deficit that belongs to the multiclass heuristic, not to the method.
 None of this moves the gap: the best classical ECE after Venn-ABERS is SVC at 0.0502,
-further from the untreated 0.0367 than after isotonic.
+further from the untreated 0.0367 than after isotonic. The per-dataset table and these
+tests are `scripts/calibration_repairs.py` and `results/calibration_repairs.csv`.
 
 So the calibration ordering is not an artefact of leaving the classical models
 unrepaired. It survives repair, and the repair that closes most of it costs more
@@ -572,33 +593,44 @@ ranking than the ranking differences this benchmark is able to detect.
 ## Ensembles over the stored predictions never help
 
 Every model stores per-fold probability matrices, so combining them costs arithmetic
-rather than compute. 126 datasets covered by all nine models tested; probability,
-logit and rank averaging.
+rather than compute. `scripts/ensembles.py` tries every combination of two or more
+of nine models (the five foundation models, LightGBM, LightGBM-linear, XGBoost,
+CatBoost) with probability, logit and rank averaging: 1506 blends on the 111 datasets
+all nine score, in `results/ensembles.csv`. The best single model is TabFM at 0.8634,
+with TabPFN-3.5 at 0.8632.
 
-| ensemble | best combiner | mean | vs best single | win rate |
-|---|---|---|---|---|
-| TabFM + TabICL + TabPFN-3 | logit | 0.8654 | **+0.0001** | 38.9 % |
-| 3 foundation + CatBoost | logit | 0.8647 | −0.0006 | 42.1 % |
-| TabICL + TabPFN-3 | logit | 0.8636 | −0.0017 | 34.1 % |
-| all 9 models | logit | 0.8620 | −0.0033 | 30.2 % |
-| TabICL + CatBoost | logit | 0.8612 | −0.0041 | 29.4 % |
-| CatBoost + LightGBM-linear + XGBoost | logit | 0.8491 | −0.0162 | 17.5 % |
+| ensemble | combiner | mean | vs best single | win rate | p |
+|---|---|---|---|---|---|
+| TabFM + TabPFN-3.5 | logit | 0.8648 | **+0.0015** | 49.5 % | 0.04 |
+| TabFM + TabPFN-3 + TabPFN-3.5 | logit | 0.8644 | +0.0010 | 46.0 % | 0.31 |
+| TabFM + TabICL + TabPFN-3.5 | logit | 0.8643 | +0.0009 | 48.6 % | 0.29 |
+| all five foundation models | logit | 0.8641 | +0.0007 | 45.0 % | 0.54 |
+| TabFM + TabICL + TabPFN-3, the previous best | logit | 0.8636 | +0.0002 | 40.5 % | 0.61 |
+| best blend with a booster (4 foundation + XGBoost) | logit | 0.8636 | +0.0002 | 46.8 % | 0.79 |
+| best blend with CatBoost (5 foundation + CatBoost) | logit | 0.8636 | +0.0002 | 48.6 % | 0.84 |
 
-Best single model is TabFM at 0.8653. Nothing beats it. The strongest ensemble ties
-it to within 0.0001 and wins on 39 % of datasets — worse than a coin flip.
+The best blend gains 0.0015 and wins on half the datasets. Its p of 0.04 is the
+best of 1506 tries; Holm-adjusted over them it is 1. Of the 1368 blends that do
+separate from TabFM at raw p < 0.05, 1367 are worse. Only 43 blends beat it on the
+mean at all, 9 of them with a booster in, none by more than 0.0002.
 
-Two specifics worth stating. **Adding CatBoost to the foundation trio makes it
-worse** (−0.0006), which refutes the "always co-train a cheap classical
-baseline" advice independently of the blind-spot table, itself a scoring bug. And
-logit averaging beats probability averaging beats rank averaging, consistently, in
-every combination — but the ordering does not matter much when none of them wins.
+Two specifics. **A booster never helps a foundation blend**, which refutes the
+"always co-train a cheap classical baseline" advice independently of the
+blind-spot table, itself a scoring bug. And logit averaging is the best combiner
+for 25 of the 26 foundation-only sets; with a booster in the mix, probability
+averaging wins a third of the time. Rank averaging is never best. CatBoost joined
+the pool only after its prior-start re-run, because a logit blend weighs members by
+confidence and the uniform-start CatBoost was underconfident; an earlier version of
+this table put the uniform-start CatBoost in the foundation trio at -0.0006. Re-run,
+it changes nothing either.
 
 ## Cost does not track performance
 
 Total wall clock for the nested CV, against mean PR AUC over each model's own
-coverage. The two TabPFN-3.5 rows cover 131 datasets rather than 146, because runs
-now skip the UCI++ duplicates; over those same 131 TabPFN-3 costs 63.6 h, which is
-the like-for-like number to compare them against.
+coverage. The CatBoost and TabPFN-3.5 rows cover 131 datasets rather than 146,
+because runs now skip the UCI++ duplicates; over those same 131 TabPFN-3 costs 63.6 h
+and the uniform-start CatBoost 73.7 h, the like-for-like numbers to compare them
+against.
 
 | model | hours | median/dataset | mean PR AUC | coverage |
 |---|---|---|---|---|
@@ -615,8 +647,8 @@ the like-for-like number to compare them against.
 | TabICL | 34.7 | 364 s | 0.8574 | 142 |
 | HistGradientBoosting | 36.5 | 384 s | 0.8303 | 146 |
 | TabPFN-3 | 73.6 | 1199 s | 0.8591 | 146 |
-| CatBoost | 75.7 | 268 s | 0.8386 | 146 |
-| ResNet | 207.7 | 2597 s | 0.8234 | 146 |
+| CatBoost | 116.4 | 153 s | 0.8342 | 131 |
+| ResNet | 207.7 | 2605 s | 0.8234 | 146 |
 | TabNet | 485.3 | 2754 s | 0.7507 | 146 |
 
 ResNet and TabNet together cost 693.0 h — more than every other model combined — to
@@ -636,8 +668,8 @@ and with a GPU.
 
 UCI++ reuses the same underlying data in different configurations, and 15 of the
 146 are such variants. They used to be listed in each figure notebook and dropped
-after the fact, so they were computed and then discarded — 7 of the 9 `volcanoes`
-variants cost ResNet over 2 h each, and about 10 % of the benchmark's compute went
+after the fact, so they were computed and then discarded — 6 of the 7 duplicate
+`volcanoes` variants cost ResNet over 2 h each, and about 10 % of the benchmark's compute went
 to datasets no figure reads.
 
 The list now lives in `config.DUPLICATE_DATASETS` and the runners skip it, so that
@@ -653,8 +685,10 @@ enter the cost figures. Each was re-run with the cap raised. Every answer was wo
 the machine time.
 
 **CatBoost on `plant-species-leaves-shape`** (100 classes, 1600 rows, 64 features)
-needs **25.16 h**. It had recorded NaN twice before — 14 h with the timeout defeated,
-then a clean 12 h cut — so the number simply did not exist. What it buys:
+needed **25.16 h** from the uniform start, and **52.11 h** re-run from the prior,
+where the re-tuning settled on costlier trees. It had recorded NaN twice before —
+14 h with the timeout defeated, then a clean 12 h cut — so the number simply did not
+exist. What it buys:
 
 | model | PR AUC | time |
 |---|---|---|
@@ -662,13 +696,13 @@ then a clean 12 h cut — so the number simply did not exist. What it buys:
 | TabPFN-3 | 0.8987 | 0.60 h |
 | ResNet | 0.8250 | 1.57 h |
 | SVC | 0.7620 | **0.01 h** |
-| **CatBoost** | **0.7321** | **25.16 h** |
+| **CatBoost** | **0.7253** | **52.11 h** |
 | Random Forest | 0.7203 | 0.17 h |
 | LightGBM | 0.6665 | 0.55 h |
 
-CatBoost places fifth. SVC scores higher in 36 seconds — **2500x cheaper for +0.03
-PR AUC**. TabICL scores +0.17 higher for 1/74th of the cost. This one dataset is a
-third of CatBoost's entire 75.7 h benchmark cost, and it is the single clearest case
+CatBoost places fifth here. SVC scores higher in 24 seconds — **7800x cheaper for
++0.04 PR AUC**. TabICL scores +0.17 higher for 1/150th of the cost. This one dataset is
+nearly half of CatBoost's 116.4 h benchmark cost, and it is the single clearest case
 in the benchmark of compute buying nothing.
 
 The failure mode is many-class data: CatBoost trains one-vs-all across 100 classes
@@ -685,9 +719,9 @@ one-hour dataset past a twelve-hour cap.
 **TabNet on `letter` and `tamilnadu-electricity`** (both 10 000 rows) needs **18.12 h**
 and **16.19 h**. At a twelve-hour cap and again at twenty they recorded NaN; `letter`
 was 36 fits of 804 short the second time. What the 18.12 h buys is 0.9841, between
-Random Forest (0.9820, 0.06 h) and SVC (0.9882, 0.04 h), while TabPFN-3 takes the
-dataset at 0.9984 in 0.72 h. On `tamilnadu-electricity` ten models reach a perfect
+Random Forest (0.9820, 0.06 h) and SVC (0.9882, 0.04 h), while TabPFN-3.5 takes the
+dataset at 0.9988 in 0.49 h. On `tamilnadu-electricity` twelve models reach a perfect
 1.0000, Random Forest in 3.6 minutes against TabNet's 16.19 h — **270x** for the same
 score.
 
-All three models now cover all 146 datasets.
+ResNet and TabNet now cover all 146 datasets, and CatBoost all 131 it runs on.

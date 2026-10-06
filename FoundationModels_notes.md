@@ -31,12 +31,12 @@ part of a historical comparison, and the reason is in
 4. What separates them otherwise is **coverage**. Every TabPFN version scores each
    dataset it is given; TabFM drops 20 and TabICL 4 to hard limits.
 5. **There is no shared blind spot.** The earlier version of this note claimed 13
-   such datasets. After the positive-class fix only 2 survive, and the explanation
+   such datasets. After the positive-class fix 3 survive, and the explanation
    built on them was an artefact. See [The blind spot that wasn't](#the-blind-spot-that-wasnt).
 6. Both vendors' speed claims fail on this workload. See [Cost](#cost-measured-not-advertised).
 7. **AutoML sits a tier below.** Every foundation model separates from both
-   frameworks; AutoGluon sits above every classical model but CatBoost, which it
-   ties, and MLJAR among the gradient boosters.
+   frameworks; AutoGluon sits above every classical model, CatBoost included, and
+   MLJAR among the gradient boosters.
    The earlier reading, AutoML level with the top, rested on AutoML being scored by
    ROC AUC. See [Against AutoML](#against-automl).
 
@@ -90,10 +90,10 @@ best classical model on **16 of 20**, mean delta +0.0109:
 |---|---|---|---|
 | `plant-species-leaves-shape` | 0.8987 | ResNet 0.8250 | +0.0737 |
 | `movement-libras` | 0.9694 | SVC 0.9069 | +0.0625 |
-| `madelon` | 0.9586 | CatBoost 0.9181 | +0.0405 |
+| `madelon` | 0.9586 | CatBoost 0.9178 | +0.0408 |
 | `walking-activity` | 0.6839 | LightGBM-linear 0.6505 | +0.0334 |
 | `kr-vs-k` | 0.9031 | HistGradientBoosting 0.8702 | +0.0329 |
-| `plant-species-leaves-margin` | 0.9501 | CatBoost 0.9243 | +0.0258 |
+| `plant-species-leaves-margin` | 0.9501 | CatBoost 0.9231 | +0.0270 |
 
 This is invisible in the head-to-head table above, which by construction only covers
 datasets every model handles.
@@ -119,16 +119,50 @@ targets million-row data on an H100 and does not transfer to hundreds-to-thousan
 of rows on a CPU.
 
 The 3.5 generation is where the speed actually arrived, and it arrived without a
-claim attached: 13.5x faster per fit than v3 on the same hardware and the same
-grid, with a higher mean.
+claim attached: 6.8x faster per fit than v3 on the same hardware and the same
+grid, 13.5x for the fast variant, with a higher mean.
 
 **"TabFM is cheap."** Its 27 s median is an artefact of doing no hyperparameter
 search at all — 4 fits against TabICL's 148. Per fit it is 2.7x *more* expensive
 than TabICL, while running on the GPU against TabICL's CPU. Without a GPU it is not
-usable: CPU inference measured 17-36x slower than MPS.
+usable: on CPU its inference is 8-55x slower than on MPS (below).
 
 TabPFN-3.5-fast is now the cheapest per fit, and on the same CPU as TabICL. That
 ordering is one release old: before 9.0.0, TabICL held this row by 7x.
+
+### What a fitted model costs to use
+
+The costs above include tuning. `scripts/inference_speed.py` rebuilds each outer
+fold's final model from its stored parameters, refits it on the same rows, and times
+the fit, a prediction on the test fold, and a prediction on one row, over 15 datasets
+evenly spaced by size (66 to 7500 training rows). The rebuilt predictions match the
+stored ones to 3e-5, except TabFM on CPU, up to 0.08 off its MPS run. Medians over
+the 15 datasets, with the worst dataset for one row:
+
+| model | device | fit | predict test fold | one row | one row, worst |
+|---|---|---|---|---|---|
+| CatBoost | CPU | 0.55 s | 1.5 ms | 0.2 ms | 0.8 ms |
+| LightGBM | CPU | 3.1 s | 2.3 ms | 0.4 ms | 0.5 ms |
+| XGBoost | CPU | 1.1 s | 2.9 ms | 0.9 ms | 1.8 ms |
+| Random Forest | CPU | 0.18 s | 20 ms | 14 ms | 16 ms |
+| TabICL | CPU | 0.15 s | 2.6 s | 1.8 s | 22 s |
+| TabPFN-3.5-fast | CPU | 0.27 s | 2.6 s | 2.0 s | 40 s |
+| TabPFN-3.5 | CPU | 0.87 s | 6.1 s | 4.3 s | 78 s |
+| TabFM | MPS | 0.04 s | 24 s | 9.2 s | 66 s |
+| TabFM | CPU | 0.04 s | 362 s | 237 s | 47 min |
+
+The foundation models move the work from fit to predict. Fit stores the training
+rows, and every predict call runs them through the network again, so one row costs
+half to four-fifths of the whole test fold. Served one request at a time, the
+cheapest of them take about 2 s a row against under a millisecond for a gradient
+booster: three orders of magnitude, four on the largest datasets. They fit batch
+scoring, not per-request serving. TabPFN ran in its default
+`fit_mode="fit_preprocessors"`; its `fit_with_cache` mode keeps the processed
+training rows between calls and was not measured.
+
+TabFM on CPU is 8-55x slower than on MPS, median 16, and the ratio grows with the
+training set: 8-16x below 1000 rows, 15-21x at 1500-2400, 32-55x from 4000. An
+earlier, smaller measurement had put it at 17-36x.
 
 ## The blind spot that wasn't
 
@@ -142,9 +176,10 @@ problems, so which class counts as positive follows label ordering; the classica
 and foundation paths were encoding labels differently, and the affected datasets
 were being scored against opposite classes — full write-up in
 [Findings_notes.md](Findings_notes.md#label-ordering-silently-changed-the-metric).
-After the fix:
+After the fix, as measured then (uniform-start CatBoost, TabPFN 2.6 among the
+foundation models):
 
-| dataset | old gap | actual gap |
+| dataset | old gap | gap after the fix |
 |---|---|---|
 | `blood-transfusion-service` | +0.3661 | −0.0122 (foundation wins) |
 | `appendicitis` | +0.2361 | −0.0314 (foundation wins) |
@@ -152,28 +187,29 @@ After the fix:
 | `pima-indians-diabetes` | +0.1868 | +0.0079 |
 | `thyroid-sick-euthyroid` | +0.0695 | −0.0077 (foundation wins) |
 
-What survives across all 146 datasets:
+What survives across all 146 datasets with the current models, the best of eleven
+classical models against the best of five foundation models:
 
 | threshold | datasets where classical beats foundation |
 |---|---|
-| any margin | 30 |
-| > 0.005 | 12 |
+| any margin | 28 |
+| > 0.005 | 10 |
 | > 0.01 | 7 |
-| > 0.02 | **2** |
-| > 0.05 | 1 |
+| > 0.02 | **3** |
+| > 0.05 | 2 |
 
-The two are `planning-relax` (SVC 0.4044 vs TabPFN-3 0.3461) and
-`localization-for-person-activity` (LightGBM-linear 0.7995 vs TabICL 0.7749). Two
-datasets support no characterisation at all, and neither is small or binary —
-`localization-for-person-activity` has 10 000 rows and 11 classes.
+The three are `appendicitis` (TabNet 0.7929 vs TabICL 0.7238), `planning-relax`
+(SVC 0.4044 vs TabPFN-3 0.3461) and `glioma16` (SVC 0.9424 vs TabICL 0.9207). All
+three are small and binary, 50 to 182 rows, and on each the winner is a model that
+ranks low overall. Three datasets of that size support no characterisation.
 
-Foundation models match or beat the best of ten classical models on **116 of 146
-datasets (79.5 %)**. The correct summary is that they rarely lose, not that they
+Foundation models match or beat the best of eleven classical models on **118 of 146
+datasets (80.8 %)**. The correct summary is that they rarely lose, not that they
 lose in a describable place.
 
 Where they win big is structured synthetic noise, where gradient boosting collapses
-outright: `hill-valley-with-noise` CatBoost 0.5560 against TabICL 0.9967,
-`hill-valley-without-noise` 0.6199 against 0.9999.
+outright: `hill-valley-with-noise` CatBoost 0.5909 against TabICL 0.9967,
+`hill-valley-without-noise` 0.6323 against 0.9999.
 
 ## Against AutoML
 
@@ -182,9 +218,9 @@ On the 108 datasets the figures use, scored by PR AUC like everything else:
 | comparison | mean gap | wins | Holm p |
 |---|---|---|---|
 | TabPFN-3 over AutoGluon | +0.0104 | 81 / 108 | 6e-08 |
-| AutoGluon over CatBoost | +0.0111 | 71 / 108 | 0.08 |
+| AutoGluon over CatBoost | +0.0115 | 74 / 108 | 0.003 |
 | AutoGluon over MLJAR | +0.0111 | 72 / 108 | 0.016 |
-| MLJAR over CatBoost | +0.0000 | 49 / 108 | 1 |
+| MLJAR over CatBoost | +0.0004 | 49 / 108 | 1 |
 
 All ten foundation-versus-AutoML pairs separate (the largest Holm p is 6e-8); the
 row shown is TabPFN-3, the weakest foundation model, against AutoGluon. Over the 131 datasets both runs cover, AutoGluon scores
@@ -208,10 +244,10 @@ datasets a run now covers:
 |---|---|---|---|
 | mean PR AUC | 0.8571 | **0.8627** | 0.8608 |
 | total hours | 63.6 | 17.8 | **9.3** |
-| median per dataset | 1199 s | 180 s | 85 s |
+| median per dataset | 1082 s | 180 s | 85 s |
 
 Where 2.6 to v3 bought coverage at ten times the per-fit cost, v3 to v3.5 gives the
-cost back: 3.6x cheaper overall, 13.5x cheaper per fit, and a higher mean. The
+cost back: 3.6x cheaper overall, 6x cheaper per dataset at the median, and a higher mean. The
 paired test separates 3.5 from v3 (Holm p = 0.007, 72 wins of 108).
 
 The fast variant is a separate smaller model, not a mode of 3.5. It halves the cost
@@ -245,8 +281,10 @@ in 0.47 h scoring 0.9656, and v3 took 4.71 h for 0.9690. Ten times the cost for
    reproducibility; the only reason to keep it is an existing pinned environment.
 4. **TabFM only with a GPU.** Its performance lead is within noise, so the case for
    it is convenience — no tuning — not quality.
-5. **AutoML is not an upgrade on this data.** At 20 minutes a dataset both
-   frameworks land below the foundation models: AutoGluon level with CatBoost,
+5. **Serve foundation models in batches.** One row costs seconds, against under a
+   millisecond for a gradient booster; per-request serving is a booster's job.
+6. **AutoML is not an upgrade on this data.** At 20 minutes a dataset both
+   frameworks land below the foundation models: AutoGluon above CatBoost,
    MLJAR among the gradient boosters.
 
 The earlier recommendation to always co-train a classical baseline is withdrawn. It
@@ -255,7 +293,7 @@ rested entirely on the blind-spot table, and that table was a scoring bug.
 ## Method caveats
 
 - **TabFM ran on MPS, everything else on CPU.** Its time column is not comparable.
-  The measured CPU/MPS ratio on this machine is 17-36x.
+  The measured CPU/MPS ratio on this machine is 8-55x, growing with the training set.
 - **TabFM's context was capped at 5000 rows** (`max_num_rows`), affecting 22 of its
   126 datasets. Uncapped, a 10 000-row dataset allocated 13.55 GB and drove the
   machine into swap. PR AUC across caps 2500 / 5000 / 7500 measured 0.476 / 0.501 /

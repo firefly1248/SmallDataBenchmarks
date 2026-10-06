@@ -289,7 +289,7 @@ class TabFMNativeWrapper(ClassifierMixin, BaseEstimator):
     caps in-context rows at 5000 since memory is superlinear in context length
     — that cap binds on 22 of the 126 eligible datasets. ``device`` reaches the
     checkpoint loader, not the classifier, which runs where the weights landed;
-    CPU is 17-36x slower. Measurements: FoundationModels_notes.md.
+    CPU is 8-55x slower. Measurements: FoundationModels_notes.md.
     """
 
     def __init__(
