@@ -48,7 +48,7 @@ FINAL_OUTPUT = "results/optuna_models.joblib"
 if __name__ == "__main__":
     ALL_MODELS = ["svc", "logreg", "tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl", "tabfm",
                   "random_forest", "xgboost", "sgd",
-                  "catboost", "lgbm", "lgbm_linear", "hgb",
+                  "catboost", "lgbm", "lgbm_linear", "lgbm_extra", "hgb",
                   "xgboost_logloss", "catboost_logloss", "lgbm_logloss",
                   "tabnet", "ft_transformer", "resnet"]
 

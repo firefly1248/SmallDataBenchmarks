@@ -187,7 +187,8 @@ def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
 
 
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
-                   linear_tree: bool = False, scoring=PR_AUC_SCORER) -> float:
+                   linear_tree: bool = False, extra_trees: bool = False,
+                   scoring=PR_AUC_SCORER) -> float:
     max_leaves = 128 if linear_tree else 256
     max_child  = 50  if linear_tree else 100
     params = {
@@ -206,9 +207,9 @@ def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
     objective = "binary" if n_classes == 2 else "multiclass"
     model = Pipeline([
         ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("lgbm", LGBMClassifier(**params, linear_tree=linear_tree, objective=objective,
-                                subsample_freq=1, random_state=RANDOM_STATE,
-                                n_jobs=1, verbose=-1)),
+        ("lgbm", LGBMClassifier(**params, linear_tree=linear_tree, extra_trees=extra_trees,
+                                objective=objective, subsample_freq=1,
+                                random_state=RANDOM_STATE, n_jobs=1, verbose=-1)),
     ])
     return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))

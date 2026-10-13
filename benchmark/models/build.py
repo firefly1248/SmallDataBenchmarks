@@ -57,6 +57,15 @@ def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: lis
             ("hgb", HistGradientBoostingClassifier(**best, random_state=RANDOM_STATE)),
         ])
 
+    if model_name == "lgbm_extra":
+        objective = "binary" if n_classes == 2 else "multiclass"
+        return Pipeline([
+            ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
+            ("lgbm", LGBMClassifier(**best, extra_trees=True, objective=objective,
+                                    subsample_freq=1, random_state=RANDOM_STATE,
+                                    n_jobs=N_JOBS, verbose=-1)),
+        ])
+
     if model_name == "lgbm_linear":
         objective = "binary" if n_classes == 2 else "multiclass"
         return Pipeline([

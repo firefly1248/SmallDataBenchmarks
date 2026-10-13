@@ -121,6 +121,9 @@ def run_nested_cv(
                                                            inner_cv, n_classes),
                 "lgbm_linear":   lambda t: lgbm_objective(t, X_train, y_train,
                                                            inner_cv, n_classes, linear_tree=True),
+                # Random split thresholds, the Extra Trees regulariser, with the same space.
+                "lgbm_extra":    lambda t: lgbm_objective(t, X_train, y_train,
+                                                           inner_cv, n_classes, extra_trees=True),
                 "hgb":           lambda t: hgb_objective(t, X_train, y_train, inner_cv),
                 "tabnet":        lambda t: tabnet_objective(t, X_train, y_train,
                                                              inner_cv, cat_cols),
