@@ -217,15 +217,16 @@ On the 108 datasets the figures use, scored by PR AUC like everything else:
 
 | comparison | mean gap | wins | Holm p |
 |---|---|---|---|
-| TabPFN-3 over AutoGluon | +0.0104 | 81 / 108 | 6e-08 |
-| AutoGluon over CatBoost | +0.0115 | 74 / 108 | 0.003 |
-| AutoGluon over MLJAR | +0.0111 | 72 / 108 | 0.016 |
+| TabPFN-3 over AutoGluon | +0.0092 | 80 / 108 | 2e-06 |
+| AutoGluon over CatBoost | +0.0126 | 74 / 108 | 0.001 |
+| AutoGluon over MLJAR | +0.0123 | 80 / 108 | 2e-05 |
 | MLJAR over CatBoost | +0.0004 | 49 / 108 | 1 |
 
-All ten foundation-versus-AutoML pairs separate (the largest Holm p is 6e-8); the
+All ten foundation-versus-AutoML pairs separate (the largest Holm p is 2e-6); the
 row shown is TabPFN-3, the weakest foundation model, against AutoGluon. Over the 131 datasets both runs cover, AutoGluon scores
-0.8427 in 43.1 hours and MLJAR 0.8315 in 37.4, against TabPFN-3.5-fast's 0.8608 in
-9.3: the cheapest foundation model on CPU beats both at a quarter of their compute.
+0.8464 in 54.8 hours and MLJAR 0.8315 in 37.4, against TabPFN-3.5-fast's 0.8608 in
+9.3: the cheapest foundation model on CPU beats both at a quarter of their wall time or
+less.
 
 An earlier version of this section had MLJAR leading TabFM by 0.03 and six models,
 both frameworks among them, under one bar. The AutoML numbers were ROC AUC; see
@@ -283,7 +284,7 @@ in 0.47 h scoring 0.9656, and v3 took 4.71 h for 0.9690. Ten times the cost for
    it is convenience — no tuning — not quality.
 5. **Serve foundation models in batches.** One row costs seconds, against under a
    millisecond for a gradient booster; per-request serving is a booster's job.
-6. **AutoML is not an upgrade on this data.** At 20 minutes a dataset both
+6. **AutoML is not an upgrade on this data.** At a 20-minute budget per dataset both
    frameworks land below the foundation models: AutoGluon above CatBoost,
    MLJAR among the gradient boosters.
 
