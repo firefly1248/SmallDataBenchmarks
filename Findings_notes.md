@@ -170,17 +170,54 @@ diverge most: `abalone-11class` fell from 0.764 to 0.279, and `bank-marketing` f
 0.9161 to 0.5740 while its re-run ROC AUC is 0.9175. The 1000 s MLJAR file was run in
 this fork and is PR AUC, a median 0.009 from the new 300 s run.
 
-The re-run used AutoGluon 1.6.3 and MLJAR 1.3.2, now pinned, with
+The September re-run used AutoGluon 1.6.3 and MLJAR 1.3.2, now pinned, with
 `config.N_JOBS = 16` on a 14-core machine, and took 43.1 and 37.4 hours over 131
 datasets. For most of the MLJAR run an orphaned analysis process held one core; a
 deliberate test with six competing processes showed no significant shift in MLJAR's
 scores (p = 0.20).
 
 Scored like everything else, AutoGluon is below every foundation model and above
-every classical model: 0.8427 against CatBoost's 0.8342 over the same 131 datasets.
-MLJAR ties CatBoost. What the re-run adds is
+every classical model: 0.8427 against CatBoost's 0.8342 over the same 131 datasets,
+0.8464 after the re-run in the next section.
+MLJAR ties CatBoost. What the September re-run adds is
 calibration: both frameworks now appear in the calibration table, near the
 foundation models rather than the classical ones.
+
+## AutoGluon re-run with nothing excluded and Ray
+
+The published 300 s run departed from AutoGluon's defaults in three ways.
+`excluded_model_types` named classes rather than registry keys, so AutoGluon ignored
+it and trained its neural networks anyway; FastAI was absent only because `fastai`
+was not installed; and Ray was off, because it hung under AutoGluon 1.5.0, so bagging
+folds trained one after another, on 2-5 of the 14 cores when watched. The re-run
+installs `fastai`, drops the argument and adds Ray 2.58.0, on AutoGluon 1.6.3 with the
+same 300 s per fold and `num_cpus=16`. `best_quality` trains the seven families of its
+default portfolio (CatBoost, FastAI, LightGBM, PyTorch MLP, Random Forest, XGBoost,
+Extra Trees); AutoGluon's foundation-model entries, such as TabPFN and TabICL, are not
+in it.
+
+Over 131 datasets it scores 0.8464 against 0.8427 (81 ahead, 43 behind, 7 tied;
+Wilcoxon, a single test, p = 6e-5). Most of that sits outside the figures: on the
+108 datasets they use the gain is +0.0012 (p = 0.016), on the other 23, twenty that
+TabFM refuses for their classes or features and three every model finds trivial,
++0.0159 (p = 4e-5,
+`plant-species-leaves-shape` +0.093, `kr-vs-k` +0.084).
+
+The budget is soft in this configuration: 117 of 131 datasets ran over their 1200 s,
+42 by more than 10 % and 9 by more than double (worst 3966 s), and the run took 54.8 h
+against the 43.7 h the budget implies; the published run never ran more than 17 s
+(1.4 %) over. Extra time does not explain the gain. Split by whether the re-run kept
+within 10 % of its budget, the datasets that overran gain less in both populations:
+-0.0010 against +0.0021 on the 108, +0.0057 against +0.0214 on the 23. The split is
+on the re-run's own time, though, and same wall time is not the same compute: Ray
+keeps more cores busy, and FastAI, the dropped argument and Ray changed together, so
+the gain cannot be split among them.
+
+ECE shows no detectable change (0.0391 to 0.0398, p = 0.6); Brier improves slightly
+(0.206 to 0.203, raw p = 7e-4). Ray failed once: at dataset 87 its workers did not
+start, no model trained, and the run stopped; resumed from the checkpoint, that
+dataset completed normally. The published files are kept as
+`results/autogluon_sec_300*.joblib.bak-no-fastai`; the re-run replaces them.
 
 ## TabNet was on the CPU the whole time
 
@@ -316,9 +353,9 @@ stated rather than assumed.
 
 | comparison | mean gap | wins | raw p | Holm p | verdict |
 |---|---|---|---|---|---|
-| TabPFN-3 over AutoGluon | +0.0104 | 81 / 108 | 9e-10 | 6e-08 | separable |
-| AutoGluon over CatBoost | +0.0115 | 74 / 108 | 6e-05 | 0.003 | separable |
-| AutoGluon over MLJAR | +0.0111 | 72 / 108 | 4e-04 | 0.016 | separable |
+| TabPFN-3 over AutoGluon | +0.0092 | 80 / 108 | 2e-08 | 2e-06 | separable |
+| AutoGluon over CatBoost | +0.0126 | 74 / 108 | 2e-05 | 0.001 | separable |
+| AutoGluon over MLJAR | +0.0123 | 80 / 108 | 3e-07 | 2e-05 | separable |
 | MLJAR over CatBoost | +0.0004 | 49 / 108 | 0.31 | 1 | not separable |
 | TabFM over TabPFN-3 | +0.0039 | 74 / 108 | 1e-04 | 0.006 | separable |
 | TabFM over CatBoost | +0.0257 | 87 / 108 | 1e-12 | 1e-10 | separable |
@@ -326,17 +363,18 @@ stated rather than assumed.
 | TabPFN-3.5 over TabPFN-3.5-fast | +0.0017 | 66 / 108 | 0.002 | 0.08 | not separable |
 | TabPFN-3.5-fast over TabPFN-3 | +0.0020 | 67 / 108 | 0.026 | 0.77 | not separable |
 | TabPFN-3.5 over TabFM | -0.0001 | 38 / 108 | 0.19 | 1 | not separable |
-| CatBoost over HistGradientBoosting | +0.0065 | 69 / 108 | 8e-05 | 0.004 | separable |
+| CatBoost over HistGradientBoosting | +0.0065 | 69 / 108 | 8e-05 | 0.003 | separable |
 | CatBoost over Random Forest | +0.0014 | 71 / 108 | 0.003 | 0.13 | not separable |
 | CatBoost over LightGBM Linear | -0.0009 | 54 / 108 | 0.64 | 1 | not separable |
 
 The AutoML rows replace the one that used to lead this table, MLJAR over TabFM at
 +0.0295 — ROC AUC set against PR AUC, as the section above explains. On one metric
-the weakest foundation model beats AutoGluon on 81 of 108 datasets, all ten
-foundation-versus-AutoML pairs separate (the largest Holm p is 6e-8), and AutoGluon
-separates from CatBoost too. It did not while CatBoost started from uniform
-probabilities (Holm p = 0.08): the re-run moved CatBoost's mean by 0.0003, and
-AutoGluon's wins over it from 71 to 74 of 108.
+the weakest foundation model beats AutoGluon on 80 of 108 datasets, all ten
+foundation-versus-AutoML pairs separate (the largest Holm p is 2e-6), and AutoGluon
+separates from CatBoost too. Against the published AutoGluon run it did not while
+CatBoost started from uniform probabilities (Holm p = 0.08); CatBoost's re-run from
+the prior moved its mean by 0.0003 and took AutoGluon's wins over it from 71 to 74 of
+108 (Holm p = 0.003). The AutoGluon re-run keeps the 74 and widens the gap.
 
 Gaps of 0.004 to 0.007, small enough to read as noise in a table of means, are
 consistent enough across datasets to survive correction for 153 comparisons.
@@ -369,12 +407,13 @@ benchmark read the probabilities themselves until now.
 
 Brier and top-label ECE over the stored out-of-fold predictions, 108 datasets
 scored by all eighteen models that kept predictions. `ECE T`, `ECE iso` and
-`ECE VA` are the same models after post-hoc repair, covered in the next section.
+`ECE VA` are the same models after
+[post-hoc repair](#post-hoc-calibration-does-not-buy-the-gap-and-it-is-not-free).
 
 | model | PR AUC | Brier | ECE | ECE T | ECE iso | ECE VA | PR AUC iso | PR AUC VA |
 |---|---|---|---|---|---|---|---|---|
 | TabFM | 0.8596 | 0.1881 | **0.0367** | 0.0354 | 0.0362 | 0.0440 | 0.8473 | 0.8543 |
-| AutoGluon | 0.8454 | 0.2060 | 0.0391 | 0.0395 | 0.0382 | 0.0465 | 0.8301 | 0.8390 |
+| AutoGluon | 0.8465 | 0.2033 | 0.0398 | 0.0391 | 0.0393 | 0.0464 | 0.8345 | 0.8412 |
 | TabICL | 0.8574 | 0.1905 | 0.0405 | 0.0347 | 0.0362 | 0.0470 | 0.8422 | 0.8508 |
 | TabPFN-3.5-fast | 0.8577 | 0.2129 | 0.0427 | 0.0413 | 0.0364 | 0.0467 | 0.8438 | 0.8518 |
 | TabPFN-3.5 | 0.8595 | 0.2103 | 0.0429 | 0.0418 | 0.0363 | 0.0460 | 0.8463 | 0.8542 |
@@ -394,7 +433,8 @@ scored by all eighteen models that kept predictions. `ECE T`, `ECE iso` and
 
 TabFM has the lowest ECE. AutoGluon and TabICL are close behind it, and which of
 the two comes second depends on the binning; MLJAR is ahead of every classical
-model. On this axis AutoML is closer to the foundation models than it is on
+model in the table, all of them tuned on PR AUC (tuned on log loss, CatBoost reaches
+0.0378; [below](#tuning-on-log-loss-buys-the-calibration-that-repair-could-not)). On this axis AutoML is closer to the foundation models than it is on
 ranking. CatBoost, tied with LightGBM Linear at the top of the classical models on
 PR AUC, sat near the bottom at 0.0848, level with TabNet, until it was re-run from
 the class prior (next section); it is now behind XGBoost and LightGBM. Rank by PR
@@ -410,7 +450,8 @@ binning noise, and averaging that per fold inflates ECE by 1.3x to 1.8x. The
 ordering barely depends on the bins: against 15 equal-width bins, Spearman is 0.97
 or higher for 5 to 50 equal-width bins and for 15 equal-mass bins, and the same five
 models are on top in every case but 50 bins. Second place is the exception:
-AutoGluon holds it at 5 to 20 bins, TabICL at 30, 50 and equal-mass.
+AutoGluon holds it at 5 to 15 bins, the two are level at 20 (0.0440 and 0.0442), and
+TabICL holds it at 30, 50 and equal-mass.
 
 For the single models this cost nothing to measure: the per-fold probabilities and
 labels have been in `results/ckpt/<model>.joblib` all along. The AutoML runners
@@ -548,7 +589,7 @@ CatBoost, at 30-36 %. TabFM and AutoGluon gain least, because they had least to 
 back.
 
 *It does not close the gap.* Nothing classical reaches the **untreated** TabFM at
-0.0367, and neither AutoML framework does: AutoGluon's best repair is 0.0382,
+0.0367, and neither AutoML framework does: AutoGluon's best repair is 0.0391,
 MLJAR's 0.0397. The nearest classical model afterwards is SVC at 0.0436, and repaired
 CatBoost lands at 0.0480, still worse than raw TabPFN-3 at 0.0443. "Just calibrate the
 gradient booster" does not produce a foundation model's probabilities.
@@ -560,8 +601,8 @@ these repaired figures in the fourth decimal. The gap that carries
 the claim is the 0.0069 between the best repaired classical model and the untreated
 foundation floor, not the tie at the line.
 
-*The ceiling costs ranking.* Isotonic loses PR AUC on all eighteen, from -0.0123
-(TabFM) to -0.0322 (SGD). CatBoost gives up 0.0213, fifteen times its 0.0014 lead
+*The ceiling costs ranking.* Isotonic loses PR AUC on all eighteen, from -0.0120
+(AutoGluon) to -0.0322 (SGD). CatBoost gives up 0.0213, fifteen times its 0.0014 lead
 over Random Forest. The loss is ties, not
 reordering: on the binary datasets isotonic maps whole score intervals onto one
 plateau and keeps a median 8 % of a fold's distinct positive-class scores, so
@@ -572,15 +613,15 @@ TabICL (0.0347 against 0.0362). On MLJAR it makes ECE worse, 0.0456 to 0.0477.
 *Venn-ABERS halves the ranking cost, and wins on binary data.* On the binary
 datasets, where it is the method as published, it keeps a median 31 % of a fold's
 distinct positive-class scores against isotonic's 8 %. Over all 108 datasets it gives
-back PR AUC accordingly: -0.0101 from raw on average against -0.0186, better than
+back PR AUC accordingly: -0.0101 from raw on average against -0.0184, better than
 isotonic on all eighteen models and on 107 of 108 datasets (Wilcoxon over datasets,
-averaged across models, p = 9e-19).
+averaged across models, p = 1e-18).
 
 On calibration the answer splits by task. On the 52 binary datasets Venn-ABERS beats
-isotonic on Brier for all eighteen models and 39 of the 52 datasets (p = 8e-5), and
-is level on ECE (p = 0.5). On the 56 multiclass datasets, where it runs one class
+isotonic on Brier for all eighteen models and 39 of the 52 datasets (p = 9e-5), and
+is level on ECE (p = 0.6). On the 56 multiclass datasets, where it runs one class
 against the rest and is renormalised, it loses on both: ECE on all eighteen models
-(p = 9e-7), Brier on fifteen (p = 0.004). Pooled, the two cancel on Brier and
+(p = 1e-6), Brier on fifteen (p = 0.004). Pooled, the two cancel on Brier and
 leave an ECE deficit that belongs to the multiclass heuristic, not to the method.
 None of this moves the gap: the best classical ECE after Venn-ABERS is SVC at 0.0502,
 further from the untreated 0.0367 than after isotonic. The per-dataset table and these
@@ -589,6 +630,46 @@ tests are `scripts/calibration_repairs.py` and `results/calibration_repairs.csv`
 So the calibration ordering is not an artefact of leaving the classical models
 unrepaired. It survives repair, and the repair that closes most of it costs more
 ranking than the ranking differences this benchmark is able to detect.
+
+## Tuning on log loss buys the calibration that repair could not
+
+The three boosters were re-tuned with one change: Optuna selects on log loss instead
+of PR AUC, with the same spaces, trials, folds and seeds (`xgboost_logloss`,
+`catboost_logloss`, `lgbm_logloss`; `scripts/variant_effects.py`,
+`results/variant_effects.csv`). Calibration is over the 108 datasets of the
+calibration table, PR AUC over all 131. Holm runs over a family of four chosen for
+these notes, the three log-loss variants and
+[Extra Trees](#extra-trees-splits-cost-lightgbm-in-a-tail-of-datasets), not over the
+all-models family used elsewhere:
+
+| model | ECE | Brier | mean \|gap\| | PR AUC | Holm p | tuning hours |
+|---|---|---|---|---|---|---|
+| XGBoost | 0.0627 → 0.0409 | 0.239 → 0.225 | 0.035 → 0.015 | 0.8282 → 0.8257 | 0.08 | 7.0\* → 4.1 |
+| CatBoost | 0.0685 → 0.0378 | 0.239 → 0.217 | 0.039 → 0.012 | 0.8342 → 0.8341 | 0.38 | 116.4 → 73.0 |
+| LightGBM | 0.0674 → 0.0402 | 0.244 → 0.223 | 0.040 → 0.017 | 0.8306 → 0.8278 | 0.004 | 10.4\* → 4.9 |
+
+\* August runs, not comparable; see below. Mean |gap| is the absolute difference between
+mean confidence and the observed hit rate, per dataset.
+
+All nine calibration changes are significant (raw p < 1e-4, which survives a
+correction for nine). CatBoost tuned on log loss reaches an ECE of 0.0378, between
+TabFM's 0.0367 and AutoGluon's 0.0398 in the calibration table (untested against either), where the best post-hoc repair took it only to 0.0480, with no
+measurable change in PR AUC. XGBoost gives up 0.0025, which the correction does not
+separate; LightGBM gives up 0.0028 and is behind on 84 of 131 datasets (Holm
+p = 0.004). CatBoost's tuning took 73.0 h against 116.4 h, both runs from October.
+The XGBoost and LightGBM baselines date from August under other load (see
+[A month of stolen cores](#a-month-of-stolen-cores-invisible-from-inside)), so their
+hours do not compare cleanly.
+
+A proper scoring rule is meant to reward calibrated probabilities, so the direction is
+no surprise; the price is the finding. The chosen parameters suggest where it comes
+from, over the same 108 datasets (432 folds per model). Folds with
+`learning_rate * n_estimators` below 5, the undertraining the CatBoost section found a
+ranking metric permits, fall from 37 % to 22 % for XGBoost and from 29 % to 16 % for
+CatBoost. For LightGBM that share does not move (39 % to 40 %), but
+`class_weight="balanced"`, which reweights the classes and shifts every probability,
+is chosen in 23 % of folds instead of 35 %. These are candidates, not a tested
+mechanism.
 
 ## Ensembles over the stored predictions never help
 
@@ -623,6 +704,34 @@ the pool only after its prior-start re-run, because a logit blend weighs members
 confidence and the uniform-start CatBoost was underconfident; an earlier version of
 this table put the uniform-start CatBoost in the foundation trio at -0.0006. Re-run,
 it changes nothing either.
+
+## Extra Trees splits cost LightGBM, in a tail of datasets
+
+`lgbm_extra` is LightGBM with `extra_trees=True`: one random threshold per feature at
+each split instead of the best one, with LightGBM's search space, sampler and seed.
+Over 131 datasets it is worse: 0.8123 against 0.8306, 54 ahead and 72 behind (Holm
+p = 0.005). The typical dataset barely moves (median -0.0003); the mean is pulled
+down by a tail. It loses more than 0.05 on 21 datasets and gains that much on 2, and
+loses more than 0.02 on 33 against 11 gains. Ten of the 21 are rule-like data
+(`nursery-4class` -0.37, `kr-vs-k` -0.23, `monks3` -0.23, `hayes-roth` -0.21,
+`car-evaluation`, `monks1`, several `autoUniv`), two are the `hill-valley` pair, and
+the other nine are ordinary tabular sets such as `turkiye-student`, `thyroid-allbp`
+and `wine-quality-5class`. Why is open. LightGBM draws the random threshold among a
+feature's bins: a binary feature still gets the exact cut, but the 3-5-level ordinal
+features of `nursery`, `car-evaluation` and `monks` get one of 2-4 cuts at random,
+which may be what the rule-like sets lose. The cap of 500 trees, often at a small
+learning rate, may also be too few for random splits. Neither was tested.
+
+It does not help on small data either: 18 of the 21 large losses are in the larger
+two thirds of datasets by rows, and the smallest third shows no consistent gain
+(median +0.0009, mean -0.006 with `hayes-roth` in it, 23 ahead, 20 behind). Brier gets worse (0.244 to 0.266, raw p = 0.013); ECE shows no
+detectable change. It ran in 3.5 h, against 4.9 h for LightGBM tuned on log loss in
+the same October weeks, a different objective; the 10.4 h of the August LightGBM run do not compare cleanly.
+
+Extra Trees keep exact TreeSHAP: in LightGBM 4.6.0, `pred_contrib`, which
+`shap.TreeExplainer` also calls, sums to the raw score within 1e-14. Linear trees have
+no TreeSHAP: LightGBM raises on that call. Whether the losses exceed what re-tuning
+with another sampler seed would produce needs the control already queued.
 
 ## Cost does not track performance
 
