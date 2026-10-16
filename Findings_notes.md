@@ -639,7 +639,7 @@ of PR AUC, with the same spaces, trials, folds and seeds (`xgboost_logloss`,
 `results/variant_effects.csv`). Calibration is over the 108 datasets of the
 calibration table, PR AUC over all 131. Holm runs over a family of four chosen for
 these notes, the three log-loss variants and
-[Extra Trees](#extra-trees-splits-cost-lightgbm-in-a-tail-of-datasets), not over the
+[Extra Trees](#extra-trees-splits-cost-lightgbm-not-sklearns-forest), not over the
 all-models family used elsewhere:
 
 | model | ECE | Brier | mean \|gap\| | PR AUC | Holm p | tuning hours |
@@ -705,33 +705,105 @@ confidence and the uniform-start CatBoost was underconfident; an earlier version
 this table put the uniform-start CatBoost in the foundation trio at -0.0006. Re-run,
 it changes nothing either.
 
-## Extra Trees splits cost LightGBM, in a tail of datasets
+## Extra Trees splits cost LightGBM, not sklearn's forest
 
 `lgbm_extra` is LightGBM with `extra_trees=True`: one random threshold per feature at
 each split instead of the best one, with LightGBM's search space, sampler and seed.
 Over 131 datasets it is worse: 0.8123 against 0.8306, 54 ahead and 72 behind (Holm
-p = 0.005). The typical dataset barely moves (median -0.0003); the mean is pulled
-down by a tail. It loses more than 0.05 on 21 datasets and gains that much on 2, and
-loses more than 0.02 on 33 against 11 gains. Ten of the 21 are rule-like data
-(`nursery-4class` -0.37, `kr-vs-k` -0.23, `monks3` -0.23, `hayes-roth` -0.21,
-`car-evaluation`, `monks1`, several `autoUniv`), two are the `hill-valley` pair, and
-the other nine are ordinary tabular sets such as `turkiye-student`, `thyroid-allbp`
-and `wine-quality-5class`. Why is open. LightGBM draws the random threshold among a
-feature's bins: a binary feature still gets the exact cut, but the 3-5-level ordinal
-features of `nursery`, `car-evaluation` and `monks` get one of 2-4 cuts at random,
-which may be what the rule-like sets lose. The cap of 500 trees, often at a small
-learning rate, may also be too few for random splits. Neither was tested.
+p = 0.005 over the family of four tuning variants, the three log-loss ones and this).
+The typical dataset barely moves (median -0.0003); the mean is pulled down by a tail.
+It loses more than 0.05 on 21 datasets and gains that much on 2, and loses more than
+0.02 on 33 against 11 gains. The 21 are six rule-generated datasets (`nursery-4class`
+-0.37, `kr-vs-k` -0.23, `monks3` -0.23, `hayes-roth` -0.21, `car-evaluation`,
+`monks1`), five synthetic sets (four `autoUniv` and `artificial-characters`), the
+`hill-valley` pair, and eight ordinary tabular sets such as `turkiye-student`,
+`thyroid-allbp` and `wine-quality-5class`. `results/lgbm_extra_by_dataset.csv` lists
+every dataset with its PR AUC and Brier difference and the share of features with at
+most 5 distinct values (the reader's cutoff; the encoders below use 8).
 
-It does not help on small data either: 18 of the 21 large losses are in the larger
-two thirds of datasets by rows, and the smallest third shows no consistent gain
-(median +0.0009, mean -0.006 with `hayes-roth` in it, 23 ahead, 20 behind). Brier gets worse (0.244 to 0.266, raw p = 0.013); ECE shows no
-detectable change. It ran in 3.5 h, against 4.9 h for LightGBM tuned on log loss in
-the same October weeks, a different objective; the 10.4 h of the August LightGBM run do not compare cleanly.
+It does not help on small data either: 12 of the 21 large losses are in the middle
+third of datasets by rows and 6 in the largest, and the smallest third (n = 44) shows
+no consistent gain (median +0.0009, mean -0.006 with `hayes-roth` in it, 23 ahead, 20
+behind). Over the 108 calibration datasets Brier gets worse (0.244 to 0.266, raw
+p = 0.013); ECE shows no detectable change.
 
 Extra Trees keep exact TreeSHAP: in LightGBM 4.6.0, `pred_contrib`, which
 `shap.TreeExplainer` also calls, sums to the raw score within 1e-14. Linear trees have
-no TreeSHAP: LightGBM raises on that call. Whether the losses exceed what re-tuning
-with another sampler seed would produce needs the control already queued.
+no TreeSHAP: LightGBM raises on that call.
+
+Five follow-ups, from `scripts/extra_trees_controls.py`. The three tests over all 131
+datasets share one Holm family; the two checks on subsets chosen for their loss are
+reported without a test. Brier and ECE are over the 108 calibration datasets, raw p.
+
+**The loss is not search noise.** `lgbm_seed1` is LightGBM re-tuned with another TPE
+seed. The August run was on numpy 1.26; checked by hand, the current code reproduces
+its seed-0 scores on `hayes-roth` to 12 digits, so the seed is the only effective
+change. It lands on 0.8309 against 0.8306, 57 ahead and 69 behind (Holm p = 0.27).
+The per-dataset difference has a standard deviation of 0.011 and exceeds 0.05 on 2
+datasets, against 0.054 and 23 for `lgbm_extra`; on the 21 datasets `lgbm_extra`
+loses, the seed moves LightGBM by -0.002 on average and never by more than 0.015.
+Against this one control seed `lgbm_extra` loses 0.019 (56 ahead, 73 behind,
+Holm p = 0.003), and Brier again (raw p = 0.006).
+
+**The random threshold skips cuts that few-valued features need.** Measured on
+LightGBM 4.6.0 with one feature and one target (the probe is in the script): with
+`extra_trees`, a feature with levels 1, 2, 3 is only ever cut at 1.5, levels 1 to 4
+only at 1.5 or 2.5, and a two-level feature coded 1/2 is never split; coded 0/1 it is.
+The top cut of a feature is never drawn, and the empty bin below 1 wastes a draw. The
+few-valued features of the losers are coded from 1. Refitting the tuned models on the
+full data, `lgbm_extra` never splits 17 of `thyroid-allbp`'s 20 two-level features,
+4 of `statlog-australian-credit`'s 4, 4 of `flare`'s 5 and both of each `monks` set,
+all features plain LightGBM splits; on `kr-vs-k`, `hayes-roth`, `car-evaluation` and
+`turkiye-student` every feature is split, but with 3-8 levels each is missing its top
+cut. The same draw explains the continuous losers: it covers the feature's whole range
+rather than the node's, so one tree of up to 256 leaves on one continuous feature
+grows 4-5 leaves with `extra_trees` against 114 without, and `hill-valley` and
+`artificial-characters` are the datasets where 2000 trees recover the most.
+
+On the six rule-generated datasets, features with at most 8 levels were re-encoded.
+One-hot makes `extra_trees` a no-op: every column is 0/1, and `lgbm_onehot` and
+`lgbm_extra_onehot` are identical on all six (mean 0.956 against 0.769 for
+`lgbm_extra`). But one-hot costs plain LightGBM 0.012 on these six (0.968; `kr-vs-k`
+0.863 to 0.810), so the cheaper fix is to leave `extra_trees` off. LightGBM's own
+categorical splits, at their defaults, cost plain LightGBM more (`lgbm_cat` 0.850;
+`kr-vs-k` 0.774): relative to `lgbm_cat`, `lgbm_extra_cat` repairs `nursery-4class`,
+`car-evaluation` and `kr-vs-k`, keeps the `monks` losses, and both collapse
+`hayes-roth` to chance (0.36): with 120-160 rows and no feature above 4 levels, no
+category group reaches the default `min_data_per_group` of 100.
+
+**More trees close part of the gap on continuous features, none on the six.** With
+the cap raised from 500 to 2000 on the 21 losers, picked on their 500-tree gap, the
+tuning chose a median of 1078 trees for LightGBM and 1408 for `lgbm_extra` (85-88 %
+of folds above the old cap). LightGBM did not move on average (-0.001), `lgbm_extra`
+gained 0.008, and 16 of 21 gaps narrowed, by 0.037 on `artificial-characters`, 0.026
+on `saheart`, 0.023 and 0.019 on the `hill-valley` pair (where LightGBM itself gained
+0.021 and 0.014) and 0.019 on `autoUniv-au7-700`; the six rule-generated gaps changed
+by 0.01 or less. Three of those closures exceed the 0.015 the seed ever moved
+LightGBM on a loser; `lgbm_extra`'s own seed noise was not measured.
+
+**sklearn's Extra Trees do not lose.** `ExtraTreesClassifier` with the Random Forest
+search space and encoding (sklearn's default `bootstrap=False` stays) beats Random
+Forest: 0.8365 against 0.8320 over 131 datasets, 92 ahead and 36 behind (Holm
+p = 3e-7), median +0.002, two losses beyond 0.05 and one gain of 0.051; Brier (0.241
+both) and ECE (0.075 to 0.081, raw p = 0.40) show no detectable change over the 108.
+The Random Forest checkpoint is from August; re-run by hand on `hayes-roth` and
+`wine`, the current environment reproduces its scores and chosen parameters exactly.
+On the six rule-generated datasets it ties Random Forest within 0.002 except
+`kr-vs-k` (-0.022). That puts it level with CatBoost (+0.002, 71 ahead, 57 behind, raw
+p = 0.08, outside any family), outside the published roster and figures. It has no
+such hole: sklearn draws the threshold uniformly inside the node's range, so every
+cut stays reachable. It tuned in 2.8 h; the 7.1 h of the Random Forest run are from
+August on a loaded machine ([A month of stolen
+cores](#a-month-of-stolen-cores-invisible-from-inside)) and do not compare.
+
+**Tuning time.** `lgbm_seed1` and `lgbm_extra` ran in October, one job at a time, on
+the same 131 datasets: 4.75 h against 3.55 h, median 41 s against 29 s per dataset,
+so Extra Trees tune about a quarter cheaper. This is the cost of 50 TPE trials, not
+of one fit. The 10.4 h of the August LightGBM run are most likely the loaded machine,
+not the model.
+
+The usable rule: leave `extra_trees` off in LightGBM, it saves a quarter of the tuning
+time and costs 0.018; for random splits use sklearn's `ExtraTreesClassifier`.
 
 ## Cost does not track performance
 
