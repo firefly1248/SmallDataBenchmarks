@@ -12,6 +12,7 @@ from benchmark.encoding import (
     CAT_STRATEGY_TREE,
     CatBoostNativeWrapper,
     CatFeaturesEncoder,
+    LowLevelEncoder,
     TabFMNativeWrapper,
     TabPFNNativeWrapper,
 )
@@ -112,6 +113,25 @@ class TestCatStrategyConstants:
         valid = set(CatFeaturesEncoder._ENCODER_MAP)
         for s in CAT_STRATEGIES_LINEAR:
             assert s in valid, f"{s!r} not in CatFeaturesEncoder._ENCODER_MAP"
+
+
+class TestLowLevelEncoder:
+    @staticmethod
+    def _data():
+        return pd.DataFrame({"few": [0.0, 1.0, 2.0, 1.0], "many": np.arange(4.0)})
+
+    def test_onehot_replaces_only_few_valued_columns(self):
+        out = LowLevelEncoder(mode="onehot", max_levels=3).fit_transform(self._data())
+        assert list(out.columns) == ["many", "few=0.0", "few=1.0", "few=2.0"]
+        assert out["few=1.0"].tolist() == [0.0, 1.0, 0.0, 1.0]
+
+    def test_category_keeps_training_levels(self):
+        enc = LowLevelEncoder(mode="category", max_levels=3).fit(self._data())
+        out = enc.transform(pd.DataFrame({"few": [2.0, 5.0], "many": [0.0, 1.0]}))
+        assert out["few"].dtype == "category"
+        assert list(out["few"].cat.categories) == [0.0, 1.0, 2.0]
+        assert out["few"].isna().tolist() == [False, True]
+        assert out["many"].dtype == float
 
 
 class TestCatBoostNativeWrapper:

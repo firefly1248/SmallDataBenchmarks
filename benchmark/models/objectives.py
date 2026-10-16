@@ -7,7 +7,6 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
 
 from benchmark.encoding import (
     CAT_STRATEGIES_LINEAR, CAT_STRATEGY_TREE,
@@ -16,10 +15,11 @@ from benchmark.encoding import (
     _build_imputer, _build_scaler,
 )
 from benchmark.metrics import PR_AUC_SCORER
+from benchmark.models.build import lgbm_pipeline
 from config import INNER_FIT_THREADS, N_INNER_FOLDS, N_JOBS, RANDOM_STATE
 
 
-def rf_objective(trial, X_train, y_train, inner_cv) -> float:
+def rf_objective(trial, X_train, y_train, inner_cv, forest=RandomForestClassifier) -> float:
     params = {
         "n_estimators":      trial.suggest_int("n_estimators", 50, 500),
         "max_depth":         trial.suggest_int("max_depth", 2, 32),
@@ -30,8 +30,7 @@ def rf_objective(trial, X_train, y_train, inner_cv) -> float:
     }
     model = Pipeline([
         ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("rf", RandomForestClassifier(**params, random_state=RANDOM_STATE,
-                                      n_jobs=INNER_FIT_THREADS)),
+        ("rf", forest(**params, random_state=RANDOM_STATE, n_jobs=INNER_FIT_THREADS)),
     ])
     return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
@@ -188,12 +187,13 @@ def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
 
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                    linear_tree: bool = False, extra_trees: bool = False,
-                   scoring=PR_AUC_SCORER) -> float:
+                   scoring=PR_AUC_SCORER, max_trees: int = 500,
+                   low_levels: str | None = None) -> float:
     max_leaves = 128 if linear_tree else 256
     max_child  = 50  if linear_tree else 100
     params = {
         "learning_rate":    trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
-        "n_estimators":     trial.suggest_int("n_estimators", 50, 500),
+        "n_estimators":     trial.suggest_int("n_estimators", 50, max_trees),
         "num_leaves":       trial.suggest_int("num_leaves", 8, max_leaves),
         "min_child_samples":trial.suggest_int("min_child_samples", 5, max_child),
         "subsample":        trial.suggest_float("subsample", 0.4, 1.0),
@@ -204,12 +204,7 @@ def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
     }
     if linear_tree:
         params["linear_lambda"] = trial.suggest_float("linear_lambda", 1e-4, 10.0, log=True)
-    objective = "binary" if n_classes == 2 else "multiclass"
-    model = Pipeline([
-        ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("lgbm", LGBMClassifier(**params, linear_tree=linear_tree, extra_trees=extra_trees,
-                                objective=objective, subsample_freq=1,
-                                random_state=RANDOM_STATE, n_jobs=1, verbose=-1)),
-    ])
+    model = lgbm_pipeline(params, n_classes, n_jobs=1, linear_tree=linear_tree,
+                          extra_trees=extra_trees, low_levels=low_levels)
     return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))

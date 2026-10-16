@@ -123,6 +123,39 @@ class TestModelLimits:
         assert "tabpfn3" not in _MODEL_LIMITS
 
 
+class TestLgbmExtraControls:
+    """The control variants must differ from their base only where their name says."""
+
+    @pytest.mark.parametrize(("model_name", "extra", "encoder"), [
+        ("lgbm", False, None), ("lgbm_seed1", False, None), ("lgbm_2000", False, None),
+        ("lgbm_extra_2000", True, None), ("lgbm_onehot", False, "onehot"),
+        ("lgbm_extra_cat", True, "category"), ("lgbm_linear", False, None)])
+    def test_build_routes_variant(self, model_name, extra, encoder):
+        from benchmark.models.build import build_final_model
+        pipe = build_final_model(model_name, {}, 2, [])
+        assert pipe.named_steps["lgbm"].extra_trees is extra
+        assert pipe.named_steps["lgbm"].linear_tree is (model_name == "lgbm_linear")
+        low = pipe.named_steps.get("low_levels")
+        assert (low.mode if low else None) == encoder
+
+    @pytest.mark.parametrize("model_name", ["lgbm_seed1", "lgbm_extra_cat", "extra_trees"])
+    def test_runs_end_to_end(self, model_name, monkeypatch):
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 2)
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame({"a": rng.integers(0, 3, 80).astype(float), "b": rng.normal(size=80)})
+        y = (X.a + rng.normal(size=80) > 1).astype(int).to_numpy()
+        scores, *_ = run_nested_cv(X, y, model_name, cat_cols=[])
+        assert np.all(np.isfinite(scores))
+
+    def test_seed1_samples_other_trials(self, monkeypatch):
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 2)
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame(rng.normal(size=(80, 2)), columns=["a", "b"])
+        y = (X.a > 0).astype(int).to_numpy()
+        base = run_nested_cv(X, y, "lgbm", cat_cols=[])[3]
+        assert run_nested_cv(X, y, "lgbm_seed1", cat_cols=[])[3] != base
+
+
 class TestStudyStorage:
     """Stored studies resume a cut-off run; they must not change an uninterrupted one."""
 
