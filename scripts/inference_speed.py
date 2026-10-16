@@ -18,14 +18,12 @@ import warnings
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.base import clone
 from sklearn.model_selection import StratifiedKFold
 
 from benchmark.checkpoints import ckpt_path
 from benchmark.data import datasets_to_run, load_data_df
-from benchmark.models.build import build_final_model
-from benchmark.models.grid_search import GRID_SEARCH_MODELS, build_grid_search
-from config import MAX_DATASET_ROWS, N_INNER_FOLDS, N_OUTER_FOLDS, RANDOM_STATE
+from benchmark.models.registry import build_final_model
+from config import N_OUTER_FOLDS, RANDOM_STATE
 
 warnings.filterwarnings("ignore")
 
@@ -42,11 +40,7 @@ OUTPUT = "results/inference_speed.csv"
 
 
 def rebuild(model_name, best_params, n_classes, cat_cols, device):
-    if model_name in GRID_SEARCH_MODELS:
-        inner_cv = StratifiedKFold(n_splits=N_INNER_FOLDS, shuffle=True, random_state=RANDOM_STATE)
-        model = clone(build_grid_search(model_name, inner_cv, cat_cols).estimator).set_params(**best_params)
-    else:
-        model = build_final_model(model_name, best_params, n_classes, cat_cols)
+    model = build_final_model(model_name, best_params, n_classes, cat_cols)
     return model.set_params(device=device) if device else model
 
 
@@ -73,9 +67,6 @@ if __name__ == "__main__":
     rows = []
     for dataset in datasets:
         X, y, cat_cols = load_data_df(dataset)
-        if len(X) > MAX_DATASET_ROWS:
-            idx = np.random.default_rng(RANDOM_STATE).choice(len(X), MAX_DATASET_ROWS, replace=False)
-            X, y = X.iloc[idx].reset_index(drop=True), y[idx]
         n_classes = int(np.unique(y).size)
         folds = list(StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True,
                                      random_state=RANDOM_STATE).split(X, y))

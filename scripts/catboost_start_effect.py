@@ -21,8 +21,8 @@ from sklearn.model_selection import StratifiedKFold
 from benchmark.calibration import brier_score, confidence_gap, expected_calibration_error
 from benchmark.data import load_data_df
 from benchmark.metrics import pr_auc_score
-from benchmark.models.build import build_final_model
-from config import MAX_DATASET_ROWS, N_OUTER_FOLDS, RANDOM_STATE
+from benchmark.models.registry import build_final_model
+from config import N_OUTER_FOLDS, RANDOM_STATE
 
 CHECKPOINT = sys.argv[1] if len(sys.argv) > 1 else "results/ckpt/catboost.joblib.bak-uniform-start"
 THREADS = 4  # CatBoost's result does not depend on the thread count
@@ -33,9 +33,6 @@ stored = joblib.load(CHECKPOINT)
 rows = []
 for dataset in pd.read_csv("results/calibration_datasets.csv")["dataset"]:
     X, y, cat_cols = load_data_df(dataset)
-    if len(X) > MAX_DATASET_ROWS:
-        idx = np.random.default_rng(RANDOM_STATE).choice(len(X), MAX_DATASET_ROWS, replace=False)
-        X, y = X.iloc[idx].reset_index(drop=True), y[idx]
     n_classes = int(np.unique(y).size)
     folds = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=RANDOM_STATE).split(X, y)
     preds, labels, reproduced = {False: [], True: []}, [], 0.0

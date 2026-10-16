@@ -96,7 +96,7 @@ if __name__ == "__main__":
         if dataset_name in DUPLICATE_DATASETS:
             continue
         if dataset_name not in done_set:
-            X, y = load_data(dataset_name)
+            X, y = load_data(dataset_name, subsample=False)
             # too few samples per class to stratify
             if len(y) > 0 and np.sum(pd.Series(y).value_counts() <= 15) == 0:
                 rng = np.random.default_rng(RANDOM_STATE)

@@ -8,7 +8,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from benchmark.encoding import CatFeaturesEncoder, TabICLNativeWrapper, TabPFNNativeWrapper
+from benchmark.encoding import CatFeaturesEncoder
+from benchmark.models.wrappers import TabICLNativeWrapper, TabPFNNativeWrapper
 from benchmark.metrics import PR_AUC_SCORER
 from config import N_JOBS, RANDOM_STATE
 

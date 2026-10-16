@@ -36,3 +36,10 @@ DUPLICATE_DATASETS = frozenset({
 # Datasets where even the weakest model clears this are dropped from the
 # figures: they rank the whole field on noise in the fourth decimal.
 TRIVIAL_PR_AUC = 0.99
+
+# When each foundation model's weights became public. A dataset first published
+# after that date is a clean test of the model: it cannot have been seen or tuned on.
+FOUNDATION_MODEL_RELEASES = {
+    "tabicl": "2026-02-12", "tabpfn3": "2026-05-05", "tabfm": "2026-06-29",
+    "tabpfn35": "2026-09-09", "tabpfn35fast": "2026-09-09",
+}
