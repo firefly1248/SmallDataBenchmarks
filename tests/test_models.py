@@ -13,7 +13,8 @@ from benchmark.models.grid_search import (
     build_grid_search,
 )
 from benchmark import nested_cv
-from benchmark.nested_cv import _MODEL_LIMITS, run_nested_cv
+from benchmark.models.registry import MODELS
+from benchmark.nested_cv import run_nested_cv
 
 
 class TestBuildGridSearch:
@@ -118,9 +119,9 @@ class TestModelLimits:
 
     def test_class_limit_is_tabfm_only(self):
         """TabPFN-3 lifted the 10-class cap, and TabICL never had one."""
-        assert _MODEL_LIMITS["tabfm"]["max_classes"] == 10
-        assert "max_classes" not in _MODEL_LIMITS["tabicl"]
-        assert "tabpfn3" not in _MODEL_LIMITS
+        assert MODELS["tabfm"].limits["max_classes"] == 10
+        assert "max_classes" not in MODELS["tabicl"].limits
+        assert MODELS["tabpfn3"].limits == {}
 
 
 class TestLgbmExtraControls:
@@ -131,7 +132,7 @@ class TestLgbmExtraControls:
         ("lgbm_extra_2000", True, None), ("lgbm_onehot", False, "onehot"),
         ("lgbm_extra_cat", True, "category"), ("lgbm_linear", False, None)])
     def test_build_routes_variant(self, model_name, extra, encoder):
-        from benchmark.models.build import build_final_model
+        from benchmark.models.registry import build_final_model
         pipe = build_final_model(model_name, {}, 2, [])
         assert pipe.named_steps["lgbm"].extra_trees is extra
         assert pipe.named_steps["lgbm"].linear_tree is (model_name == "lgbm_linear")
@@ -205,3 +206,105 @@ class TestStudyStorage:
         nested_cv.drop_studies("sgd", "d")
         names = optuna.study.get_all_study_names(nested_cv._storage("sgd"))
         assert sorted(names) == [f"e/fold{fold}" for fold in range(4)]
+
+
+class TestRunPrefix:
+    """A named run keeps its checkpoints and studies apart from the default ones."""
+
+    def test_paths(self):
+        from benchmark.checkpoints import ckpt_path
+        assert ckpt_path("lgbm") == "results/ckpt/lgbm.joblib"
+        assert ckpt_path("lgbm", "split1") == "results/ckpt/split1/lgbm.joblib"
+        assert nested_cv._storage("lgbm", "split1").endswith("/split1/lgbm.db")
+
+    def test_split_seed_changes_the_outer_split(self, monkeypatch):
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 2)
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame(rng.normal(size=(80, 2)), columns=["a", "b"])
+        y = (X.a > 0).astype(int).to_numpy()
+        default = run_nested_cv(X, y, "sgd", cat_cols=[])
+        other = run_nested_cv(X, y, "sgd", cat_cols=[], split_seed=1)
+        assert any(not np.array_equal(a, b) for a, b in zip(default[2], other[2]))
+
+    def test_named_run_keeps_its_own_checkpoints_and_studies(self, tmp_path, monkeypatch):
+        from benchmark import checkpoints
+        monkeypatch.setattr(checkpoints, "CKPT_DIR", str(tmp_path / "ckpt"))
+        monkeypatch.setattr(nested_cv, "STUDY_DIR", str(tmp_path / "optuna"))
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 2)
+        for run in ("", "split1"):
+            (tmp_path / "ckpt" / run).mkdir(parents=True, exist_ok=True)
+            (tmp_path / "ckpt" / run / "sgd.joblib").write_bytes(b"")
+        assert checkpoints.available_models() == ["sgd"]
+        assert checkpoints.available_models("split1") == ["sgd"]
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame(rng.normal(size=(40, 2)), columns=["a", "b"])
+        y = (X.a > 0).astype(int).to_numpy()
+        run_nested_cv(X, y, "sgd", cat_cols=[], dataset_name="d")
+        run_nested_cv(X, y, "sgd", cat_cols=[], dataset_name="d", split_seed=1, run="split1")
+        nested_cv.drop_studies("sgd", "d", run="split1")
+        assert optuna.study.get_all_study_names(nested_cv._storage("sgd", "split1")) == []
+        assert len(optuna.study.get_all_study_names(nested_cv._storage("sgd"))) == 4
+
+
+class TestRegistry:
+    """Every key resolves to what the runner did before the registry existed."""
+
+    # objective function, its bound keywords, limits, n_trials, sampler seed; None = GridSearch
+    EXPECTED = {
+        "svc": None, "logreg": None, "tabpfn3": None, "tabpfn35": None, "tabpfn35fast": None,
+        "tabicl": None, "tabfm": None,
+        "random_forest": ("rf_objective", {}), "extra_trees": ("rf_objective", {"forest": "ExtraTreesClassifier"}),
+        "xgboost": ("xgb_objective", {}), "sgd": ("sgd_objective", {}), "catboost": ("catboost_objective", {}),
+        "lgbm": ("lgbm_objective", {"scoring": "PR", "max_trees": 500}),
+        "lgbm_linear": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "linear_tree": True}),
+        "lgbm_extra": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True}),
+        "hgb": ("hgb_objective", {}),
+        "xgboost_logloss": ("xgb_objective", {"scoring": "LL"}),
+        "catboost_logloss": ("catboost_objective", {"scoring": "LL"}),
+        "lgbm_logloss": ("lgbm_objective", {"scoring": "LL", "max_trees": 500}),
+        "lgbm_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500}),
+        "lgbm_2000": ("lgbm_objective", {"scoring": "PR", "max_trees": 2000}),
+        "lgbm_extra_2000": ("lgbm_objective", {"scoring": "PR", "max_trees": 2000, "extra_trees": True}),
+        "lgbm_onehot": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "low_levels": "onehot"}),
+        "lgbm_cat": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "low_levels": "category"}),
+        "lgbm_extra_onehot": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True,
+                                                 "low_levels": "onehot"}),
+        "lgbm_extra_cat": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True,
+                                              "low_levels": "category"}),
+        "tabnet": ("tabnet_objective", {}), "ft_transformer": ("ft_transformer_objective", {}),
+        "resnet": ("resnet_objective", {}),
+    }
+
+    @staticmethod
+    def _keywords(objective):
+        from functools import partial
+        from benchmark.metrics import LOG_LOSS_SCORER, PR_AUC_SCORER
+        kw = dict(objective.keywords) if isinstance(objective, partial) else {}
+        for k, v in kw.items():
+            kw[k] = ("PR" if v is PR_AUC_SCORER else "LL" if v is LOG_LOSS_SCORER
+                     else v.__name__ if isinstance(v, type) else v)
+        return kw
+
+    def test_keys_and_tuners(self):
+        assert list(MODELS) == list(self.EXPECTED)
+        assert GRID_SEARCH_MODELS == {k for k, s in MODELS.items() if s.grid is not None}
+        assert [k for k, s in MODELS.items() if s.grid is None and s.objective is None] == ["tabfm"]
+
+    @pytest.mark.parametrize("key", [k for k, v in EXPECTED.items() if v is not None])
+    def test_objective_binding(self, key):
+        from functools import partial
+        spec = MODELS[key]
+        name, keywords = self.EXPECTED[key]
+        objective = spec.objective.func if isinstance(spec.objective, partial) else spec.objective
+        assert objective.__name__ == name
+        assert self._keywords(spec.objective) == keywords
+        assert spec.sampler_seed == (1 if key == "lgbm_seed1" else 0)
+        assert (spec.n_trials is None) == (key not in ("tabnet", "ft_transformer", "resnet"))
+
+    def test_limits(self):
+        assert {k: s.limits for k, s in MODELS.items() if s.limits} == {
+            "tabicl": {"max_features": 500}, "tabfm": {"max_features": 500, "max_classes": 10}}
+
+    def test_labels_are_registered(self):
+        from benchmark.plots import MODEL_LABELS
+        assert set(MODEL_LABELS) <= set(MODELS)

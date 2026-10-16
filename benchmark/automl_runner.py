@@ -14,7 +14,7 @@ import numpy as np
 
 from benchmark.checkpoints import atomic_dump
 from benchmark.data import load_data
-from config import DUPLICATE_DATASETS, MAX_DATASET_ROWS, RANDOM_STATE
+from config import DUPLICATE_DATASETS
 
 
 def _load_checkpoint(
@@ -78,11 +78,6 @@ def run_automl_benchmark(
         X, y = load_data(dataset_name)
         if len(y) == 0:
             continue
-
-        rng = np.random.default_rng(RANDOM_STATE)
-        if len(y) > MAX_DATASET_ROWS:
-            idx = rng.choice(len(y), MAX_DATASET_ROWS, replace=False)
-            X, y = X[idx], y[idx]
 
         print(f"[{i+1}/{n_total}] {dataset_name}  shape={X.shape}")
         start = time.time()

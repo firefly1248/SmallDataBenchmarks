@@ -10,16 +10,14 @@ import numpy as np
 import pandas as pd
 
 from benchmark.data import evaluated_datasets, load_data_df
-from config import DUPLICATE_DATASETS, MAX_DATASET_ROWS, RANDOM_STATE
+from config import DUPLICATE_DATASETS
 
 OUTPUT = "results/datasets.csv"
 
 rows = []
 for name in evaluated_datasets():
     X, y, cat_cols = load_data_df(name)
-    n_original = len(y)
-    if n_original > MAX_DATASET_ROWS:
-        y = y[np.random.default_rng(RANDOM_STATE).choice(n_original, MAX_DATASET_ROWS, replace=False)]
+    n_original = len(load_data_df(name, subsample=False)[1])
     counts = np.bincount(y)
     rows.append(dict(dataset=name, n_rows=len(y), n_rows_original=n_original,
                      n_features=X.shape[1], n_categorical=len(cat_cols),

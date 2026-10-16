@@ -22,8 +22,8 @@ from sklearn.model_selection import StratifiedKFold
 
 from benchmark.checkpoints import ckpt_path
 from benchmark.data import load_data_df
-from benchmark.models.build import build_final_model
-from config import INNER_FIT_THREADS, MAX_DATASET_ROWS, N_OUTER_FOLDS, RANDOM_STATE
+from benchmark.models.registry import build_final_model
+from config import INNER_FIT_THREADS, N_OUTER_FOLDS, RANDOM_STATE
 
 FOLD = int(sys.argv[1]) if len(sys.argv) > 1 else 0
 OUTPUT = "results/catboost_fit_time.csv"
@@ -34,9 +34,6 @@ datasets = sys.argv[2:] or sorted(d for d in new if d in old and np.isfinite(new
 rows = []
 for dataset in datasets:
     X, y, cat_cols = load_data_df(dataset)
-    if len(X) > MAX_DATASET_ROWS:
-        idx = np.random.default_rng(RANDOM_STATE).choice(len(X), MAX_DATASET_ROWS, replace=False)
-        X, y = X.iloc[idx].reset_index(drop=True), y[idx]
     train = list(StratifiedKFold(N_OUTER_FOLDS, shuffle=True, random_state=RANDOM_STATE).split(X, y))[FOLD][0]
     X_train, y_train = X.iloc[train].reset_index(drop=True), y[train]
     p_old, p_new = old[dataset]["best_params"][FOLD], new[dataset]["best_params"][FOLD]

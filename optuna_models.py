@@ -37,8 +37,9 @@ from benchmark.checkpoints import (
     CKPT_DIR, atomic_dump, available_models, ckpt_path, load_by_model,
 )
 from benchmark.data import datasets_to_run, evaluated_datasets, load_data_df
+from benchmark.models.registry import MODELS
 from benchmark.nested_cv import STUDY_DIR, drop_studies, run_nested_cv
-from config import RANDOM_STATE, N_OUTER_FOLDS, MAX_DATASET_ROWS, MODELS_TO_RUN
+from config import RANDOM_STATE, N_OUTER_FOLDS, MODELS_TO_RUN
 
 warnings.filterwarnings("ignore")
 
@@ -46,13 +47,7 @@ warnings.filterwarnings("ignore")
 FINAL_OUTPUT = "results/optuna_models.joblib"
 
 if __name__ == "__main__":
-    ALL_MODELS = ["svc", "logreg", "tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl", "tabfm",
-                  "random_forest", "extra_trees", "xgboost", "sgd",
-                  "catboost", "lgbm", "lgbm_linear", "lgbm_extra", "hgb",
-                  "xgboost_logloss", "catboost_logloss", "lgbm_logloss",
-                  "lgbm_seed1", "lgbm_2000", "lgbm_extra_2000", "lgbm_onehot", "lgbm_cat",
-                  "lgbm_extra_onehot", "lgbm_extra_cat",
-                  "tabnet", "ft_transformer", "resnet"]
+    ALL_MODELS = list(MODELS)
 
     parser = argparse.ArgumentParser(description="Optuna nested CV benchmark")
     group = parser.add_mutually_exclusive_group()
@@ -62,7 +57,17 @@ if __name__ == "__main__":
                        help="Run all models except these")
     parser.add_argument("--datasets", nargs="+", metavar="DATASET",
                         help="Run only these datasets, in this order (default: all)")
+    parser.add_argument("--collection", default="uci++", choices=["uci++", "post-release"],
+                        help="Which dataset list to run (default: uci++)")
+    parser.add_argument("--run", default="", metavar="NAME",
+                        help="Keep checkpoints and studies under results/ckpt/NAME, out of the "
+                             "published aggregate (other split seeds, external datasets)")
+    parser.add_argument("--split-seed", type=int, default=RANDOM_STATE,
+                        help="Seed of the outer split only (default: RANDOM_STATE)")
     args = parser.parse_args()
+    # Another split or collection never lands in the default checkpoints and aggregate.
+    args.run = args.run or ("post-release" if args.collection == "post-release"
+                            else f"split{args.split_seed}" if args.split_seed != RANDOM_STATE else "")
 
     if args.models:
         MODEL_NAMES = [m for m in ALL_MODELS if m in args.models]
@@ -75,10 +80,10 @@ if __name__ == "__main__":
 
     print(f"Models to run: {MODEL_NAMES}")
 
-    os.makedirs(CKPT_DIR, exist_ok=True)
+    os.makedirs(os.path.join(CKPT_DIR, args.run), exist_ok=True)
     # The work loop skips the UCI++ duplicates; the aggregate below still spans
     # every dataset, so the scores already stored for them stay published.
-    run_datasets = datasets_to_run()
+    run_datasets = datasets_to_run(args.collection)
     if args.datasets:
         unknown = set(args.datasets) - set(run_datasets)
         if unknown:
@@ -86,13 +91,13 @@ if __name__ == "__main__":
         run_datasets = args.datasets
     all_datasets = evaluated_datasets()
 
-    ckpt = load_by_model(MODEL_NAMES)
+    ckpt = load_by_model(MODEL_NAMES, args.run)
     for model_name in MODEL_NAMES:
         done = sum(1 for d in run_datasets if d in ckpt[model_name])
         print(f"  {model_name:16s} {done}/{len(run_datasets)} done")
 
     def save_checkpoint(model_name):
-        atomic_dump(ckpt[model_name], ckpt_path(model_name))
+        atomic_dump(ckpt[model_name], ckpt_path(model_name, args.run))
 
     # Consecutive failures mean the model is broken, not the data. Without this
     # the run marks all 146 pairs done as NaN, undone only by checkpoint surgery.
@@ -109,12 +114,6 @@ if __name__ == "__main__":
         if len(y) == 0:
             continue
 
-        rng = np.random.default_rng(RANDOM_STATE)
-        if len(X) > MAX_DATASET_ROWS:
-            random_idx = rng.choice(len(X), MAX_DATASET_ROWS, replace=False)
-            X = X.iloc[random_idx].reset_index(drop=True)
-            y = y[random_idx]
-
         print(f"\n[{i+1}/{len(run_datasets)}] {dataset_name}  "
               f"shape={X.shape}  cat_cols={len(cat_cols)}")
 
@@ -124,7 +123,8 @@ if __name__ == "__main__":
             signal.signal(signal.SIGALRM, _alarm_handler)
             signal.alarm(DATASET_TIMEOUT)
             try:
-                scores, preds, labels, best_params = run_nested_cv(X, y, model_name, cat_cols, dataset_name)
+                scores, preds, labels, best_params = run_nested_cv(
+                    X, y, model_name, cat_cols, dataset_name, args.split_seed, args.run)
             except _DatasetTimeout:
                 print(f"  {model_name}: TIMEOUT after {DATASET_TIMEOUT // 3600}h")
                 scores = [np.nan] * N_OUTER_FOLDS
@@ -155,18 +155,23 @@ if __name__ == "__main__":
             save_checkpoint(model_name)
             # A timeout or error keeps its trials, so the rerun resumes them.
             if not failed:
-                drop_studies(model_name, dataset_name)
+                drop_studies(model_name, dataset_name, args.run)
             if consecutive_failures[model_name] >= MAX_CONSECUTIVE_FAILURES:
                 sys.exit(f"\n{model_name} produced no result on "
                          f"{MAX_CONSECUTIVE_FAILURES} datasets in a row — "
                          f"stopping before it NaNs the whole benchmark. "
                          f"Fix the cause, drop those datasets from "
-                         f"{ckpt_path(model_name)}, delete their trials in "
-                         f"{STUDY_DIR}/{model_name}.db, and rerun.")
+                         f"{ckpt_path(model_name, args.run)}, delete their trials in "
+                         f"{os.path.join(STUDY_DIR, args.run, model_name)}.db, and rerun.")
 
+    # The aggregate is the published UCI++ result at the default split; a named run
+    # ends at its checkpoints.
+    if args.run:
+        print(f"\nDone. Checkpoints in {os.path.join(CKPT_DIR, args.run)}")
+        sys.exit(0)
     # Dump every model with a checkpoint, not just this run's, or --models X
     # overwrites the file with X alone. NaN-pad missing datasets so the arrays
-    # stay aligned with all_datasets, which figures.ipynb reads positionally.
+    # stay aligned with all_datasets.
     output_models = available_models()
     # This run's models are already in ckpt; reloading them would hold a second
     # copy of every stored prediction.

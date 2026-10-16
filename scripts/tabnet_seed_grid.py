@@ -20,8 +20,8 @@ from benchmark.checkpoints import ckpt_path
 from benchmark.data import load_data_df
 from benchmark.metrics import pr_auc_score
 from benchmark.models import torch_wrappers
-from benchmark.models.build import build_final_model
-from config import MAX_DATASET_ROWS, N_OUTER_FOLDS, RANDOM_STATE
+from benchmark.models.registry import build_final_model
+from config import N_OUTER_FOLDS, RANDOM_STATE
 
 N_SEEDS = int(sys.argv[1]) if len(sys.argv) > 1 else 5
 DATASETS = sys.argv[2:] or ["abalone-3class", "volcanoes-a3"]
@@ -31,9 +31,6 @@ stored = joblib.load(ckpt_path("tabnet"))
 rows = []
 for dataset in DATASETS:
     X, y, cat_cols = load_data_df(dataset)
-    if len(X) > MAX_DATASET_ROWS:
-        idx = np.random.default_rng(RANDOM_STATE).choice(len(X), MAX_DATASET_ROWS, replace=False)
-        X, y = X.iloc[idx].reset_index(drop=True), y[idx]
     n_classes = int(np.unique(y).size)
     folds = StratifiedKFold(N_OUTER_FOLDS, shuffle=True, random_state=RANDOM_STATE).split(X, y)
     for fold, (train, test) in enumerate(folds):

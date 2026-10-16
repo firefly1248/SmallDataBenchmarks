@@ -1,4 +1,5 @@
-"""Optuna hyperparameter search objectives for each model."""
+"""Optuna search objectives, all ``(trial, X_train, y_train, inner_cv, n_classes, cat_cols)``
+plus the keyword arguments the registry binds for a variant."""
 from __future__ import annotations
 
 import numpy as np
@@ -9,17 +10,17 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
 from benchmark.encoding import (
-    CAT_STRATEGIES_LINEAR, CAT_STRATEGY_TREE,
-    CatBoostNativeWrapper, CatFeaturesEncoder,
-    IMPUTER_STRATEGIES, SCALERS_LIST,
-    _build_imputer, _build_scaler,
+    CAT_STRATEGIES_LINEAR, CAT_STRATEGY_TREE, CatFeaturesEncoder,
+    IMPUTER_STRATEGIES, SCALERS_LIST, _build_imputer, _build_scaler,
 )
 from benchmark.metrics import PR_AUC_SCORER
-from benchmark.models.build import lgbm_pipeline
+from benchmark.models.build import build_lgbm
+from benchmark.models.wrappers import CatBoostNativeWrapper
 from config import INNER_FIT_THREADS, N_INNER_FOLDS, N_JOBS, RANDOM_STATE
 
 
-def rf_objective(trial, X_train, y_train, inner_cv, forest=RandomForestClassifier) -> float:
+def rf_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
+                 forest=RandomForestClassifier) -> float:
     params = {
         "n_estimators":      trial.suggest_int("n_estimators", 50, 500),
         "max_depth":         trial.suggest_int("max_depth", 2, 32),
@@ -36,7 +37,7 @@ def rf_objective(trial, X_train, y_train, inner_cv, forest=RandomForestClassifie
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
-def xgb_objective(trial, X_train, y_train, inner_cv, n_classes: int,
+def xgb_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
                   scoring=PR_AUC_SCORER) -> float:
     params = {
         "learning_rate":    trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
@@ -59,7 +60,7 @@ def xgb_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                                          cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))
 
 
-def sgd_objective(trial, X_train, y_train, inner_cv) -> float:
+def sgd_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> float:
     cat_strategy = trial.suggest_categorical("cat_strategy", CAT_STRATEGIES_LINEAR)
     imputer_strategy = trial.suggest_categorical("imputer", IMPUTER_STRATEGIES)
     scaler_name = trial.suggest_categorical("scaler", SCALERS_LIST)
@@ -88,8 +89,8 @@ def sgd_objective(trial, X_train, y_train, inner_cv) -> float:
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
-def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
-                       cat_cols: list[str], scoring=PR_AUC_SCORER) -> float:
+def catboost_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
+                       scoring=PR_AUC_SCORER) -> float:
     params = {
         "learning_rate":      trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
         "depth":              trial.suggest_int("depth", 2, 10),
@@ -110,7 +111,7 @@ def catboost_objective(trial, X_train, y_train, inner_cv, n_classes: int,
                                          cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))
 
 
-def tabnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> float:
+def tabnet_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> float:
     from benchmark.models.torch_wrappers import TabNetNativeWrapper
     params = {
         "n_d":           trial.suggest_int("n_d", 8, 64, step=8),
@@ -131,8 +132,7 @@ def tabnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> 
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=n_jobs)))
 
 
-def ft_transformer_objective(trial, X_train, y_train, inner_cv,
-                              cat_cols: list[str]) -> float:
+def ft_transformer_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> float:
     from benchmark.models.torch_wrappers import FTTransformerWrapper
     d_token = trial.suggest_categorical("d_token", [64, 96, 128, 192, 256])
     params = {
@@ -150,7 +150,7 @@ def ft_transformer_objective(trial, X_train, y_train, inner_cv,
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
 
 
-def resnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> float:
+def resnet_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> float:
     from benchmark.models.torch_wrappers import ResNetWrapper
     params = {
         "n_blocks":        trial.suggest_int("n_blocks", 1, 8),
@@ -166,7 +166,7 @@ def resnet_objective(trial, X_train, y_train, inner_cv, cat_cols: list[str]) -> 
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
 
 
-def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
+def hgb_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> float:
     params = {
         "learning_rate":     trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
         "max_iter":          trial.suggest_int("max_iter", 50, 500),
@@ -185,10 +185,9 @@ def hgb_objective(trial, X_train, y_train, inner_cv) -> float:
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
 
 
-def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
-                   linear_tree: bool = False, extra_trees: bool = False,
-                   scoring=PR_AUC_SCORER, max_trees: int = 500,
-                   low_levels: str | None = None) -> float:
+def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
+                   linear_tree=False, extra_trees=False, low_levels=None,
+                   scoring=PR_AUC_SCORER, max_trees=500) -> float:
     max_leaves = 128 if linear_tree else 256
     max_child  = 50  if linear_tree else 100
     params = {
@@ -204,7 +203,7 @@ def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes: int,
     }
     if linear_tree:
         params["linear_lambda"] = trial.suggest_float("linear_lambda", 1e-4, 10.0, log=True)
-    model = lgbm_pipeline(params, n_classes, n_jobs=1, linear_tree=linear_tree,
-                          extra_trees=extra_trees, low_levels=low_levels)
+    model = build_lgbm(params, n_classes, cat_cols, linear_tree=linear_tree,
+                       extra_trees=extra_trees, low_levels=low_levels, n_jobs=1)
     return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))

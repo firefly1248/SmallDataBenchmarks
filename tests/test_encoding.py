@@ -1,4 +1,4 @@
-"""Tests for benchmark.encoding (CatFeaturesEncoder and the native wrappers)."""
+"""Tests for benchmark.encoding and benchmark.models.wrappers."""
 from __future__ import annotations
 
 import numpy as np
@@ -10,12 +10,10 @@ from sklearn.base import clone, is_classifier
 from benchmark.encoding import (
     CAT_STRATEGIES_LINEAR,
     CAT_STRATEGY_TREE,
-    CatBoostNativeWrapper,
     CatFeaturesEncoder,
     LowLevelEncoder,
-    TabFMNativeWrapper,
-    TabPFNNativeWrapper,
 )
+from benchmark.models.wrappers import CatBoostNativeWrapper, TabFMNativeWrapper, TabPFNNativeWrapper
 
 
 class TestCatFeaturesEncoderNumericPassthrough:

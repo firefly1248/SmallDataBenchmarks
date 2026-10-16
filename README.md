@@ -10,7 +10,7 @@ uv sync
 
 ## Experiments
 
-Results are produced in `figures.ipynb` (all models including AutoML) and `figures_no_automl.ipynb` (non-AutoML models only). Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which, unlike ROC AUC, is not inflated by a large majority class. Differences between models are tested with Friedman followed by pairwise Wilcoxon signed-rank with Holm correction, one dataset per observation. Calibration is reported separately as Brier score and top-label ECE, since PR AUC scores ranking only.
+Results are produced in `figures.ipynb`; run `scripts/calibration_repairs.py` first, the notebook reads the calibration population and the per-dataset repairs it writes. Each benchmark uses nested cross-validation (4-fold outer × 4-fold inner) with stratified random splits and fixed seeds. The evaluation metric is **PR AUC** (weighted average precision, OvR), which, unlike ROC AUC, is not inflated by a large majority class. Differences between models are tested with Friedman followed by pairwise Wilcoxon signed-rank with Holm correction, one dataset per observation. Calibration is reported separately as Brier score and top-label ECE, since PR AUC scores ranking only.
 
 | Script | Description |
 |---|---|
@@ -79,7 +79,7 @@ The ranking has a clear top, and cost does not follow it.
 
 **The classical models are nearly interchangeable.** Over the same 131 datasets: CatBoost 0.8342, LightGBM-linear 0.8339, Random Forest 0.8320, LightGBM 0.8306, XGBoost 0.8282, HistGradientBoosting 0.8262 — the whole block spans 0.008. The test puts CatBoost above HistGradientBoosting (Holm p = 0.003) and ties it with LightGBM-linear, LightGBM, XGBoost and Random Forest; the 0.0014 gap over Random Forest, won on 71 of 108, clears the raw test (p = 0.003) but not the correction (Holm p = 0.13). Random Forest gets 0.8320 for 7.1 hours; CatBoost gets +0.002 more for 116.4. LightGBM-linear, level with CatBoost, costs explainability instead: LightGBM 4.6 has no TreeSHAP for linear trees, which leaves only approximate model-agnostic methods.
 
-Coverage differs by model, and the means and hours above are each over a model's own datasets — 146 for the models that predate the duplicate skip, 131 for CatBoost and the two TabPFN-3.5 variants, fewer where a foundation model refuses a dataset. Where two models are compared on cost, both numbers are over the same 131. Of the 131 datasets a run now covers, 111 are scored by every model; the rest are refused by one foundation model or another on feature or class limits. Every figure below uses complete cases only and states its own `n`. The rank distribution is drawn without the two AutoML models and with both the tuned and the untuned entries of SVC, LogReg and Random Forest, while the critical-difference diagram includes AutoML and drops the untuned duplicates (108 datasets, 18 entries). Reconciling the two is [open work](#known-gaps).
+Coverage differs by model, and the means and hours above are each over a model's own datasets — 146 for the models that predate the duplicate skip, 131 for CatBoost and the two TabPFN-3.5 variants, fewer where a foundation model refuses a dataset. Where two models are compared on cost, both numbers are over the same 131. Of the 131 datasets a run now covers, 111 are scored by every model; the rest are refused by one foundation model or another on feature or class limits. Every figure below uses complete cases only and states its own `n`. The rank distribution is drawn without the two AutoML models and with both the tuned and the untuned entries of SVC, LogReg and Random Forest, while the critical-difference diagram includes AutoML and drops the untuned duplicates (108 datasets, 18 entries).
 
 ## Results
 
@@ -137,7 +137,6 @@ Method defects found and fixed during this iteration, including two that had pro
 
 ### Known gaps
 
-- The figures are rendered by two notebooks over different model sets, so `rank_distribution.png` (no AutoML, 19 entries) and `critical_difference.png` (AutoML, 18 entries) rank the same 108 datasets out of different fields. The dataset filters, the threshold and the model labels are now shared constants, but the load-and-reshape block is still copied; one loader owning it would remove the mismatch.
 - The ~10 % of compute already spent on the duplicate datasets is spent. The runners skip them now, which only helps a future run.
 
 ### Note on AutoGluon operational complexity

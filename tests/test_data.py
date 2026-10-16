@@ -81,3 +81,63 @@ class TestLoadDataDf:
     def test_no_class_column_in_X(self):
         X, _, _ = load_data_df("abalone-3class")
         assert "Class" not in X.columns
+
+
+class TestExternalDatasets:
+    @pytest.fixture
+    def external(self, tmp_path):
+        (tmp_path / "external").mkdir()
+        pd.DataFrame({"id": [1, 2, 3, 4], "code": [1, 2, 1, 2], "x": [0.1, 0.2, 0.3, 0.4],
+                      "note": ["a", "b", "a", "b"], "outcome": ["no", "yes", "no", "yes"]}
+                     ).to_csv(tmp_path / "external" / "survey.csv", index=False)
+        pd.DataFrame([{"dataset": "survey", "source": "test", "url": "", "first_public": "2026-10-01",
+                       "target": "outcome", "positive": "yes", "drop_columns": "id;note",
+                       "categorical": "code", "license": "CC0"}]).to_csv(tmp_path / "external.csv", index=False)
+        return str(tmp_path)
+
+    def test_target_drops_and_categoricals(self, external):
+        X, y, cat_cols = load_data_df("survey", datasets_dir=external)
+        assert list(X.columns) == ["code", "x"]
+        assert cat_cols == ["code"]
+        assert y.tolist() == [0, 1, 0, 1]
+
+    def test_positive_class_becomes_one(self, external):
+        # "no" < "yes" already puts the positive last; flip the names to test the swap.
+        df = pd.read_csv(f"{external}/external.csv")
+        df["positive"] = "no"
+        df.to_csv(f"{external}/external.csv", index=False)
+        _, y, _ = load_data_df("survey", datasets_dir=external)
+        assert y.tolist() == [1, 0, 1, 0]
+
+    def test_unknown_positive_raises(self, external):
+        df = pd.read_csv(f"{external}/external.csv")
+        df["positive"] = "yess"
+        df.to_csv(f"{external}/external.csv", index=False)
+        with pytest.raises(ValueError):
+            load_data_df("survey", datasets_dir=external)
+
+    def test_onehot_view_matches(self, external):
+        X, y = load_data("survey", datasets_dir=external)
+        assert X.shape == (4, 3)  # x plus one-hot code
+        assert y.tolist() == [0, 1, 0, 1]
+
+    def test_listed_for_the_post_release_collection(self, external, monkeypatch):
+        from benchmark import data
+        listed = data.external_datasets(external)
+        monkeypatch.setattr(data, "external_datasets", lambda datasets_dir="datasets": listed)
+        assert data.datasets_to_run("post-release") == ["survey"]
+
+
+class TestSubsample:
+    def test_loader_draws_the_runners_rows(self, tmp_path):
+        from config import MAX_DATASET_ROWS, RANDOM_STATE
+        n = MAX_DATASET_ROWS + 500
+        (tmp_path / "external").mkdir()
+        pd.DataFrame({"x": np.arange(n), "y": np.arange(n) % 2}).to_csv(tmp_path / "external" / "big.csv", index=False)
+        pd.DataFrame([{"dataset": "big", "source": "", "url": "", "first_public": "", "target": "y",
+                       "positive": "", "drop_columns": "", "categorical": "", "license": ""}]
+                     ).to_csv(tmp_path / "external.csv", index=False)
+        X, y, _ = load_data_df("big", datasets_dir=str(tmp_path))
+        idx = np.random.default_rng(RANDOM_STATE).choice(n, MAX_DATASET_ROWS, replace=False)
+        assert X["x"].tolist() == idx.tolist()
+        assert len(load_data_df("big", datasets_dir=str(tmp_path), subsample=False)[0]) == n

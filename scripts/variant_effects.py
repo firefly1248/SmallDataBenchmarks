@@ -1,10 +1,10 @@
 """Variants of published models, each against the run it varies: the boosters tuned on log
-loss instead of PR AUC, LightGBM with Extra Trees splits, and the AutoGluon re-run with nothing
-excluded and Ray against the published run.
+loss instead of PR AUC, LightGBM with Extra Trees splits, and the AutoGluon re-run with
+nothing excluded and Ray against the published run.
 
-PR AUC is compared over every dataset both runs score, calibration over the 108 datasets the
-calibration table uses. The four tuning variants share one Holm family; the AutoGluon re-run
-is a single test.
+PR AUC is compared over every dataset both runs score, calibration over the 108 datasets
+the calibration table uses. The four tuning variants share one Holm family; the
+AutoGluon re-run is a single test.
 
 Usage: uv run python -m scripts.variant_effects
 """
@@ -13,70 +13,29 @@ import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
 
-from benchmark.calibration import brier_score, confidence_gap, expected_calibration_error
 from benchmark.checkpoints import ckpt_path
+from benchmark.results import CALIBRATION_POPULATION, automl_path, compare
 from config import AUTOML_SEC, N_OUTER_FOLDS
 
 OUTPUT = "results/variant_effects.csv"
 PAIRS = [("xgboost_logloss", "xgboost"), ("catboost_logloss", "catboost"),
          ("lgbm_logloss", "lgbm"), ("lgbm_extra", "lgbm")]
-calibration = set(pd.read_csv("results/calibration_datasets.csv")["dataset"])
+calibration = set(pd.read_csv(CALIBRATION_POPULATION)["dataset"])
 meta = pd.read_csv("results/datasets.csv").set_index("dataset")
 
+out, diffs = compare({f"{v} vs {b}": (joblib.load(ckpt_path(v)), joblib.load(ckpt_path(b)))
+                      for v, b in PAIRS}, calibration)
 
-def holm(p):
-    order = np.argsort(p)
-    adjusted = np.maximum.accumulate([min(1, (len(p) - i) * p[j]) for i, j in enumerate(order)])
-    return pd.Series(adjusted, index=order).sort_index().to_numpy()
-
-
-def per_dataset(ckpt):
-    rows = {}
-    for d, e in ckpt.items():
-        if e.get("scores") is None or np.isnan(np.mean(e["scores"])):
-            continue
-        row = {"prauc": np.mean(e["scores"]), "time": e["time"]}
-        if d in calibration:
-            y, p = np.concatenate(e["labels"]), np.vstack(e["preds"])
-            row |= {"ece": expected_calibration_error(y, p), "brier": brier_score(y, p),
-                    "gap": abs(confidence_gap(y, p))}
-        rows[d] = row
-    return pd.DataFrame(rows).T
-
-
-def compare(variant, base, label):
-    v, b = per_dataset(variant), per_dataset(base)
-    both = v.index.intersection(b.index)
-    diff = v.loc[both, "prauc"] - b.loc[both, "prauc"]
-    row = {"comparison": label, "datasets": len(both), "prauc_base": b.loc[both, "prauc"].mean(),
-           "prauc_variant": v.loc[both, "prauc"].mean(), "ahead": int((diff > 0).sum()),
-           "behind": int((diff < 0).sum()), "p_raw": wilcoxon(diff[diff != 0]).pvalue,
-           "hours_base": b.loc[both, "time"].sum() / 3600, "hours_variant": v.loc[both, "time"].sum() / 3600}
-    cal = both.intersection(sorted(calibration))
-    for m in ("ece", "brier", "gap"):
-        row[f"{m}_base"], row[f"{m}_variant"] = b.loc[cal, m].mean(), v.loc[cal, m].mean()
-        row[f"{m}_p"] = wilcoxon(v.loc[cal, m].astype(float) - b.loc[cal, m].astype(float)).pvalue
-    return row, diff
-
-
-rows, diffs = [], {}
-for variant, base in PAIRS:
-    row, diffs[variant] = compare(joblib.load(ckpt_path(variant)), joblib.load(ckpt_path(base)),
-                                  f"{variant} vs {base}")
-    rows.append(row)
-for row, p in zip(rows, holm(np.array([r["p_raw"] for r in rows]))):
-    row["p_holm"] = p
-
-new = joblib.load(f"results/autogluon_sec_{AUTOML_SEC}_ckpt.joblib")
-old = joblib.load(f"results/autogluon_sec_{AUTOML_SEC}_ckpt.joblib.bak-no-fastai")
-row, ag_diff = compare(new, old, "autogluon nothing excluded + Ray vs published")
+new = joblib.load(automl_path("autogluon", checkpoint=True))
+old = joblib.load(automl_path("autogluon", checkpoint=True) + ".bak-no-fastai")
+ag, ag_diffs = compare({"autogluon nothing excluded + Ray vs published": (new, old)}, calibration)
+ag_diff = ag_diffs["autogluon nothing excluded + Ray vs published"]
 budget = N_OUTER_FOLDS * AUTOML_SEC
 overrun = pd.Series({d: new[d]["time"] > 1.1 * budget for d in ag_diff.index})
-row |= {"overrun_datasets": int(overrun.sum()),
-        "overrun_hours": sum(max(0, new[d]["time"] - budget) for d in ag_diff.index) / 3600}
-rows.append(row)
+ag["overrun_datasets"] = int(overrun.sum())
+ag["overrun_hours"] = sum(max(0, new[d]["time"] - budget) for d in ag_diff.index) / 3600
+out = pd.concat([out, ag], ignore_index=True)
 
-out = pd.DataFrame(rows)
 out.round(6).to_csv(OUTPUT, index=False)
 pd.set_option("display.width", 250)
 print(out[["comparison", "datasets", "prauc_base", "prauc_variant", "ahead", "behind", "p_raw", "p_holm",
@@ -110,7 +69,7 @@ for base in ("xgboost", "catboost", "lgbm"):
         print(f"  {m:17s} folds {len(params)}  learning_rate * n_estimators < 5: {np.mean(lr_trees < 5):.0%}"
               + (f"  class_weight balanced: {balanced:.0%}" if base == "lgbm" else ""))
 
-d = diffs["lgbm_extra"]
+d = diffs["lgbm_extra vs lgbm"]
 size = pd.qcut(meta.loc[d.index, "n_rows"], 3, labels=["small", "medium", "large"])
 print("\nlgbm_extra - lgbm by size tercile (rows):")
 print(pd.DataFrame({"diff": d, "size": size}).groupby("size", observed=True)["diff"]
