@@ -5,6 +5,7 @@ import os
 
 import numpy as np
 import optuna
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.model_selection import StratifiedKFold
 
 from benchmark.metrics import LOG_LOSS_SCORER, pr_auc_score
@@ -124,6 +125,26 @@ def run_nested_cv(
                 # Random split thresholds, the Extra Trees regulariser, with the same space.
                 "lgbm_extra":    lambda t: lgbm_objective(t, X_train, y_train,
                                                            inner_cv, n_classes, extra_trees=True),
+                # Controls for lgbm_extra: another sampler seed (set below), a higher
+                # tree cap, and the few-valued columns one-hot or as LightGBM categories.
+                "lgbm_seed1":    lambda t: lgbm_objective(t, X_train, y_train,
+                                                           inner_cv, n_classes),
+                "lgbm_2000":     lambda t: lgbm_objective(t, X_train, y_train, inner_cv,
+                                                           n_classes, max_trees=2000),
+                "lgbm_extra_2000": lambda t: lgbm_objective(t, X_train, y_train, inner_cv, n_classes,
+                                                             extra_trees=True, max_trees=2000),
+                "lgbm_onehot":   lambda t: lgbm_objective(t, X_train, y_train, inner_cv,
+                                                           n_classes, low_levels="onehot"),
+                "lgbm_cat":      lambda t: lgbm_objective(t, X_train, y_train, inner_cv,
+                                                           n_classes, low_levels="category"),
+                "lgbm_extra_onehot": lambda t: lgbm_objective(t, X_train, y_train, inner_cv,
+                                                               n_classes, extra_trees=True,
+                                                               low_levels="onehot"),
+                "lgbm_extra_cat":    lambda t: lgbm_objective(t, X_train, y_train, inner_cv,
+                                                               n_classes, extra_trees=True,
+                                                               low_levels="category"),
+                "extra_trees":   lambda t: rf_objective(t, X_train, y_train, inner_cv,
+                                                        forest=ExtraTreesClassifier),
                 "hgb":           lambda t: hgb_objective(t, X_train, y_train, inner_cv),
                 "tabnet":        lambda t: tabnet_objective(t, X_train, y_train,
                                                              inner_cv, cat_cols),
@@ -146,7 +167,8 @@ def run_nested_cv(
                 storage=storage,
                 load_if_exists=True,
                 direction="maximize",
-                sampler=optuna.samplers.TPESampler(seed=RANDOM_STATE),
+                sampler=optuna.samplers.TPESampler(
+                    seed=RANDOM_STATE + (model_name == "lgbm_seed1")),
             )
             # Failed trials count, as they do in an uninterrupted run; a trial cut
             # off mid-fit stays RUNNING and is redone.

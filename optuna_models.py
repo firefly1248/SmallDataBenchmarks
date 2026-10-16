@@ -47,9 +47,11 @@ FINAL_OUTPUT = "results/optuna_models.joblib"
 
 if __name__ == "__main__":
     ALL_MODELS = ["svc", "logreg", "tabpfn3", "tabpfn35", "tabpfn35fast", "tabicl", "tabfm",
-                  "random_forest", "xgboost", "sgd",
+                  "random_forest", "extra_trees", "xgboost", "sgd",
                   "catboost", "lgbm", "lgbm_linear", "lgbm_extra", "hgb",
                   "xgboost_logloss", "catboost_logloss", "lgbm_logloss",
+                  "lgbm_seed1", "lgbm_2000", "lgbm_extra_2000", "lgbm_onehot", "lgbm_cat",
+                  "lgbm_extra_onehot", "lgbm_extra_cat",
                   "tabnet", "ft_transformer", "resnet"]
 
     parser = argparse.ArgumentParser(description="Optuna nested CV benchmark")

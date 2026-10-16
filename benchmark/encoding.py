@@ -80,6 +80,31 @@ class CatFeaturesEncoder(BaseEstimator, TransformerMixin):
         return X
 
 
+class LowLevelEncoder(BaseEstimator, TransformerMixin):
+    """Treat columns with at most ``max_levels`` distinct values as categorical:
+    one-hot them (``mode="onehot"``), or give them a pandas category dtype, which
+    LightGBM splits as categories (``mode="category"``). Levels are fixed at fit, so
+    a level unseen in training is all zeros or NaN."""
+
+    def __init__(self, mode: str = "onehot", max_levels: int = 8) -> None:
+        self.mode = mode
+        self.max_levels = max_levels
+
+    def fit(self, X: pd.DataFrame, y=None) -> "LowLevelEncoder":
+        self.levels_ = {c: np.sort(X[c].dropna().unique()) for c in X.columns
+                        if X[c].nunique() <= self.max_levels}
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        if self.mode == "category":
+            return X.assign(**{c: pd.Categorical(X[c], categories=levels)
+                               for c, levels in self.levels_.items()})
+        onehot = {f"{c}={v}": (X[c] == v).astype(float)
+                  for c, levels in self.levels_.items() for v in levels}
+        return pd.concat([X.drop(columns=list(self.levels_)), pd.DataFrame(onehot, index=X.index)],
+                         axis=1)
+
+
 class TabPFNNativeWrapper(ClassifierMixin, BaseEstimator):
     """Wrap TabPFNClassifier, resolving categorical names to indices at fit time.
 
