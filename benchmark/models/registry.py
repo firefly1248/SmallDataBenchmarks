@@ -29,6 +29,11 @@ class ModelSpec:
     limits: dict = field(default_factory=dict)
     n_trials: int | None = None         # None: config.N_TRIALS, read at run time so tests can shrink it
     sampler_seed: int = RANDOM_STATE
+    # Tune the outer folds in concurrent threads. Only for objectives whose search fits
+    # run on one thread each (4 folds x 4 inner fits fill the cores): thread settings
+    # are process-wide, so a multi-threaded fit, or HGB's threadpool limit, would
+    # oversubscribe the cores or leak into the other folds.
+    parallel_folds: bool = False
 
 
 def build_final_model(model_name: str, best: dict, n_classes: int, cat_cols: list[str]):
@@ -45,10 +50,15 @@ def _lgbm(*, scoring=PR_AUC_SCORER, max_trees=500, sampler_seed=RANDOM_STATE, **
     """``model`` reaches both the search and the final fit; the rest the search only."""
     return ModelSpec(build=partial(b.build_lgbm, **model),
                      objective=partial(o.lgbm_objective, scoring=scoring, max_trees=max_trees, **model),
-                     sampler_seed=sampler_seed)
+                     sampler_seed=sampler_seed, parallel_folds=True)
 
 
-_xgboost = ModelSpec(build=b.build_xgboost, objective=o.xgb_objective)
+def _xgb(*, scoring=PR_AUC_SCORER, sampler_seed=RANDOM_STATE, **model) -> ModelSpec:
+    return ModelSpec(build=partial(b.build_xgboost, **model),
+                     objective=partial(o.xgb_objective, scoring=scoring, **model),
+                     sampler_seed=sampler_seed, parallel_folds=True)
+
+
 _catboost = ModelSpec(build=b.build_catboost, objective=o.catboost_objective)
 
 MODELS: dict[str, ModelSpec] = {
@@ -62,7 +72,7 @@ MODELS: dict[str, ModelSpec] = {
     "random_forest": ModelSpec(build=b.build_forest, objective=o.rf_objective),
     "extra_trees":   ModelSpec(build=partial(b.build_forest, forest=ExtraTreesClassifier),
                                objective=partial(o.rf_objective, forest=ExtraTreesClassifier)),
-    "xgboost":       _xgboost,
+    "xgboost":       _xgb(),
     "sgd":           ModelSpec(build=b.build_sgd, objective=o.sgd_objective),
     "catboost":      _catboost,
     "lgbm":          _lgbm(),
@@ -70,7 +80,7 @@ MODELS: dict[str, ModelSpec] = {
     "lgbm_extra":    _lgbm(extra_trees=True),
     "hgb":           ModelSpec(build=b.build_hgb, objective=o.hgb_objective),
     # The same models and search spaces, selected on log loss.
-    "xgboost_logloss":  replace(_xgboost, objective=partial(o.xgb_objective, scoring=LOG_LOSS_SCORER)),
+    "xgboost_logloss":  _xgb(scoring=LOG_LOSS_SCORER),
     "catboost_logloss": replace(_catboost, objective=partial(o.catboost_objective, scoring=LOG_LOSS_SCORER)),
     "lgbm_logloss":     _lgbm(scoring=LOG_LOSS_SCORER),
     # Controls for lgbm_extra: another sampler seed, a higher tree cap, and the
@@ -82,6 +92,10 @@ MODELS: dict[str, ModelSpec] = {
     "lgbm_cat":          _lgbm(low_levels="category"),
     "lgbm_extra_onehot": _lgbm(extra_trees=True, low_levels="onehot"),
     "lgbm_extra_cat":    _lgbm(extra_trees=True, low_levels="category"),
+    # Regularisation block: DART with its drop rates tuned, and the XGBoost search-noise control.
+    "xgboost_seed1":     _xgb(sampler_seed=RANDOM_STATE + 1),
+    "lgbm_dart":         _lgbm(dart=True),
+    "xgboost_dart":      _xgb(dart=True),
     "tabnet":         ModelSpec(build=b.build_tabnet, objective=o.tabnet_objective, n_trials=N_TRIALS_NN),
     "ft_transformer": ModelSpec(build=b.build_ft_transformer, objective=o.ft_transformer_objective,
                                 n_trials=N_TRIALS_NN),

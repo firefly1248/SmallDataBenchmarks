@@ -157,6 +157,101 @@ class TestLgbmExtraControls:
         assert run_nested_cv(X, y, "lgbm_seed1", cat_cols=[])[3] != base
 
 
+class TestDartVariants:
+    """DART switches the booster and adds its two drop rates; nothing else moves."""
+
+    def test_build_routes_booster(self):
+        from benchmark.models.registry import build_final_model
+        assert build_final_model("lgbm_dart", {}, 2, []).named_steps["lgbm"].boosting_type == "dart"
+        assert build_final_model("lgbm", {}, 2, []).named_steps["lgbm"].boosting_type == "gbdt"
+        assert build_final_model("xgboost_dart", {}, 2, []).named_steps["xgb"].booster == "dart"
+        assert build_final_model("xgboost_seed1", {}, 2, []).named_steps["xgb"].booster == "gbtree"
+
+    def test_drop_rates_reach_the_booster(self):
+        import json
+        from benchmark.models.registry import build_final_model
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame(rng.normal(size=(60, 2)), columns=["a", "b"])
+        y = (X.a > 0).astype(int).to_numpy()
+        lgbm = build_final_model("lgbm_dart", {"n_estimators": 5, "drop_rate": 0.3, "skip_drop": 0.1}, 2, []
+                                 ).fit(X, y).named_steps["lgbm"].booster_.params
+        assert (lgbm["boosting_type"], lgbm["drop_rate"], lgbm["skip_drop"], lgbm["max_drop"]) == ("dart", 0.3, 0.1, -1)
+        xgb = build_final_model("xgboost_dart", {"n_estimators": 5, "rate_drop": 0.3, "skip_drop": 0.1}, 2, []
+                                ).fit(X, y).named_steps["xgb"].get_booster()
+        booster = json.loads(xgb.save_config())["learner"]["gradient_booster"]
+        assert booster["name"] == "dart"
+        assert float(booster["dart_train_param"]["rate_drop"]) == pytest.approx(0.3)
+        assert float(booster["dart_train_param"]["skip_drop"]) == pytest.approx(0.1)
+
+    @pytest.mark.parametrize(("model_name", "drop_key"), [("lgbm_dart", "drop_rate"), ("xgboost_dart", "rate_drop")])
+    def test_runs_end_to_end(self, model_name, drop_key, monkeypatch):
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 2)
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame(rng.normal(size=(80, 2)), columns=["a", "b"])
+        y = (X.a > 0).astype(int).to_numpy()
+        scores, _, _, params = run_nested_cv(X, y, model_name, cat_cols=[])
+        assert np.all(np.isfinite(scores))
+        assert {drop_key, "skip_drop"} <= set(params[0])
+
+
+class TestParallelFolds:
+    """Concurrent outer folds and a resumed study must reproduce the sequential, uninterrupted search."""
+
+    @staticmethod
+    def _data():
+        rng = np.random.default_rng(0)
+        X = pd.DataFrame(rng.normal(size=(120, 3)), columns=["a", "b", "c"])
+        return X, (X.a + 0.5 * X.b > 0).astype(int).to_numpy()
+
+    @pytest.mark.parametrize("model_name", ["lgbm", "xgboost"])
+    def test_parallel_equals_sequential(self, model_name, monkeypatch, tmp_path):
+        from dataclasses import replace
+        from benchmark.models import registry
+        monkeypatch.setattr(nested_cv, "STUDY_DIR", str(tmp_path))
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 12)  # past TPE's 10 random startup trials
+        X, y = self._data()
+        assert registry.MODELS[model_name].parallel_folds
+        parallel = run_nested_cv(X, y, model_name, cat_cols=[], dataset_name="par")
+        monkeypatch.setitem(registry.MODELS, model_name,
+                            replace(registry.MODELS[model_name], parallel_folds=False))
+        sequential = run_nested_cv(X, y, model_name, cat_cols=[], dataset_name="seq")
+        assert parallel[0] == sequential[0] and parallel[3] == sequential[3]
+        assert all(np.array_equal(p, q) for p, q in zip(parallel[1], sequential[1]))
+
+    def test_resumed_study_matches_uninterrupted(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(nested_cv, "STUDY_DIR", str(tmp_path))
+        X, y = self._data()
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 12)
+        whole = run_nested_cv(X, y, "xgboost", cat_cols=[], dataset_name="whole")
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 5)
+        run_nested_cv(X, y, "xgboost", cat_cols=[], dataset_name="cut")
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 12)
+        resumed = run_nested_cv(X, y, "xgboost", cat_cols=[], dataset_name="cut")
+        assert resumed[3] == whole[3] and resumed[0] == whole[0]
+
+    def test_stale_sampler_state_is_not_used(self, monkeypatch, tmp_path, capsys):
+        import optuna
+        monkeypatch.setattr(nested_cv, "STUDY_DIR", str(tmp_path))
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 3)
+        X, y = self._data()
+        run_nested_cv(X, y, "xgboost", cat_cols=[], dataset_name="d")
+        storage = nested_cv._storage("xgboost")
+        study = optuna.load_study(study_name="d/fold0", storage=storage)
+        study.set_user_attr("sampler", {**study.user_attrs["sampler"], "finished": 2})
+        nested_cv._study(nested_cv.MODELS["xgboost"], storage, "d", 0)
+        assert "a trial behind" in capsys.readouterr().out
+
+    def test_single_thread_hgb_matches_hgb(self):
+        from sklearn.ensemble import HistGradientBoostingClassifier
+        from benchmark.models.build import SingleThreadHGB
+        rng = np.random.default_rng(0)
+        X = rng.normal(size=(500, 5))
+        y = (X[:, 0] + rng.normal(size=500) > 0).astype(int)
+        params = {"max_iter": 50, "random_state": 0}
+        assert np.array_equal(SingleThreadHGB(**params).fit(X, y).predict_proba(X),
+                              HistGradientBoostingClassifier(**params).fit(X, y).predict_proba(X))
+
+
 class TestStudyStorage:
     """Stored studies resume a cut-off run; they must not change an uninterrupted one."""
 
@@ -254,7 +349,7 @@ class TestRegistry:
         "svc": None, "logreg": None, "tabpfn3": None, "tabpfn35": None, "tabpfn35fast": None,
         "tabicl": None, "tabfm": None,
         "random_forest": ("rf_objective", {}), "extra_trees": ("rf_objective", {"forest": "ExtraTreesClassifier"}),
-        "xgboost": ("xgb_objective", {}), "sgd": ("sgd_objective", {}), "catboost": ("catboost_objective", {}),
+        "xgboost": ("xgb_objective", {"scoring": "PR"}), "sgd": ("sgd_objective", {}), "catboost": ("catboost_objective", {}),
         "lgbm": ("lgbm_objective", {"scoring": "PR", "max_trees": 500}),
         "lgbm_linear": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "linear_tree": True}),
         "lgbm_extra": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True}),
@@ -271,6 +366,9 @@ class TestRegistry:
                                                  "low_levels": "onehot"}),
         "lgbm_extra_cat": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True,
                                               "low_levels": "category"}),
+        "xgboost_seed1": ("xgb_objective", {"scoring": "PR"}),
+        "lgbm_dart": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "dart": True}),
+        "xgboost_dart": ("xgb_objective", {"scoring": "PR", "dart": True}),
         "tabnet": ("tabnet_objective", {}), "ft_transformer": ("ft_transformer_objective", {}),
         "resnet": ("resnet_objective", {}),
     }
@@ -298,7 +396,7 @@ class TestRegistry:
         objective = spec.objective.func if isinstance(spec.objective, partial) else spec.objective
         assert objective.__name__ == name
         assert self._keywords(spec.objective) == keywords
-        assert spec.sampler_seed == (1 if key == "lgbm_seed1" else 0)
+        assert spec.sampler_seed == (1 if key in ("lgbm_seed1", "xgboost_seed1") else 0)
         assert (spec.n_trials is None) == (key not in ("tabnet", "ft_transformer", "resnet"))
 
     def test_limits(self):

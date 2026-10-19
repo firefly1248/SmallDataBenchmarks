@@ -5502,6 +5502,7 @@ dependencies = [
     { name = "tabfm", extra = ["pytorch"] },
     { name = "tabicl" },
     { name = "tabpfn" },
+    { name = "threadpoolctl" },
     { name = "torch" },
     { name = "xgboost" },
 ]
@@ -5535,6 +5536,7 @@ requires-dist = [
     { name = "tabfm", extras = ["pytorch"], specifier = ">=1.0.1" },
     { name = "tabicl" },
     { name = "tabpfn", specifier = ">=9.0.0" },
+    { name = "threadpoolctl" },
     { name = "torch" },
     { name = "xgboost" },
 ]

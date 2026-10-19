@@ -3,18 +3,17 @@ plus the keyword arguments the registry binds for a variant."""
 from __future__ import annotations
 
 import numpy as np
-from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
-from xgboost import XGBClassifier
 
 from benchmark.encoding import (
     CAT_STRATEGIES_LINEAR, CAT_STRATEGY_TREE, CatFeaturesEncoder,
     IMPUTER_STRATEGIES, SCALERS_LIST, _build_imputer, _build_scaler,
 )
 from benchmark.metrics import PR_AUC_SCORER
-from benchmark.models.build import build_lgbm
+from benchmark.models.build import build_hgb, build_lgbm, build_xgboost
 from benchmark.models.wrappers import CatBoostNativeWrapper
 from config import INNER_FIT_THREADS, N_INNER_FOLDS, N_JOBS, RANDOM_STATE
 
@@ -38,7 +37,7 @@ def rf_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
 
 
 def xgb_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
-                  scoring=PR_AUC_SCORER) -> float:
+                  scoring=PR_AUC_SCORER, dart=False) -> float:
     params = {
         "learning_rate":    trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
         "n_estimators":     trial.suggest_int("n_estimators", 50, 500),
@@ -50,12 +49,10 @@ def xgb_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
         "reg_lambda":       trial.suggest_float("reg_lambda", 1e-8, 10.0, log=True),
         "min_child_weight": trial.suggest_int("min_child_weight", 1, 10),
     }
-    objective = "binary:logistic" if n_classes == 2 else "multi:softprob"
-    model = Pipeline([
-        ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("xgb", XGBClassifier(**params, objective=objective,
-                              random_state=RANDOM_STATE, n_jobs=1, verbosity=0)),
-    ])
+    if dart:
+        params["rate_drop"] = trial.suggest_float("rate_drop", 0.01, 0.5, log=True)
+        params["skip_drop"] = trial.suggest_float("skip_drop", 0.0, 0.5)
+    model = build_xgboost(params, n_classes, cat_cols, dart=dart, n_jobs=1)
     return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))
 
@@ -175,18 +172,13 @@ def hgb_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> flo
         "l2_regularization": trial.suggest_float("l2_regularization", 1e-8, 10.0, log=True),
         "class_weight":      trial.suggest_categorical("class_weight", ["balanced", None]),
     }
-    model = Pipeline([
-        ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("hgb", HistGradientBoostingClassifier(**params, random_state=RANDOM_STATE)),
-    ])
-    # n_jobs=1: HGB uses OMP internally, and joblib folds x OMP threads
-    # deadlocks libomp on macOS.
+    model = build_hgb(params, n_classes, cat_cols)
     return float(np.mean(cross_val_score(model, X_train, y_train,
-                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=1)))
+                                         cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
-                   linear_tree=False, extra_trees=False, low_levels=None,
+                   linear_tree=False, extra_trees=False, low_levels=None, dart=False,
                    scoring=PR_AUC_SCORER, max_trees=500) -> float:
     max_leaves = 128 if linear_tree else 256
     max_child  = 50  if linear_tree else 100
@@ -203,7 +195,10 @@ def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
     }
     if linear_tree:
         params["linear_lambda"] = trial.suggest_float("linear_lambda", 1e-4, 10.0, log=True)
+    if dart:
+        params["drop_rate"] = trial.suggest_float("drop_rate", 0.01, 0.5, log=True)
+        params["skip_drop"] = trial.suggest_float("skip_drop", 0.0, 0.5)
     model = build_lgbm(params, n_classes, cat_cols, linear_tree=linear_tree,
-                       extra_trees=extra_trees, low_levels=low_levels, n_jobs=1)
+                       extra_trees=extra_trees, low_levels=low_levels, dart=dart, n_jobs=1)
     return float(np.mean(cross_val_score(model, X_train, y_train,
                                          cv=inner_cv, scoring=scoring, n_jobs=N_JOBS)))
