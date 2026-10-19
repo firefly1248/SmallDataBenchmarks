@@ -1,10 +1,14 @@
 """Nested cross-validation runner with Optuna / GridSearchCV tuning."""
 from __future__ import annotations
 
+import base64
 import os
+import pickle
+import threading
 
 import numpy as np
 import optuna
+from joblib import Parallel, delayed
 from sklearn.model_selection import StratifiedKFold
 
 from benchmark.metrics import pr_auc_score
@@ -30,6 +34,32 @@ def drop_studies(model_name: str, dataset_name: str, run: str = "") -> None:
     for name in optuna.study.get_all_study_names(storage):
         if name.startswith(f"{dataset_name}/"):
             optuna.delete_study(study_name=name, storage=storage)
+
+
+def _finished(study) -> int:
+    return sum(t.state.is_finished() for t in study.trials)
+
+
+def _save_sampler(study, trial) -> None:
+    """Keep the sampler state with the study, so a resumed search draws what an
+    uninterrupted one would; a fresh seeded sampler would repeat its first trials."""
+    state = base64.b64encode(pickle.dumps(study.sampler)).decode()
+    study.set_user_attr("sampler", {"finished": _finished(study), "state": state})
+
+
+def _study(spec, storage, dataset_name, fold):
+    study = optuna.create_study(
+        study_name=None if storage is None else f"{dataset_name}/fold{fold}",
+        storage=storage, load_if_exists=True, direction="maximize",
+        sampler=optuna.samplers.TPESampler(seed=spec.sampler_seed))
+    saved = study.user_attrs.get("sampler")
+    if saved is not None:
+        if saved["finished"] == _finished(study):
+            study.sampler = pickle.loads(base64.b64decode(saved["state"]))
+        else:
+            # Cut between a trial's commit and its sampler save.
+            print(f"  {dataset_name}/fold{fold}: sampler state is a trial behind, resuming with a fresh sampler")
+    return study
 
 
 def run_nested_cv(
@@ -65,56 +95,67 @@ def run_nested_cv(
 
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True,
                                random_state=split_seed)
-    nested_scores: list[float] = []
-    nested_preds: list[np.ndarray] = []
-    nested_labels: list[np.ndarray] = []
-    nested_best_params: list[dict] = []
-    storage = None
-    if dataset_name is not None:
-        os.makedirs(os.path.join(STUDY_DIR, run), exist_ok=True)
-        storage = _storage(model_name, run)
+    inner_cv = StratifiedKFold(n_splits=N_INNER_FOLDS, shuffle=True,
+                               random_state=RANDOM_STATE)
+    splits = list(outer_cv.split(X, y))
 
-    for fold, (train_idx, test_idx) in enumerate(outer_cv.split(X, y)):
-        X_train = X.iloc[train_idx].reset_index(drop=True)
-        y_train = y[train_idx]
-        X_test  = X.iloc[test_idx].reset_index(drop=True)
-        y_test  = y[test_idx]
+    def train(fold):
+        return X.iloc[splits[fold][0]].reset_index(drop=True), y[splits[fold][0]]
 
-        inner_cv = StratifiedKFold(n_splits=N_INNER_FOLDS, shuffle=True,
-                                   random_state=RANDOM_STATE)
+    best = {}
+    if spec.objective is not None:
+        storage = None
+        if dataset_name is not None:
+            os.makedirs(os.path.join(STUDY_DIR, run), exist_ok=True)
+            # One storage for the fold threads, with room to wait for SQLite's write lock.
+            storage = optuna.storages.RDBStorage(_storage(model_name, run),
+                                                 engine_kwargs={"connect_args": {"timeout": 60}})
+        studies = [_study(spec, storage, dataset_name, fold) for fold in range(N_OUTER_FOLDS)]
+        stop = threading.Event()
 
+        def stop_if_asked(study, trial):
+            if stop.is_set():
+                study.stop()
+
+        def search(fold):
+            X_train, y_train = train(fold)
+            study = studies[fold]
+            # Failed trials count, as they do in an uninterrupted run; a trial cut
+            # off mid-fit stays RUNNING and is redone. One raising trial must not
+            # abort the dataset.
+            study.optimize(lambda t: spec.objective(t, X_train, y_train, inner_cv, n_classes, cat_cols),
+                           n_trials=max((spec.n_trials or N_TRIALS) - _finished(study), 0),
+                           catch=(Exception,), callbacks=[_save_sampler, stop_if_asked])
+            return dict(study.best_params)
+
+        # Each fold has its own seeded study, so concurrent folds search exactly as
+        # sequential ones do. Fold threads: the inner cross_val_score then runs its
+        # fits on threads too (joblib nests that way), which only one-thread fits
+        # tolerate; see ModelSpec.parallel_folds. On a timeout or error in this
+        # thread, the fold threads stop after their current trial.
+        try:
+            found = Parallel(n_jobs=N_OUTER_FOLDS if spec.parallel_folds else 1, prefer="threads")(
+                delayed(search)(fold) for fold in range(N_OUTER_FOLDS))
+        except BaseException:
+            stop.set()
+            raise
+        best = dict(enumerate(found))
+
+    scores, preds, labels, params = [], [], [], []
+    for fold, (_, test_idx) in enumerate(splits):
+        X_train, y_train = train(fold)
         if spec.grid is not None:
             gs = spec.grid(inner_cv, cat_cols)
             gs.fit(X_train, y_train)
-            model = gs.best_estimator_
-            best_params = dict(gs.best_params_)
-        elif spec.objective is None:
-            model = spec.build({}, n_classes, cat_cols)
-            model.fit(X_train, y_train)
-            best_params = {}
+            model, best_params = gs.best_estimator_, dict(gs.best_params_)
         else:
-            study = optuna.create_study(
-                study_name=None if storage is None else f"{dataset_name}/fold{fold}",
-                storage=storage,
-                load_if_exists=True,
-                direction="maximize",
-                sampler=optuna.samplers.TPESampler(seed=spec.sampler_seed),
-            )
-            # Failed trials count, as they do in an uninterrupted run; a trial cut
-            # off mid-fit stays RUNNING and is redone.
-            finished = sum(t.state.is_finished() for t in study.trials)
-            # One raising trial must not abort the dataset.
-            study.optimize(lambda t: spec.objective(t, X_train, y_train, inner_cv, n_classes, cat_cols),
-                           n_trials=max((spec.n_trials or N_TRIALS) - finished, 0),
-                           catch=(Exception,))
-            best_params = dict(study.best_params)
+            best_params = best.get(fold, {})
             model = spec.build(best_params, n_classes, cat_cols)
             model.fit(X_train, y_train)
-
-        y_pred = model.predict_proba(X_test)
-        nested_scores.append(pr_auc_score(y_test, y_pred))
-        nested_preds.append(y_pred)
-        nested_labels.append(y_test)
-        nested_best_params.append(best_params)
-
-    return nested_scores, nested_preds, nested_labels, nested_best_params
+        y_test = y[test_idx]
+        y_pred = model.predict_proba(X.iloc[test_idx].reset_index(drop=True))
+        scores.append(pr_auc_score(y_test, y_pred))
+        preds.append(y_pred)
+        labels.append(y_test)
+        params.append(best_params)
+    return scores, preds, labels, params

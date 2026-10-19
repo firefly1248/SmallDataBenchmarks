@@ -12,6 +12,7 @@ dependencies = [
     "xgboost",
     "catboost",
     "optuna",
+    "threadpoolctl",  # HGB on one OpenMP thread (benchmark/models/build.py)
     "matplotlib",
     "jupyter",
     "category-encoders>=2.9.0",

@@ -5,6 +5,7 @@ from __future__ import annotations
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
+from threadpoolctl import threadpool_limits
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 
@@ -22,24 +23,27 @@ def build_forest(best, n_classes, cat_cols, forest=RandomForestClassifier):
     ])
 
 
-def build_xgboost(best, n_classes, cat_cols):
+def build_xgboost(best, n_classes, cat_cols, dart=False, n_jobs=N_JOBS):
     objective = "binary:logistic" if n_classes == 2 else "multi:softprob"
     return Pipeline([
         ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("xgb", XGBClassifier(**best, objective=objective,
-                              random_state=RANDOM_STATE, n_jobs=N_JOBS, verbosity=0)),
+        ("xgb", XGBClassifier(**best, objective=objective, booster="dart" if dart else "gbtree",
+                              random_state=RANDOM_STATE, n_jobs=n_jobs, verbosity=0)),
     ])
 
 
 def build_lgbm(best, n_classes, cat_cols, linear_tree=False, extra_trees=False,
-               low_levels=None, n_jobs=N_JOBS):
+               low_levels=None, dart=False, n_jobs=N_JOBS):
     """LightGBM after ordinal encoding; ``low_levels`` re-encodes the few-valued
     columns (see ``LowLevelEncoder``)."""
     steps = [("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE))]
     if low_levels is not None:
         steps.append(("low_levels", LowLevelEncoder(mode=low_levels)))
     objective = "binary" if n_classes == 2 else "multiclass"
-    steps.append(("lgbm", LGBMClassifier(**best, linear_tree=linear_tree, extra_trees=extra_trees,
+    # max_drop=-1: LightGBM's default caps the drop at 50 trees per iteration, which
+    # would flatten drop_rate above 50 / n_estimators.
+    booster = {"boosting_type": "dart", "max_drop": -1} if dart else {"boosting_type": "gbdt"}
+    steps.append(("lgbm", LGBMClassifier(**best, **booster, linear_tree=linear_tree, extra_trees=extra_trees,
                                          objective=objective, subsample_freq=1,
                                          random_state=RANDOM_STATE, n_jobs=n_jobs, verbose=-1)))
     return Pipeline(steps)
@@ -56,10 +60,23 @@ def build_sgd(best, n_classes, cat_cols):
     ])
 
 
+class SingleThreadHGB(HistGradientBoostingClassifier):
+    """Two OpenMP runtimes are loaded (torch's and sklearn's); with both, HGB's own
+    threads stall on small data and a fit runs 30x slower. One thread, same result."""
+
+    def fit(self, X, y, **kwargs):
+        with threadpool_limits(1, "openmp"):
+            return super().fit(X, y, **kwargs)
+
+    def predict_proba(self, X):
+        with threadpool_limits(1, "openmp"):
+            return super().predict_proba(X)
+
+
 def build_hgb(best, n_classes, cat_cols):
     return Pipeline([
         ("cat_enc", CatFeaturesEncoder(strategy=CAT_STRATEGY_TREE)),
-        ("hgb", HistGradientBoostingClassifier(**best, random_state=RANDOM_STATE)),
+        ("hgb", SingleThreadHGB(**best, random_state=RANDOM_STATE)),
     ])
 
 

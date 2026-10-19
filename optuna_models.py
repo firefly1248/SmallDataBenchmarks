@@ -150,6 +150,9 @@ if __name__ == "__main__":
             ckpt[model_name][dataset_name] = {
                 "scores": scores, "preds": preds, "labels": labels,
                 "best_params": best_params, "time": elapsed,
+                # Wall-clock start: ~/.sdb-runs/power_guard.sh logs its pauses by epoch,
+                # and a pause inside [start, start + time] is to be subtracted from time.
+                "start": start,
             }
             print(f"  {model_name}: mean={np.nanmean(scores):.4f}  time={elapsed:.1f}s")
             save_checkpoint(model_name)
