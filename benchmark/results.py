@@ -91,14 +91,14 @@ def complete_cases(df: pd.DataFrame) -> pd.DataFrame:
 
 def calibration_table() -> pd.DataFrame:
     """The calibration table of the README, from scripts/calibration_repairs.py's output:
-    raw PR AUC, Brier and ECE per model, ECE after each repair, PR AUC after the two
-    isotonic ones, sorted by raw ECE."""
+    raw PR AUC, Brier and ECE per model, ECE and PR AUC after each of the two
+    isotonic repairs, sorted by raw ECE."""
     long = pd.read_csv(CALIBRATION_REPAIRS)
     long = long[~long["model"].str.endswith(" backup")]
     table = long.pivot_table(index="model", columns="variant", values=["prauc", "brier", "ece"])
     return pd.DataFrame({
         "PR AUC": table[("prauc", "raw")], "Brier": table[("brier", "raw")],
-        "ECE": table[("ece", "raw")], "ECE temp": table[("ece", "temperature")],
+        "ECE": table[("ece", "raw")],
         "ECE iso": table[("ece", "isotonic")], "ECE VA": table[("ece", "venn_abers")],
         "PR AUC iso": table[("prauc", "isotonic")], "PR AUC VA": table[("prauc", "venn_abers")],
     }).sort_values("ECE")

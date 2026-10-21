@@ -3,7 +3,7 @@ the calibration figure and the calibration findings.
 
 Writes ``results/calibration_datasets.csv``, the datasets every model with stored
 predictions scores among the figure population, and ``results/calibration_repairs.csv``
-with PR AUC, Brier and ECE per model, dataset and variant (raw, temperature, isotonic,
+with PR AUC, Brier and ECE per model, dataset and variant (raw, isotonic,
 Venn-ABERS). ``benchmark.results.calibration_table`` reads the latter. Also runs the
 dataset-level tests of Venn-ABERS against isotonic that Findings_notes.md quotes.
 
@@ -23,7 +23,7 @@ from joblib import Parallel, delayed
 from scipy.stats import spearmanr, wilcoxon
 
 from benchmark.calibration import (brier_score, expected_calibration_error, isotonic_calibrate,
-                                   temperature_scale, venn_abers_calibrate)
+                                   venn_abers_calibrate)
 from benchmark.checkpoints import available_models, ckpt_path
 from benchmark.metrics import pr_auc_score
 from benchmark.plots import AUTOML_LABELS, MODEL_LABELS
@@ -44,8 +44,7 @@ def rows_for(label, path, population):
             continue
         folds = list(zip(entry["preds"], entry["labels"]))
         y = np.concatenate(entry["labels"])
-        for variant, probs in (("raw", entry["preds"]), ("temperature", temperature_scale(folds)),
-                               ("isotonic", isotonic_calibrate(folds)),
+        for variant, probs in (("raw", entry["preds"]), ("isotonic", isotonic_calibrate(folds)),
                                ("venn_abers", venn_abers_calibrate(folds))):
             prob = np.vstack(probs)
             # PR AUC is the mean over folds, as everywhere else; Brier and ECE pool the
