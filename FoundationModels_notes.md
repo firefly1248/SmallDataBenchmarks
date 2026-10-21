@@ -22,10 +22,11 @@ part of a historical comparison, and the reason is in
 1. The current-generation models are **close on performance and far apart on cost**.
    TabFM 0.8653, TabPFN-3.5 0.8627, TabPFN-3.5-fast 0.8608, TabPFN-3 0.8591,
    TabICL 0.8574, each over its own coverage — a spread of 0.0079 against a cost
-   range of 4.3 h to 73.6 h.
-2. **TabPFN-3.5 supersedes TabPFN-3 outright**: higher score, 3.6x cheaper, and the
-   paired test separates them (Holm p = 0.007, 72 wins of 108).
-3. The **fast variant halves the cost again** for 0.0019 of mean PR AUC, which the
+   range of 4.3 h to 34.7 h.
+2. **TabPFN-3.5 beats TabPFN-3 on score, not on cost**: the paired test separates them
+   (Holm p = 0.007, 72 wins of 108), and it takes 17.8 h against TabPFN-3's 9.7 h,
+   re-timed one job at a time.
+3. The **fast variant halves the cost of full 3.5** for 0.0019 of mean PR AUC, which the
    test cannot separate from full 3.5 (Holm p = 0.08). It is the cheapest way into
    the top tier on a CPU.
 4. What separates them otherwise is **coverage**. Every TabPFN version scores each
@@ -108,26 +109,25 @@ Per-fit cost, normalising away the different search-grid sizes:
 | TabPFN-3.5 | 68 | 180 s | 2.6 s | CPU |
 | TabICL | 148 | 364 s | 2.5 s | CPU |
 | TabFM | 4 | 27 s | 6.8 s | **GPU** |
-| TabPFN-3 | 68 | 1199 s | **17.6 s** | CPU |
+| TabPFN-3, re-timed | 68 | 90 s | 1.3 s | CPU |
 
-Two claims do not hold up here.
+Two claims, checked against it.
 
-**"TabPFN-3 is up to 20x faster than 2.5."** Measured on the version of the
-benchmark that still carried TabPFN 2.6, it was **3.4x slower per fit**. Its lower
-total came from not hanging on wide data, not from throughput. The vendor claim
-targets million-row data on an H100 and does not transfer to hundreds-to-thousands
-of rows on a CPU.
+**"TabPFN-3 is up to 20x faster than 2.5."** This one can no longer be checked here.
+The benchmark once measured TabPFN-3 at 3.4x slower per fit than TabPFN 2.6, but that
+TabPFN-3 run took seven times its re-timed cost, and 2.6, dropped since, was never
+re-timed.
 
-The 3.5 generation is where the speed actually arrived, and it arrived without a
-claim attached: 6.8x faster per fit than v3 on the same hardware and the same
-grid, 13.5x for the fast variant, with a higher mean.
+Re-timed on the same machine, the 3.5 generation is not faster: full 3.5 costs twice
+what TabPFN-3 does per fit (2.6 s against 1.3 s), and the fast variant the same. What
+it buys is the higher mean.
 
 **"TabFM is cheap."** Its 27 s median is an artefact of doing no hyperparameter
 search at all — 4 fits against TabICL's 148. Per fit it is 2.7x *more* expensive
 than TabICL, while running on the GPU against TabICL's CPU. Without a GPU it is not
 usable: on CPU its inference is 8-55x slower than on MPS (below).
 
-TabPFN-3.5-fast is now the cheapest per fit, and on the same CPU as TabICL. That
+TabPFN-3.5-fast and TabPFN-3 are the cheapest per fit, on the same CPU as TabICL. That
 ordering is one release old: before 9.0.0, TabICL held this row by 7x.
 
 ### What a fitted model costs to use
@@ -244,12 +244,12 @@ datasets a run now covers:
 | | TabPFN-3 | TabPFN-3.5 | TabPFN-3.5-fast |
 |---|---|---|---|
 | mean PR AUC | 0.8571 | **0.8627** | 0.8608 |
-| total hours | 63.6 | 17.8 | **9.3** |
-| median per dataset | 1082 s | 180 s | 85 s |
+| total hours | 9.7 | 17.8 | **9.3** |
+| median per dataset | 90 s | 180 s | 85 s |
 
-Where 2.6 to v3 bought coverage at ten times the per-fit cost, v3 to v3.5 gives the
-cost back: 3.6x cheaper overall, 6x cheaper per dataset at the median, and a higher mean. The
-paired test separates 3.5 from v3 (Holm p = 0.007, 72 wins of 108).
+TabPFN-3's hours are the October re-time; the stored run took 63.6 h. Re-timed, v3 to
+v3.5 costs more: 1.8x the hours and twice the median per dataset, for a higher mean.
+The paired test separates 3.5 from v3 (Holm p = 0.007, 72 wins of 108).
 
 The fast variant is a separate smaller model, not a mode of 3.5. It halves the cost
 again and gives up 0.0019 of mean PR AUC, which the test cannot separate from full
@@ -268,9 +268,9 @@ This invalidates the conclusion in [TabPFN_notes.md](TabPFN_notes.md) that TabPF
 "strictly dominated" by TabICL — true for 2.6, false for v3, which ties TabICL on
 performance and beats it on coverage.
 
-The `arcene` case is the reverse of what the earlier note claimed: 2.6 completed it
-in 0.47 h scoring 0.9656, and v3 took 4.71 h for 0.9690. Ten times the cost for
-+0.0034.
+On `arcene` the stored runs gave 2.6 0.47 h for 0.9656 and v3 4.71 h for 0.9690;
+re-timed, v3 takes 0.06 h for 0.9667. 2.6 was never re-timed, so the two costs do not
+compare.
 
 ## Practical recommendation
 
@@ -278,8 +278,8 @@ in 0.47 h scoring 0.9656, and v3 took 4.71 h for 0.9690. Ten times the cost for
    coverage, and the test cannot separate it from full 3.5.
 2. **Use full TabPFN-3.5 when the extra 0.002 is worth double the compute.** It does
    score higher, and against TabPFN-3 the gain is real (Holm p = 0.007).
-3. **Do not reach for TabPFN-3.** Its successor beats it on score, cost and
-   reproducibility; the only reason to keep it is an existing pinned environment.
+3. **Do not reach for TabPFN-3.** The fast variant costs the same and scores higher;
+   the only reason to keep it is an existing pinned environment.
 4. **TabFM only with a GPU.** Its performance lead is within noise, so the case for
    it is convenience — no tuning — not quality.
 5. **Serve foundation models in batches.** One row costs seconds, against under a

@@ -406,30 +406,30 @@ is perfect by that measure whether its 0.9 means 0.9 or 0.6. Nothing in this
 benchmark read the probabilities themselves until now.
 
 Brier and top-label ECE over the stored out-of-fold predictions, 108 datasets
-scored by all eighteen models that kept predictions. `ECE T`, `ECE iso` and
-`ECE VA` are the same models after
+scored by all eighteen models that kept predictions. `ECE iso` and `ECE VA`
+are the same models after
 [post-hoc repair](#post-hoc-calibration-does-not-buy-the-gap-and-it-is-not-free).
 
-| model | PR AUC | Brier | ECE | ECE T | ECE iso | ECE VA | PR AUC iso | PR AUC VA |
-|---|---|---|---|---|---|---|---|---|
-| TabFM | 0.8596 | 0.1881 | **0.0367** | 0.0354 | 0.0362 | 0.0440 | 0.8473 | 0.8543 |
-| AutoGluon | 0.8465 | 0.2033 | 0.0398 | 0.0391 | 0.0393 | 0.0464 | 0.8345 | 0.8412 |
-| TabICL | 0.8574 | 0.1905 | 0.0405 | 0.0347 | 0.0362 | 0.0470 | 0.8422 | 0.8508 |
-| TabPFN-3.5-fast | 0.8577 | 0.2129 | 0.0427 | 0.0413 | 0.0364 | 0.0467 | 0.8438 | 0.8518 |
-| TabPFN-3.5 | 0.8595 | 0.2103 | 0.0429 | 0.0418 | 0.0363 | 0.0460 | 0.8463 | 0.8542 |
-| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 | 0.0419 | 0.0390 | 0.0465 | 0.8403 | 0.8493 |
-| MLJAR | 0.8343 | 0.2172 | 0.0456 | 0.0477 | 0.0397 | 0.0463 | 0.8192 | 0.8264 |
-| SVC | 0.8240 | 0.2350 | 0.0477 | 0.0437 | 0.0436 | 0.0502 | 0.8052 | 0.8151 |
-| ResNet | 0.8211 | 0.2446 | 0.0512 | 0.0487 | 0.0459 | 0.0515 | 0.8015 | 0.8099 |
-| XGBoost | 0.8294 | 0.2394 | 0.0627 | 0.0522 | 0.0480 | 0.0552 | 0.8115 | 0.8203 |
-| LightGBM | 0.8311 | 0.2443 | 0.0674 | 0.0604 | 0.0572 | 0.0587 | 0.8098 | 0.8166 |
-| CatBoost | 0.8339 | 0.2394 | 0.0685 | 0.0556 | 0.0480 | 0.0553 | 0.8126 | 0.8223 |
-| Logistic Regression | 0.7838 | 0.3084 | 0.0732 | 0.0687 | 0.0581 | 0.0599 | 0.7564 | 0.7661 |
-| HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 | 0.0561 | 0.0508 | 0.0609 | 0.8094 | 0.8167 |
-| Random Forest | 0.8325 | 0.2410 | 0.0747 | 0.0459 | 0.0463 | 0.0519 | 0.8194 | 0.8256 |
-| LightGBM Linear | 0.8348 | 0.2457 | 0.0756 | 0.0705 | 0.0581 | 0.0630 | 0.8061 | 0.8166 |
-| TabNet | 0.7529 | 0.3238 | 0.0851 | 0.0665 | 0.0593 | 0.0602 | 0.7367 | 0.7451 |
-| SGD | 0.7837 | 0.3254 | **0.1000** | 0.0980 | 0.0640 | 0.0656 | 0.7515 | 0.7618 |
+| model | PR AUC | Brier | ECE | ECE iso | ECE VA | PR AUC iso | PR AUC VA |
+|---|---|---|---|---|---|---|---|
+| TabFM | 0.8596 | 0.1881 | **0.0367** | 0.0362 | 0.0440 | 0.8473 | 0.8543 |
+| AutoGluon | 0.8465 | 0.2033 | 0.0398 | 0.0393 | 0.0464 | 0.8345 | 0.8412 |
+| TabICL | 0.8574 | 0.1905 | 0.0405 | 0.0362 | 0.0470 | 0.8422 | 0.8508 |
+| TabPFN-3.5-fast | 0.8577 | 0.2129 | 0.0427 | 0.0364 | 0.0467 | 0.8438 | 0.8518 |
+| TabPFN-3.5 | 0.8595 | 0.2103 | 0.0429 | 0.0363 | 0.0460 | 0.8463 | 0.8542 |
+| TabPFN-3 | 0.8557 | 0.2127 | 0.0443 | 0.0390 | 0.0465 | 0.8403 | 0.8493 |
+| MLJAR | 0.8343 | 0.2172 | 0.0456 | 0.0397 | 0.0463 | 0.8192 | 0.8264 |
+| SVC | 0.8240 | 0.2350 | 0.0477 | 0.0436 | 0.0502 | 0.8052 | 0.8151 |
+| ResNet | 0.8211 | 0.2446 | 0.0512 | 0.0459 | 0.0515 | 0.8015 | 0.8099 |
+| XGBoost | 0.8294 | 0.2394 | 0.0627 | 0.0480 | 0.0552 | 0.8115 | 0.8203 |
+| LightGBM | 0.8311 | 0.2443 | 0.0674 | 0.0572 | 0.0587 | 0.8098 | 0.8166 |
+| CatBoost | 0.8339 | 0.2394 | 0.0685 | 0.0480 | 0.0553 | 0.8126 | 0.8223 |
+| Logistic Regression | 0.7838 | 0.3084 | 0.0732 | 0.0581 | 0.0599 | 0.7564 | 0.7661 |
+| HistGradientBoosting | 0.8274 | 0.2526 | 0.0739 | 0.0508 | 0.0609 | 0.8094 | 0.8167 |
+| Random Forest | 0.8325 | 0.2410 | 0.0747 | 0.0463 | 0.0519 | 0.8194 | 0.8256 |
+| LightGBM Linear | 0.8348 | 0.2457 | 0.0756 | 0.0581 | 0.0630 | 0.8061 | 0.8166 |
+| TabNet | 0.7529 | 0.3238 | 0.0851 | 0.0593 | 0.0602 | 0.7367 | 0.7451 |
+| SGD | 0.7837 | 0.3254 | **0.1000** | 0.0640 | 0.0656 | 0.7515 | 0.7618 |
 
 TabFM has the lowest ECE. AutoGluon and TabICL are close behind it, and which of
 the two comes second depends on the binning; MLJAR is ahead of every classical
@@ -543,18 +543,13 @@ chosen parameters are in `results/best_params.csv`, the uniform-start run under
 
 The obvious objection to the table above is that calibration is a solved problem:
 fit a one-dimensional map on held-out predictions and the cheap model catches up.
-It does not. All three repairs are cross-fitted over the model's own four outer
+It does not. Both repairs are cross-fitted over the model's own four outer
 folds — each fold is corrected by a map fitted on the other three, so the
 calibrator never fits on the labels it is scored against.
 
-**Temperature scaling** divides the log probabilities by one fitted scalar. It can
-only sharpen or soften confidence, never reorder the classes in a row. On binary
-problems that leaves PR AUC unchanged in exact arithmetic but not in float64: it
-moves on 73 of 936 binary model/dataset pairs, and where the fitted temperature
-sits at its bound (T = 20, 12 pairs) it flattens the scores until neighbours round
-to the same value, worst on `colon32` for LightGBM (-0.060). **Isotonic regression** is the non-parametric
-ceiling: one-vs-rest, then renormalised. **Venn-ABERS** (Vovk et al. 2015) is
-built from the same isotonic fits, applied the same way, but refits with each
+**Isotonic regression** is the non-parametric ceiling: one-vs-rest, then
+renormalised. **Venn-ABERS** (Vovk et al. 2015) is built from the same isotonic fits,
+applied the same way, but refits with each
 test point inserted once as a positive and once as a negative, and reports
 `p1 / (1 - p0 + p1)`, the paper's log-loss merge; its square-loss merge moves no
 figure here by more than 6e-5. On binary problems applying it to both columns and
@@ -577,19 +572,19 @@ isotonic baseline; it now fits in float64, which moved its columns by at most 0.
 Cross-fitting over stored predictions makes one approximation. Each fold's
 calibrator is fitted on predictions from the other three folds' models, which
 were themselves trained on the fold being corrected: its labels never enter the
-fit directly, but they shape the models whose scores do. That affects all three
+fit directly, but they shape the models whose scores do. That affects both
 repairs alike, so it does not bias the comparison between them, but it is why no
 coverage guarantee is claimed for Venn-ABERS here.
 
 Three things come out of it.
 
 *The repair is real but small where it matters.* Random Forest gains the most
-(0.0747 to 0.0459, a 39 % cut), then SGD, HistGradientBoosting, TabNet and
+(0.0747 to 0.0463, a 38 % cut), then SGD, HistGradientBoosting, TabNet and
 CatBoost, at 30-36 %. TabFM and AutoGluon gain least, because they had least to give
 back.
 
 *It does not close the gap.* Nothing classical reaches the **untreated** TabFM at
-0.0367, and neither AutoML framework does: AutoGluon's best repair is 0.0391,
+0.0367, and neither AutoML framework does: AutoGluon's best repair is 0.0393,
 MLJAR's 0.0397. The nearest classical model afterwards is SVC at 0.0436, and repaired
 CatBoost lands at 0.0480, still worse than raw TabPFN-3 at 0.0443. "Just calibrate the
 gradient booster" does not produce a foundation model's probabilities.
@@ -606,9 +601,7 @@ foundation floor, not the tie at the line.
 over Random Forest. The loss is ties, not
 reordering: on the binary datasets isotonic maps whole score intervals onto one
 plateau and keeps a median 8 % of a fold's distinct positive-class scores, so
-positives and negatives end up sharing a value. Temperature scaling is the honest
-free lunch, and for most models the weaker of the two; it is clearly ahead only on
-TabICL (0.0347 against 0.0362). On MLJAR it makes ECE worse, 0.0456 to 0.0477.
+positives and negatives end up sharing a value.
 
 *Venn-ABERS halves the ranking cost, and wins on binary data.* On the binary
 datasets, where it is the method as published, it keeps a median 31 % of a fold's
@@ -805,13 +798,91 @@ not the model.
 The usable rule: leave `extra_trees` off in LightGBM, it saves a quarter of the tuning
 time and costs 0.018; for random splits use sklearn's `ExtraTreesClassifier`.
 
+## DART buys nothing over tuned LightGBM
+
+`lgbm_dart` is LightGBM with `boosting_type="dart"` and `max_drop=-1` (the default caps
+a round at 50 dropped trees, which would flatten `drop_rate`), searched over LightGBM's
+space plus `drop_rate` ~ logU[0.01, 0.5] and `skip_drop` ~ U[0, 0.5], so dropout runs in
+at least half the rounds. Trials, tree cap, folds and seed are LightGBM's
+(`scripts/dart_controls.py`, `results/dart_controls.csv`). The analysis was fixed before
+the run: one Holm family of four, DART against its August base and against the
+[seed control](#extra-trees-splits-cost-lightgbm-not-sklearns-forest), for LightGBM and
+for XGBoost. `xgboost_dart` is still running, so the last column is 4 x raw p, a bound
+Holm never exceeds.
+
+| comparison | PR AUC | ahead / behind | raw p | Holm p at most |
+|---|---|---|---|---|
+| `lgbm_dart` vs LightGBM | 0.8306 → 0.8274 | 38 / 88 | 2e-5 | 7e-5 |
+| `lgbm_dart` vs `lgbm_seed1` | 0.8309 → 0.8274 | 54 / 73 | 0.095 | 0.38 |
+
+"DART beats tuning" needed a significant gain against both and a larger tail than the
+seed control. DART is behind both, significantly only against the August run. Against
+the seed control it gains more than 0.02 on no dataset and loses that much on 6; the seed
+alone moves LightGBM up by that much on 4 and down on 2, and XGBoost's own seed control
+(`xgboost_seed1`, sd 0.009) on 1 and 4. So: no gain beyond search noise in this space at
+50 trials and 500 trees.
+
+Half the mean loss is one fold. On the fourth outer fold of `pendigits` the final DART
+model, refit at the learning-rate bound of 0.3, predicts class 8 for 91 % of rows and
+scores 0.101, chance for 10 classes, where its other folds and LightGBM score 0.999. The
+inner CV had chosen those parameters; why the refit collapsed was not checked. Without
+`pendigits` the mean gap is -0.0016.
+
+Calibration is where DART costs. Over the 108 calibration datasets ECE goes from 0.067
+to 0.106, Brier from 0.244 to 0.276 and the mean |gap| from 0.040 to 0.082 (raw
+p < 1e-5 for each).
+
+The search kept leaving DART: 38 % of folds sit in the weak-dropout corner (`drop_rate`
+< 0.02 or `skip_drop` > 0.45). It chose a median learning rate of 0.092 against
+LightGBM's 0.024, and the tree cap bound no harder (over 450 trees in 12 % of folds
+against 15 %). Tuning took 9.27 h against 3.95 h for `lgbm_seed1` re-timed the same way,
+both with parallel outer folds and pauses removed: 2.35x.
+
+## Another outer split keeps the verdicts, not the order of close models
+
+Every other number in these notes comes from one outer split, seed 0. Seven models were
+re-run under split seeds 1 and 2 on 30 datasets, 10 from each third by rows, drawn with
+seed 0 from the 108 complete cases (`scripts/split_seeds.py`, `results/split_seeds.csv`).
+Only the outer split changes; inner folds, samplers and model seeds keep their seeds.
+Not pre-registered: raw Wilcoxon p per split, no correction, and 30 datasets carry less
+power than 108.
+
+| model | seed 0 | seed 1 | seed 2 | range |
+|---|---|---|---|---|
+| TabPFN-3.5 | 0.8720 | 0.8717 | 0.8728 | 0.0011 |
+| TabFM | 0.8726 | 0.8697 | 0.8710 | 0.0029 |
+| TabICL | 0.8716 | 0.8690 | 0.8705 | 0.0026 |
+| TabPFN-3 | 0.8693 | 0.8665 | 0.8677 | 0.0028 |
+| CatBoost | 0.8404 | 0.8396 | 0.8440 | 0.0044 |
+| LightGBM | 0.8404 | 0.8398 | 0.8403 | 0.0006 |
+| HistGradientBoosting | 0.8392 | 0.8364 | 0.8351 | 0.0042 |
+
+All 12 foundation-versus-booster pairs separate on every split (gaps 0.024 to 0.038,
+largest raw p 0.0034). Of the 21 pairs, 19 keep the sign of their mean gap on all three
+splits. The two that flip, TabPFN-3.5 against TabFM and CatBoost against LightGBM, are
+within 0.004 and inseparable in the
+[all-models table](#which-headline-gaps-the-data-actually-supports). The three pairs that
+table separates keep their direction: TabPFN-3.5 over TabPFN-3, CatBoost over
+HistGradientBoosting and TabFM over TabPFN-3, significant here on two, one and none of
+the three splits (TabPFN-3.5 over TabPFN-3: p = 0.15, 0.009, 0.003). One split does not
+settle the order inside the foundation group or inside the boosters.
+
+On one dataset a model's PR AUC has a median standard deviation of 0.001 to 0.004 across
+the three splits, 0.010 to 0.016 at the 90th percentile and up to 0.041;
+`planning-relax`, `indian-liver-patient` and `ozone-onehr` move most. The mean over the
+30 moves by at most 0.0044. This is the number the
+[TabNet seed grid](#tabnets-seed-noise-is-as-large-as-its-split-noise) could not give,
+the noise of a mean over datasets, for 30 of them; over 108 it should be smaller and was
+not measured.
+
 ## Cost does not track performance
 
 Total wall clock for the nested CV, against mean PR AUC over each model's own
 coverage. The CatBoost and TabPFN-3.5 rows cover 131 datasets rather than 146,
-because runs now skip the UCI++ duplicates; over those same 131 TabPFN-3 costs 63.6 h
-and the uniform-start CatBoost 73.7 h, the like-for-like numbers to compare them
-against.
+because runs now skip the UCI++ duplicates; over those same 131 the uniform-start
+CatBoost cost 73.7 h, the like-for-like number to compare it against. TabPFN-3 is the
+October re-time over 131; the other rows are the stored runs, several of which a quiet
+machine [runs much faster](#re-run-one-job-at-a-time-tabpfn-3-costs-a-seventh-of-its-stored-time).
 
 | model | hours | median/dataset | mean PR AUC | coverage |
 |---|---|---|---|---|
@@ -822,12 +893,12 @@ against.
 | XGBoost | 7.4 | 53 s | 0.8328 | 146 |
 | Random Forest | 7.6 | 105 s | 0.8359 | 146 |
 | TabPFN-3.5-fast | 9.3 | 85 s | 0.8608 | 131 |
+| TabPFN-3 | 9.7 | 90 s | 0.8570 | 131 |
 | LightGBM | 11.3 | 118 s | 0.8345 | 146 |
 | LightGBM-linear | 13.2 | 145 s | 0.8374 | 146 |
 | TabPFN-3.5 | 17.8 | 180 s | 0.8627 | 131 |
 | TabICL | 34.7 | 364 s | 0.8574 | 142 |
 | HistGradientBoosting | 36.5 | 384 s | 0.8303 | 146 |
-| TabPFN-3 | 73.6 | 1199 s | 0.8591 | 146 |
 | CatBoost | 116.4 | 153 s | 0.8342 | 131 |
 | ResNet | 207.7 | 2605 s | 0.8234 | 146 |
 | TabNet | 485.3 | 2754 s | 0.7507 | 146 |
@@ -837,13 +908,46 @@ finish below Random Forest, which costs 7.6 h. TabNet's hours mix two execution
 modes, MPS with sequential folds on the larger datasets and CPU with parallel folds
 on the smaller ones, so they compare only roughly with the rest.
 
-The sharpest illustration is inside one model family. TabPFN-3 costs 63.6 h over the
-131 datasets a run now covers; TabPFN-3.5 costs 17.8 h and scores higher; the fast
-variant costs 9.3 h and is within 0.002 of it. Nearly seven times the price for a
-difference the test cannot find.
+Inside one model family the newer model is the dearer one. Over the 131 datasets
+TabPFN-3 costs 9.7 h, TabPFN-3.5 17.8 h for 0.0057 more, and the fast variant 9.3 h,
+within 0.002 of full 3.5.
 
 TabFM reaches the highest mean of any single model for 4.3 h, though on 126 datasets
 and with a GPU.
+
+## Re-run one job at a time, TabPFN-3 costs a seventh of its stored time
+
+The [split-seed runs](#another-outer-split-keeps-the-verdicts-not-the-order-of-close-models)
+went one job at a time on the same machine, so they re-time seven models on those 30
+datasets. Hours over the 30:
+
+| model | stored run | seed 1 | seed 2 |
+|---|---|---|---|
+| TabPFN-3 | 14.19 | 2.00 (0.14x) | 2.13 (0.15x) |
+| LightGBM | 1.78 | 0.64 (0.36x) | 0.64 (0.36x) |
+| CatBoost | 5.38 | 2.51 (0.47x) | 2.76 (0.51x) |
+| TabFM | 1.05 | 0.55 (0.52x) | 0.57 (0.54x) |
+| TabICL | 5.97 | 4.04 (0.68x) | 4.54 (0.76x) |
+| HistGradientBoosting | 3.92 | 11.66 (2.98x)\* | 3.23 (0.82x) |
+| TabPFN-3.5 | 4.14 | 4.15 (1.00x) | 4.46 (1.08x) |
+
+\* HistGradientBoosting ran 7x slower than in August until it was pinned to one OpenMP
+thread with `threadpoolctl` (two OpenMP runtimes are loaded, torch's and sklearn's);
+scores are identical, and seed 1 started before the fix.
+
+TabPFN-3.5 reproduces its stored time within 8 %, so the machine is comparable. The
+stored TabPFN-3 run is seven times slower. It ran in August, on `tabpfn` 8.2.0 and in
+the [month of stolen cores](#a-month-of-stolen-cores-invisible-from-inside); which of
+these, or what else, was not measured. The stored CatBoost run is from October and
+still took twice as long, which neither explains.
+
+TabPFN-3 was then re-run on all 131 datasets the same way: 9.7 h against the stored
+63.6 h (0.15x), a median of 90 s per dataset against 1082 s, and half the 17.8 h of
+TabPFN-3.5. The scores are the stored ones on 104 of the 131 datasets. Elsewhere the
+float32 probabilities differ in their last digits, which flips the grid choice on 11
+datasets where two settings tie; the mean PR AUC moves by -0.00003 and no dataset by
+more than 0.0023 (`arcene`). The cost ladder above uses the re-timed TabPFN-3; its other
+August and September rows are as stored.
 
 ## Fifteen datasets are duplicates
 
