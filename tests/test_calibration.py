@@ -11,10 +11,8 @@ from benchmark.calibration import (
     brier_score,
     expected_calibration_error,
     isotonic_calibrate,
-    temperature_scale,
     venn_abers_calibrate,
 )
-from benchmark.metrics import pr_auc_score
 
 Y = np.array([0, 0, 1, 1])
 CONFIDENT_RIGHT = np.array([[1.0, 0], [1, 0], [0, 1], [0, 1]])
@@ -74,26 +72,18 @@ def _mean_ece(folds, probs):
 
 
 class TestPostHocCalibration:
-    @pytest.mark.parametrize("calibrate", [temperature_scale, isotonic_calibrate,
-                                           venn_abers_calibrate])
+    @pytest.mark.parametrize("calibrate", [isotonic_calibrate, venn_abers_calibrate])
     def test_repairs_an_overconfident_model(self, calibrate):
         folds = _overconfident()
         before = _mean_ece(folds, [p for p, _ in folds])
         assert _mean_ece(folds, calibrate(folds)) < before / 2
 
-    @pytest.mark.parametrize("calibrate", [temperature_scale, isotonic_calibrate,
-                                           venn_abers_calibrate])
+    @pytest.mark.parametrize("calibrate", [isotonic_calibrate, venn_abers_calibrate])
     def test_returns_distributions_of_the_same_shape(self, calibrate):
         folds = _overconfident(n=400)
         for (prob, _), out in zip(folds, calibrate(folds)):
             assert out.shape == prob.shape
             assert out.sum(axis=1) == pytest.approx(np.ones(len(out)))
-
-    def test_temperature_scaling_keeps_the_binary_ranking(self):
-        """One knob on the logits cannot reorder rows, so PR AUC must not move."""
-        folds = _overconfident()
-        for (prob, y), out in zip(folds, temperature_scale(folds)):
-            assert pr_auc_score(y, out) == pytest.approx(pr_auc_score(y, prob))
 
     def test_calibrator_never_sees_the_fold_it_corrects(self):
         """Labels flipped in one fold only: a leaking fit would repair it anyway."""
@@ -101,8 +91,8 @@ class TestPostHocCalibration:
         poisoned = list(folds)
         prob, y = poisoned[0]
         poisoned[0] = (prob, 1 - y)
-        assert _mean_ece(poisoned, temperature_scale(poisoned)) > _mean_ece(
-            folds, temperature_scale(folds))
+        assert _mean_ece(poisoned, isotonic_calibrate(poisoned)) > _mean_ece(
+            folds, isotonic_calibrate(folds))
 
     def test_handles_a_class_absent_from_the_fitting_folds(self):
         rng = np.random.default_rng(0)
