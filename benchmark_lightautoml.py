@@ -1,8 +1,13 @@
-"""Runs in its own venv: LightAutoML pins xgboost<3 and statsmodels<=0.14.0 (see README)."""
+"""Runs in its own venv: LightAutoML pins xgboost<3 and statsmodels<=0.14.0 (see README).
+
+TabularUtilizedAutoML, the preset the OpenML AutoML Benchmark runs: it restarts its configs
+until the budget is spent, as the other AutoML frameworks here do. Binary tasks select on
+log loss rather than the default ROC AUC, as FLAML does; multiclass keeps its default,
+crossentropy."""
 import joblib
 import numpy as np
 import pandas as pd
-from lightautoml.automl.presets.tabular_presets import TabularAutoML
+from lightautoml.automl.presets.tabular_presets import TabularUtilizedAutoML
 from lightautoml.tasks import Task
 from sklearn.model_selection import StratifiedKFold
 
@@ -19,17 +24,17 @@ def evaluate_lightautoml(X, y):
     data_df["y"] = y
     outer_cv = StratifiedKFold(n_splits=N_OUTER_FOLDS, shuffle=True, random_state=RANDOM_STATE)
     n_classes = len(np.unique(y))
-    task = Task("binary" if n_classes == 2 else "multiclass")
+    task = Task("binary", metric="logloss") if n_classes == 2 else Task("multiclass")
     nested_scores, nested_preds, nested_labels = [], [], []
     for train_inds, test_inds in outer_cv.split(X, y):
         train_df = data_df.iloc[train_inds]
         test_df  = data_df.iloc[test_inds]
-        automl = TabularAutoML(task=task, timeout=SEC, cpu_limit=N_JOBS,
-                               reader_params={"n_jobs": N_JOBS, "random_state": RANDOM_STATE})
+        automl = TabularUtilizedAutoML(task=task, timeout=SEC, cpu_limit=N_JOBS, random_state=RANDOM_STATE,
+                                       reader_params={"n_jobs": N_JOBS})
         automl.fit_predict(train_df, roles={"target": "y"}, verbose=0)
         # Labels already 0..K-1 are kept as they are; anything else is remapped in
         # frequency order, which would silently reorder the probability columns.
-        assert automl.reader.class_mapping is None
+        assert automl.outer_pipes[0].ml_algos[0].models[0][0].reader.class_mapping is None
         y_pred = automl.predict(test_df.drop(columns=["y"])).data
         if n_classes == 2:
             y_pred = np.column_stack([1 - y_pred[:, 0], y_pred[:, 0]])
