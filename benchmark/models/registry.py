@@ -96,6 +96,8 @@ MODELS: dict[str, ModelSpec] = {
     "xgboost_seed1":     _xgb(sampler_seed=RANDOM_STATE + 1),
     "lgbm_dart":         _lgbm(dart=True),
     "xgboost_dart":      _xgb(dart=True),
+    # DART selected on log loss: is its worse calibration the PR AUC selection or DART itself?
+    "lgbm_dart_logloss": _lgbm(dart=True, scoring=LOG_LOSS_SCORER),
     "tabnet":         ModelSpec(build=b.build_tabnet, objective=o.tabnet_objective, n_trials=N_TRIALS_NN),
     "ft_transformer": ModelSpec(build=b.build_ft_transformer, objective=o.ft_transformer_objective,
                                 n_trials=N_TRIALS_NN),
