@@ -369,6 +369,7 @@ class TestRegistry:
         "xgboost_seed1": ("xgb_objective", {"scoring": "PR"}),
         "lgbm_dart": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "dart": True}),
         "xgboost_dart": ("xgb_objective", {"scoring": "PR", "dart": True}),
+        "lgbm_dart_logloss": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "dart": True}),
         "tabnet": ("tabnet_objective", {}), "ft_transformer": ("ft_transformer_objective", {}),
         "resnet": ("resnet_objective", {}),
     }

@@ -798,45 +798,114 @@ not the model.
 The usable rule: leave `extra_trees` off in LightGBM, it saves a quarter of the tuning
 time and costs 0.018; for random splits use sklearn's `ExtraTreesClassifier`.
 
-## DART buys nothing over tuned LightGBM
+## DART buys nothing over tuned LightGBM or XGBoost
 
 `lgbm_dart` is LightGBM with `boosting_type="dart"` and `max_drop=-1` (the default caps
 a round at 50 dropped trees, which would flatten `drop_rate`), searched over LightGBM's
 space plus `drop_rate` ~ logU[0.01, 0.5] and `skip_drop` ~ U[0, 0.5], so dropout runs in
-at least half the rounds. Trials, tree cap, folds and seed are LightGBM's
-(`scripts/dart_controls.py`, `results/dart_controls.csv`). The analysis was fixed before
-the run: one Holm family of four, DART against its August base and against the
+at least half the rounds. `xgboost_dart` is XGBoost with `booster="dart"`, searched over
+XGBoost's space plus `rate_drop` and `skip_drop` on the same ranges, its other DART settings
+at their defaults (uniform sampling, tree normalization). Trials, tree cap, folds and seed are
+each base's (`scripts/dart_controls.py`, `results/dart_controls.csv`). The analysis was fixed
+before the run: one Holm family of four, DART against its August base and against the
 [seed control](#extra-trees-splits-cost-lightgbm-not-sklearns-forest), for LightGBM and
-for XGBoost. `xgboost_dart` is still running, so the last column is 4 x raw p, a bound
-Holm never exceeds.
+for XGBoost. `xgboost_dart` departs from the plan three times, each decided on time, not on
+scores. The plan left it to a timing check; before the run it was queued on every dataset
+instead (2026-10-18). During the run both `plant-species` datasets (100 classes) were skipped
+when their searches were projected past the 12 h limit (2026-10-28), so its pairs have 129
+datasets, and `multiple-features` hit that limit, which the plan scored as missing, and resumed
+its stored trials with no limit.
 
-| comparison | PR AUC | ahead / behind | raw p | Holm p at most |
+| comparison | PR AUC | ahead / behind | raw p | Holm p |
 |---|---|---|---|---|
 | `lgbm_dart` vs LightGBM | 0.8306 → 0.8274 | 38 / 88 | 2e-5 | 7e-5 |
-| `lgbm_dart` vs `lgbm_seed1` | 0.8309 → 0.8274 | 54 / 73 | 0.095 | 0.38 |
+| `lgbm_dart` vs `lgbm_seed1` | 0.8309 → 0.8274 | 54 / 73 | 0.095 | 0.19 |
+| `xgboost_dart` vs XGBoost | 0.8293 → 0.8268 | 42 / 82 | 3e-4 | 9e-4 |
+| `xgboost_dart` vs `xgboost_seed1` | 0.8282 → 0.8268 | 50 / 75 | 0.098 | 0.19 |
 
-"DART beats tuning" needed a significant gain against both and a larger tail than the
-seed control. DART is behind both, significantly only against the August run. Against
-the seed control it gains more than 0.02 on no dataset and loses that much on 6; the seed
-alone moves LightGBM up by that much on 4 and down on 2, and XGBoost's own seed control
-(`xgboost_seed1`, sd 0.009) on 1 and 4. So: no gain beyond search noise in this space at
-50 trials and 500 trees.
+"DART beats tuning" needed a significant gain against both bases, a mean gap larger than the
+seed control's own shift and a larger tail. Both DARTs are behind both bases. Only the
+comparisons with the August runs are significant. For LightGBM the gap to the seed control is
+as large (-0.0035 against -0.0033) but less one-sided (73 datasets behind against 88); for
+XGBoost 0.0011 of the 0.0025 is the August run's own seed advantage. Past 0.02, LightGBM's DART
+gains on 4 datasets and loses on 5 against the August run; against the seed control it loses on
+6, three of them (`appendicitis`, `colon32`, `teaching-assistant-evaluation`) where the seed
+control had itself gained 0.035 to 0.051. XGBoost's DART gains on 1 and loses on 4 against its
+seed control, as often as the seed alone moves XGBoost (`xgboost_seed1`, sd 0.009). DART's own
+seed noise was not measured. So: no gain beyond search noise in either space at 50 trials and
+500 trees.
 
-Half the mean loss is one fold. On the fourth outer fold of `pendigits` the final DART
-model, refit at the learning-rate bound of 0.3, predicts class 8 for 91 % of rows and
-scores 0.101, chance for 10 classes, where its other folds and LightGBM score 0.999. The
-inner CV had chosen those parameters; why the refit collapsed was not checked. Without
-`pendigits` the mean gap is -0.0016.
+Half of LightGBM's mean loss is one fold. On the fourth outer fold of `pendigits` the final
+DART model, refit at the learning-rate bound of 0.3, predicts class 8 for 91 % of rows and
+scores 0.101, chance for 10 classes, where its other folds and LightGBM score 0.999.
+Without `pendigits` the gaps are -0.0016 and -0.0018.
 
-Calibration is where DART costs. Over the 108 calibration datasets ECE goes from 0.067
-to 0.106, Brier from 0.244 to 0.276 and the mean |gap| from 0.040 to 0.082 (raw
-p < 1e-5 for each).
+The collapse is DART's, not the search's (`scripts/dart_pendigits.py`,
+`results/dart_pendigits.csv`). The refit reproduces the stored predictions exactly and
+collapses on its own training rows too (0.101), so it is a degenerate model, not
+overfitting. The same parameters score 0.9985-0.9992 on all four inner folds, 0.9996-0.9997
+under model seeds 1-3, and 0.9996 under `drop_seed` 1, but collapse again under
+`drop_seed` 2 and 3 (0.112 and 0.098). With these parameters the drop pattern decides whether
+the model survives: 3 of the 7 patterns tried on the full training rows collapse. LightGBM
+draws that pattern from `drop_seed` and the iteration count alone, not from the data, so the
+inner folds replayed the final fit's pattern on three quarters of the rows and survived; they
+could not screen it out. The parameters sit near the weak-dropout corner (`drop_rate` 0.033,
+`skip_drop` 0.44), so weak dropout is no protection.
 
-The search kept leaving DART: 38 % of folds sit in the weak-dropout corner (`drop_rate`
-< 0.02 or `skip_drop` > 0.45). It chose a median learning rate of 0.092 against
-LightGBM's 0.024, and the tree cap bound no harder (over 450 trees in 12 % of folds
-against 15 %). Tuning took 9.27 h against 3.95 h for `lgbm_seed1` re-timed the same way,
-both with parallel outer folds and pauses removed: 2.35x.
+Calibration is where DART costs, LightGBM's more. Over the 108 calibration datasets
+LightGBM's DART raises ECE from 0.067 to 0.106, Brier from 0.244 to 0.276 and the mean
+|gap| from 0.040 to 0.082 (raw p < 1e-5 for each); the rises are heavy-tailed, with medians
+of 0.013 (ECE, up on 71), 0.010 (Brier) and 0.013 (|gap|). XGBoost's raises ECE from 0.063 to 0.074 (raw
+p 0.005; from 0.067 against the seed control, p 0.015; median rise 0.002, up on 70) and Brier
+from 0.239 to 0.253 (p 2e-5), and leaves the |gap| where it was (0.035 and 0.040, p 0.74).
+
+Selected on log loss, LightGBM's DART calibrates close to LightGBM. In a follow-up outside the
+family, run after these results with one seed, the same search selected on log loss
+(`lgbm_dart_logloss`, same space and budget) matches LightGBM selected the same way on ECE
+(0.042 against 0.040, mean gap +0.002 [-0.002, +0.007], raw p 0.70) and is slightly worse on
+Brier (0.227 against 0.223: the mean gap +0.004 [+0.001, +0.008] excludes zero, while the
+median is +0.0003 and the signed-rank p 0.12), with PR AUC unchanged (0.8277 against 0.8278,
+p 0.44). That search also uses less dropout (46 % of folds in the weak-dropout corner
+against 38 %) at a higher learning rate (median 0.114 against 0.092), so selecting less DART
+may be part of what log loss does. Why DART calibrates worse under PR AUC is not identified.
+XGBoost's DART was not selected on log loss.
+
+LightGBM's search leaned toward weak dropout, XGBoost's did not. The weak-dropout corner (drop
+rate < 0.02 or `skip_drop` > 0.45) holds 26 % of the search space; 38 % of LightGBM's DART
+folds sit in it (median drop rate 0.040 against the prior's 0.071), 30 % of XGBoost's (0.066).
+LightGBM's DART chose a median learning rate of 0.092 against LightGBM's 0.027, XGBoost's 0.055
+against 0.031, and the tree cap bound about as often (over 450 trees in 12 % of LightGBM DART's
+folds against 16 % and 14 % for its two bases, in 14 % of XGBoost DART's against 12 % and 9 %).
+
+XGBoost's DART is slow, and slower the more classes a dataset has. With parallel outer
+folds and pauses removed, LightGBM's DART tuned in 9.27 h against 3.95 h for `lgbm_seed1`
+re-timed the same way, 2.35x; XGBoost's took 101.8 h on its 129 datasets against 2.36 h for
+`xgboost_seed1`, 43x as a ratio of the sums, a lower bound since the two skipped datasets
+were projected to be the slowest. Per dataset, DART's time over its seed control's, median
+[quartiles] (the 10+ band also misses the two skipped datasets):
+
+| classes | datasets (LightGBM / XGBoost) | LightGBM DART | XGBoost DART |
+|---|---|---|---|
+| 2 | 56 / 56 | 1.2x [0.7, 1.8] | 5.8x [4.7, 15] |
+| 3-4 | 26 / 26 | 1.9x [1.1, 3.2] | 14x [8.4, 29] |
+| 5-9 | 26 / 26 | 1.9x [1.0, 6.1] | 29x [22, 40] |
+| 10+ | 23 / 21 | 2.0x [1.2, 3.2] | 62x [34, 85] |
+
+The bands also differ in size (median rows 694, 1072, 1966 and 3842), but the classes hold
+apart from it: log ratio = -1.13 + 0.79 log classes + 0.41 log rows (R2 0.74), and with the
+features and the trees DART chose added, 0.70 log classes, 0.45 log rows, 0.17 log features
+and 0.99 log trees (R2 0.85). That is an association, not a cause. `multiple-features` took
+16.8 h against 0.17 h, 12 h of it in the segment cut at the limit.
+
+The code is consistent with this, though the weights of its terms were not timed. XGBoost's
+DART (`Dart::PredictBatchImpl` in `src/gbm/gbtree.cc`, 3.2.0) rebuilds the prediction every
+round from every tree not dropped, one tree at a time, whatever `rate_drop` and `skip_drop`
+are; plain boosting adds each new tree to a running prediction. For each tree the rebuild
+zeroes a rows x classes buffer and refills every row's features, so its cost grows with the
+trees, and through that buffer and those features with the classes and the features.
+LightGBM's DART (`src/boosting/dart.hpp`, 4.6.0) only subtracts and re-adds the trees it drops,
+none in skipped rounds; its stored ratios follow the rows (Spearman 0.61), not the chosen drop
+rate (0.08).
 
 ## Another outer split keeps the verdicts, not the order of close models
 
