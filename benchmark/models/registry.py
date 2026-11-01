@@ -46,10 +46,10 @@ def _grid(key: str, **limits) -> ModelSpec:
     return ModelSpec(build=build, grid=partial(build_grid_search, key), limits=limits)
 
 
-def _lgbm(*, scoring=PR_AUC_SCORER, max_trees=500, sampler_seed=RANDOM_STATE, **model) -> ModelSpec:
+def _lgbm(*, scoring=PR_AUC_SCORER, max_trees=500, max_lr=0.3, sampler_seed=RANDOM_STATE, **model) -> ModelSpec:
     """``model`` reaches both the search and the final fit; the rest the search only."""
     return ModelSpec(build=partial(b.build_lgbm, **model),
-                     objective=partial(o.lgbm_objective, scoring=scoring, max_trees=max_trees, **model),
+                     objective=partial(o.lgbm_objective, scoring=scoring, max_trees=max_trees, max_lr=max_lr, **model),
                      sampler_seed=sampler_seed, parallel_folds=True)
 
 
@@ -95,6 +95,10 @@ MODELS: dict[str, ModelSpec] = {
     # Regularisation block: DART with its drop rates tuned, and the XGBoost search-noise control.
     "xgboost_seed1":     _xgb(sampler_seed=RANDOM_STATE + 1),
     "lgbm_dart":         _lgbm(dart=True),
+    # DART checks from the review: its own sampler seed, and a learning-rate cap of 1 for both boosters.
+    "lgbm_dart_seed1":   _lgbm(dart=True, sampler_seed=RANDOM_STATE + 1),
+    "lgbm_wide":         _lgbm(max_lr=1.0),
+    "lgbm_dart_wide":    _lgbm(dart=True, max_lr=1.0),
     "xgboost_dart":      _xgb(dart=True),
     # DART selected on log loss: is its worse calibration the PR AUC selection or DART itself?
     "lgbm_dart_logloss": _lgbm(dart=True, scoring=LOG_LOSS_SCORER),

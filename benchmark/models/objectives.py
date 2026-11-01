@@ -179,11 +179,11 @@ def hgb_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> flo
 
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
                    linear_tree=False, extra_trees=False, low_levels=None, dart=False,
-                   scoring=PR_AUC_SCORER, max_trees=500) -> float:
+                   scoring=PR_AUC_SCORER, max_trees=500, max_lr=0.3) -> float:
     max_leaves = 128 if linear_tree else 256
     max_child  = 50  if linear_tree else 100
     params = {
-        "learning_rate":    trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
+        "learning_rate":    trial.suggest_float("learning_rate", 1e-3, max_lr, log=True),
         "n_estimators":     trial.suggest_int("n_estimators", 50, max_trees),
         "num_leaves":       trial.suggest_int("num_leaves", 8, max_leaves),
         "min_child_samples":trial.suggest_int("min_child_samples", 5, max_child),
