@@ -1,0 +1,34 @@
+name,source,first_public,decision
+Dengue deaths Mexico 2021-2025 (minimal),Zenodo,2026-10-08,used: dengue-mexico-deaths
+ECR physiological activation states (27 features),Zenodo,2026-10-13,"rejected: subject leakage: 15 subjects, random CV leaks the subject"
+NPL prediction P2P lending (Indonesia),Zenodo,2026-10-04,used: p2p-npl
+Biotech program-stage outcomes 36m,Zenodo,2026-10-07,used: biotech-y36
+CholeraClima-TZ (cholera lab result),Zenodo,2026-09-10,used: cholera-tz-result
+MalPDF-EFS malicious PDF features (FS43),Kaggle (+Zenodo DOI 10.5281/zenodo.23356149),2026-10-14,used: malpdf-fs43-binary
+CAP discharge disposition and 30-day adverse events (France),Harvard Dataverse,2026-06-01,used: cap-france-30d-adverse
+D-dimer in pregnancy (de-identified lab),Zenodo,2026-10-13,rejected: no usable target
+Sub-optimal sporting goods consumer survey (China),Zenodo,2026-10-14,rejected: no usable target
+Infection-related adverse outcomes in ED: SIRS/qSOFA/SOFA/NEWS2/MEWS,Harvard Dataverse,2026-05-29,rejected: no usable target
+"Physical activity counselling in primary care, Bahrain",Harvard Dataverse,2026-08-28,rejected: no usable target
+Battery experimental records (97 theses),Hugging Face,2026-10-12,rejected: not inspectable
+Lunar sample geochemistry (Astromat synthesis),Hugging Face,2026-10-14,rejected: not inspectable
+Diabetic retinopathy risk from EHR (DRRisk),Dryad,2026-09-21,used: drrisk-retinopathy
+Obesity risk factors in children with prior respiratory infections (Beijing),Dryad,2026-07-21,used: child-obesity-beijing
+Steroid-induced ocular hypertension after vitrectomy,Dryad,2026-10-05,used: steroid-ocular-hypertension
+Aedes aegypti sex classification from pupal morphometrics,Dryad,2026-10-14,used: aedes-pupal-sex
+Insulin dysregulation in sport horses,Dryad,2026-06-30,rejected: under 300 rows or label derived from dropped columns
+ECG screening for left atrial enlargement in dogs,Dryad,2026-09-25,rejected: under 300 rows or label derived from dropped columns
+HPV genotypes and cytology,Dryad 10.5061/dryad.5qfttdzkt,2026-05-26,used: hpv-abnormal-pap
+Equine sinonasal CT,Dryad 10.5061/dryad.np5hqc09w,2026-09-03,used: equine-sinonasal-primary
+Immobility and low back pain,Dryad 10.5061/dryad.6wwpzgn5m,2026-09-21,used: immobility-lbp
+Meconium aspiration,Zenodo 23767049,2026-10-27,used: meconium-aspiration
+Surgeon EHR workload,Dryad 10.5061/dryad.4j0zpc8t0,2026-06-22,rejected: too large or rate-limited to download
+Administrative data accuracy review,Dryad 10.5061/dryad.ffbg79d9f,2026-06-15,rejected: no usable target
+Bee volatiles,Dryad 10.5061/dryad.ttdz08mc3,2026-06-05,rejected: under 300 rows or label derived from dropped columns
+Fertility preservation,Dryad 10.5061/dryad.63xsj3vhw,2026-09-22,rejected: aggregate table
+Substance use treatment after surgery,Dryad 10.5061/dryad.cvdncjtm1,2026-09-21,rejected: aggregate table
+Sarcopenia and body fat,Dryad 10.5061/dryad.rjdfn2zss,2026-06-12,rejected: built on public NHANES data
+Oat hyperspectral,Dryad 10.5061/dryad.vdncjszbg,2026-08-28,rejected: too large or rate-limited to download
+Wildfire building damage,Dryad 10.5061/dryad.r2280gbrw,2026-06-23,rejected: too large or rate-limited to download
+Heart attack (data analytics competition),Kaggle rifkiamirul/data-analytics-competition-print-2026-kesehatan,2026-09,rejected: rule-derived or possibly synthetic label
+Mobile usage and addiction habits,Kaggle abirambharathisa/mobile-usage-and-addiction-habits-2026,2026-09,rejected: rule-derived or possibly synthetic label

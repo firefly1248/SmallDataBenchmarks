@@ -1,14 +1,16 @@
-"""Block E: the foundation models against the boosters on post-release datasets, those first
-public after TabPFN-3's release (2026-05-05), so neither tabpfn3 nor tabicl can have trained
-on them. The question is whether their UCI++ lead leans on benchmark data in training.
+"""Block E: the foundation models against the boosters on post-release datasets, those deposited
+after TabPFN-3's release (2026-05-05). Release dates are not training cutoffs, and for 7 of the 14
+the data were public before. The question is whether their UCI++ lead leans on benchmark data in
+training.
 
 Pre-registered (plan of 2026-10-31): tabpfn3 against lgbm and against catboost, PR AUC, paired
 Wilcoxon over datasets, Holm over the two pairs, paired bootstrap CI; the same pairs on UCI++;
-calibration (ECE, Brier) with raw p. Added after review: the tabicl pairs (secondary), medians,
-the difference of mean gaps and a Mann-Whitney test against UCI++, strata by whether the
-underlying data were public before, a matched UCI++ subset (binary, lgbm below 0.95; the
-threshold is not pre-registered) and a regression of the gap on a post-release indicator with
-dataset covariates.
+the pairs per provenance stratum, no test; calibration (ECE, Brier) with raw p. Added after
+review: the tabicl pairs (secondary), medians, the difference of mean gaps and a Mann-Whitney
+test against UCI++, the stratum membership as fixed below, a matched UCI++ subset (binary,
+catboost below 0.95 on both sides; the threshold is not pre-registered) and a regression of the gap on a
+post-release indicator with dataset covariates. Difficulty is CatBoost's score, not LightGBM's:
+LightGBM's own noise is in the gap.
 
 Usage: uv run python -m scripts.post_release
 """
@@ -25,9 +27,9 @@ from benchmark.stats import holm
 OUTPUT = "results/post_release.csv"
 MODELS = ["lgbm", "catboost", "tabicl", "tabpfn3"]
 PAIRS = [("tabpfn3", "lgbm"), ("tabpfn3", "catboost"), ("tabicl", "lgbm"), ("tabicl", "catboost")]
-# Underlying data public or published before the deposit (linked papers, repository records).
+# Underlying data, or a paper on it, public before TabPFN-3's release (linked papers, repository records).
 PREVIOUSLY_PUBLIC = ["dengue-mexico-deaths", "cholera-tz-result", "malpdf-fs43-binary", "biotech-y36",
-                     "drrisk-retinopathy", "steroid-ocular-hypertension", "child-obesity-beijing", "aedes-pupal-sex"]
+                     "drrisk-retinopathy", "steroid-ocular-hypertension", "aedes-pupal-sex"]
 rng = np.random.default_rng(0)
 
 
@@ -75,34 +77,61 @@ for a, b in PAIRS + [("tabpfn3", "tabicl")]:
     print(f"  {a} - {b}: {g[PREVIOUSLY_PUBLIC].mean():+.4f} / {g[PREVIOUSLY_PUBLIC].median():+.4f}, "
           f"{g[new].mean():+.4f} / {g[new].median():+.4f}")
 
-print("\nCalibration (raw p):")
+balance = lambda ckpts, cal: np.mean([p["balance_probabilities"] for d, e in ckpts["tabpfn3"].items()
+                                       if d in cal for p in e["best_params"]])
+print(f"\ntabpfn3 picks balance_probabilities=True in {balance(post_ckpt, set(names)):.0%} of the post-release folds, "
+      f"{balance(uci_ckpt, uci_cal):.0%} of the UCI++ calibration folds")
+print("Calibration (raw p):")
 for label, ckpts, cal in (("post-release", post_ckpt, set(names)), ("UCI++, 108 calibration datasets", uci_ckpt, uci_cal)):
     out, _ = compare({f"{a} vs {b}": (ckpts[a], ckpts[b]) for a, b in PAIRS}, cal)
     print(f"  {label}")
     print(out[["comparison", "ece_base", "ece_variant", "ece_p", "brier_base", "brier_variant", "brier_p"]]
           .round(4).to_string(index=False))
+    if label == "post-release":
+        tests = {f"{m} {c}": p for c, e, b in zip(out.comparison, out.ece_p, out.brier_p)
+                 for m, p in (("ECE", e), ("Brier", b))}
+        print("  Holm over the eight: " + ", ".join(f"{k} {v:.2g}" for k, v in holm(tests).items()))
+out, _ = compare({f"tabpfn3 vs {b}": (post_ckpt["tabpfn3"], post_ckpt[b]) for b in ("lgbm", "catboost")},
+                 set(names) - {"dengue-mexico-deaths"})
+print("  post-release without dengue-mexico-deaths")
+print(out[["comparison", "ece_base", "ece_variant", "ece_p", "brier_base", "brier_variant", "brier_p"]]
+      .round(4).to_string(index=False))
 
 # tabpfn3 - lgbm against dataset covariates: a matched UCI++ subset and a regression over both pools.
 meta = pd.read_csv("results/datasets.csv").set_index("dataset")
-cov = [{"post": 0, "gap": uci.loc[d, "tabpfn3"] - uci.loc[d, "lgbm"], "lgbm": uci.loc[d, "lgbm"],
+cov = [{"post": 0, "gap": uci.loc[d, "tabpfn3"] - uci.loc[d, "lgbm"], "level": uci.loc[d, "catboost"],
         "n": meta.loc[d, "n_rows"], "p": meta.loc[d, "n_features"], "classes": meta.loc[d, "n_classes"],
         "minority": meta.loc[d, "minority_share"]} for d in uci.index]
 for d in names:
     X, y, _ = load_data_df(d)
-    cov.append({"post": 1, "gap": post.loc[d, "tabpfn3"] - post.loc[d, "lgbm"], "lgbm": post.loc[d, "lgbm"],
+    cov.append({"post": 1, "gap": post.loc[d, "tabpfn3"] - post.loc[d, "lgbm"], "level": post.loc[d, "catboost"],
                 "n": len(X), "p": X.shape[1], "classes": len(set(y)), "minority": min(np.mean(y == c) for c in set(y))})
 cov = pd.DataFrame(cov)
-matched = cov[(cov.post == 0) & (cov.classes == 2) & (cov.lgbm < 0.95)].gap
-pooled = cov[cov.post == 1].gap
-print(f"\ntabpfn3 - lgbm, matched UCI++ (binary, lgbm < 0.95, n {len(matched)}): mean {matched.mean():+.4f}, "
+matched = cov[(cov.post == 0) & (cov.classes == 2) & (cov.level < 0.95)].gap
+pooled = cov[(cov.post == 1) & (cov.level < 0.95)].gap
+binary = cov[(cov.post == 0) & (cov.classes == 2)].gap
+print(f"\ntabpfn3 - lgbm, binary UCI++ (n {len(binary)}): mean {binary.mean():+.4f}, median {binary.median():+.4f}")
+print(f"tabpfn3 - lgbm, matched UCI++ (binary, catboost < 0.95, n {len(matched)}): mean {matched.mean():+.4f}, "
       f"median {matched.median():+.4f}; post-release mean {pooled.mean():+.4f}, median {pooled.median():+.4f}; "
-      f"difference {matched.mean() - pooled.mean():+.4f} {ci(boot_mean(matched.values) - boot_mean(pooled.values))}")
+      f"difference {matched.mean() - pooled.mean():+.4f} {ci(boot_mean(matched.values) - boot_mean(pooled.values))}; "
+      f"post-release n {len(pooled)}")
+uci_gap = (uci.tabpfn3 - uci.lgbm).sort_values()
+hill = [d for d in uci.index if d.startswith("hill-valley")]
+cov["dataset"] = list(uci.index) + names
+no_hill = cov[(cov.post == 0) & (cov.classes == 2) & (cov.level < 0.95) & ~cov.dataset.isin(hill)].gap
+print(f"  matched without {', '.join(hill)}: n {len(no_hill)}, mean {no_hill.mean():+.4f}, median {no_hill.median():+.4f}")
+for k in (5, 10):
+    print(f"  UCI++ mean gap without its {k} largest: {uci_gap.iloc[:-k].mean():+.4f} "
+          f"({uci_gap.iloc[-k:].sum() / uci_gap.sum():.0%} of the summed gap in them: {', '.join(uci_gap.index[-k:])})")
 design = np.column_stack([np.ones(len(cov)), cov.post, np.log(cov.n), np.log(cov.p), cov.classes == 2,
-                          cov.minority, cov.lgbm]).astype(float)
+                          cov.minority, cov.level]).astype(float)
 fit = lambda i: np.linalg.lstsq(design[i], cov.gap.values[i], rcond=None)[0]
 coef = fit(np.arange(len(cov)))
 boots = np.array([fit(rng.integers(0, len(cov), len(cov))) for _ in range(2000)])
 print(f"Regression of the gap over {len(cov)} datasets, bootstrap CI over datasets:")
-for i, label in enumerate(["const", "post-release", "log n", "log p", "binary", "minority", "lgbm level"]):
+for i, label in enumerate(["const", "post-release", "log n", "log p", "binary", "minority", "catboost level"]):
     print(f"  {label:12s} {coef[i]:+.4f} {ci(boots[:, i])}")
+keep = np.flatnonzero(~cov.dataset.isin(hill).values)
+print(f"  post-release without hill-valley: {fit(keep)[1]:+.4f} "
+      f"{ci(np.array([fit(rng.choice(keep, len(keep)))[1] for _ in range(2000)]))}")
 print(f"Saved {OUTPUT}")
