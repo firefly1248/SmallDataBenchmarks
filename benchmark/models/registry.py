@@ -5,10 +5,14 @@ or both, so adding one is one line here and nothing anywhere else.
 """
 from __future__ import annotations
 
+import random
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from functools import partial
+from functools import cache, partial
 
+import numpy as np
+import optuna
 from sklearn.ensemble import ExtraTreesClassifier
 
 from benchmark.metrics import LOG_LOSS_SCORER, PR_AUC_SCORER
@@ -29,6 +33,7 @@ class ModelSpec:
     limits: dict = field(default_factory=dict)
     n_trials: int | None = None         # None: config.N_TRIALS, read at run time so tests can shrink it
     sampler_seed: int = RANDOM_STATE
+    sampler: Callable = optuna.samplers.TPESampler   # (seed=...) -> Optuna sampler
     # Tune the outer folds in concurrent threads. Only for objectives whose search fits
     # run on one thread each (4 folds x 4 inner fits fill the cores): thread settings
     # are process-wide, so a multi-threaded fit, or HGB's threadpool limit, would
@@ -60,6 +65,56 @@ def _xgb(*, scoring=PR_AUC_SCORER, sampler_seed=RANDOM_STATE, **model) -> ModelS
 
 
 _catboost = ModelSpec(build=b.build_catboost, objective=o.catboost_objective)
+
+# The OptunaHub ConfOpt sampler is fetched from GitHub once, then cached; the commit is pinned.
+CONFOPT_REF = "180d82259844f17578f4c3d0f8472835c17ff8cb"
+# ConfOpt's categories cannot hold None; build_lgbm reads "none" as None.
+_CONFOPT_CLASS_WEIGHTS = ("balanced", "none")
+_confopt_lock = threading.Lock()
+
+
+@cache
+def _confopt_class():
+    import optunahub
+    base = optunahub.load_module("samplers/confopt_sampler", ref=CONFOPT_REF).ConfOptSampler
+
+    class Reseeded(base):
+        """ConfOpt draws its candidates and fits its surrogate from the global random
+        and numpy generators, seeded once at construction. Reseeding them per trial from
+        the seed and the finished-trial count, under one lock, makes each draw a function
+        of the stored trials alone: a resumed study and concurrent folds then search as an
+        uninterrupted sequential run does."""
+
+        def __init__(self, search_space, seed):
+            super().__init__(search_space=search_space, seed=seed)
+            self._seed = seed
+
+        def sample_relative(self, study, trial, search_space):
+            with _confopt_lock:
+                draw = self._seed * 10_000 + sum(t.state.is_finished() for t in study.trials)
+                np.random.seed(draw)
+                random.seed(draw)
+                return super().sample_relative(study, trial, search_space)
+
+    return Reseeded
+
+
+def _confopt(space: dict, seed: int):
+    return _confopt_class()(search_space=space, seed=seed)
+
+
+def _lgbm_weights(class_weights: tuple, **kw) -> ModelSpec:
+    """``_lgbm`` with the class_weight choices of its search narrowed or respelled."""
+    spec = _lgbm(**kw)
+    return replace(spec, objective=partial(spec.objective, class_weights=class_weights))
+
+
+def _lgbm_confopt(class_weights: tuple = _CONFOPT_CLASS_WEIGHTS, **kw) -> ModelSpec:
+    """LightGBM's search with conformal quantile regression (ConfOpt) in place of TPE,
+    same space and budget."""
+    spec = _lgbm_weights(class_weights, **kw)
+    return replace(spec, sampler=partial(_confopt, o.lgbm_space(class_weights=class_weights)))
+
 
 MODELS: dict[str, ModelSpec] = {
     "svc":           _grid("svc"),
@@ -102,6 +157,26 @@ MODELS: dict[str, ModelSpec] = {
     "xgboost_dart":      _xgb(dart=True),
     # DART selected on log loss: is its worse calibration the PR AUC selection or DART itself?
     "lgbm_dart_logloss": _lgbm(dart=True, scoring=LOG_LOSS_SCORER),
+    "lgbm_confopt":      _lgbm_confopt(),
+    # lgbm again on the current library versions and parallel folds: the TPE counterpart
+    # of lgbm_confopt and the 50-trial run of lgbm_trials100.
+    "lgbm_rerun":        _lgbm(),
+    # ConfOpt with another sampler seed: its own search noise, as lgbm_seed1 gives TPE's.
+    "lgbm_confopt_seed1": _lgbm_confopt(sampler_seed=RANDOM_STATE + 1),
+    # The search budget doubled: ConfOpt's conformal step runs 67 trials instead of 17.
+    "lgbm_trials100":         replace(_lgbm(), n_trials=100),
+    "lgbm_confopt_trials100": replace(_lgbm_confopt(), n_trials=100),
+    # Log loss with class weighting off, for both samplers: a check on ConfOpt's calibration
+    # loss under PR AUC selection, chosen after those runs.
+    "lgbm_logloss_unweighted":         _lgbm_weights((None,), scoring=LOG_LOSS_SCORER),
+    "lgbm_confopt_logloss_unweighted": _lgbm_confopt(("none",), scoring=LOG_LOSS_SCORER),
+    # The log-loss and 100-trial pairs again with sampler seed 1, as the PR AUC pair has it.
+    "lgbm_logloss_unweighted_seed1":         _lgbm_weights((None,), scoring=LOG_LOSS_SCORER,
+                                                           sampler_seed=RANDOM_STATE + 1),
+    "lgbm_confopt_logloss_unweighted_seed1": _lgbm_confopt(("none",), scoring=LOG_LOSS_SCORER,
+                                                           sampler_seed=RANDOM_STATE + 1),
+    "lgbm_trials100_seed1":         replace(_lgbm(sampler_seed=RANDOM_STATE + 1), n_trials=100),
+    "lgbm_confopt_trials100_seed1": replace(_lgbm_confopt(sampler_seed=RANDOM_STATE + 1), n_trials=100),
     "tabnet":         ModelSpec(build=b.build_tabnet, objective=o.tabnet_objective, n_trials=N_TRIALS_NN),
     "ft_transformer": ModelSpec(build=b.build_ft_transformer, objective=o.ft_transformer_objective,
                                 n_trials=N_TRIALS_NN),

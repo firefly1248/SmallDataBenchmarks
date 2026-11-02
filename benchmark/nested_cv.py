@@ -42,7 +42,10 @@ def _finished(study) -> int:
 
 def _save_sampler(study, trial) -> None:
     """Keep the sampler state with the study, so a resumed search draws what an
-    uninterrupted one would; a fresh seeded sampler would repeat its first trials."""
+    uninterrupted one would; a fresh seeded sampler would repeat its first trials.
+    ConfOpt keeps nothing worth saving: it reseeds from the stored trials."""
+    if not isinstance(study.sampler, optuna.samplers.TPESampler):
+        return
     state = base64.b64encode(pickle.dumps(study.sampler)).decode()
     study.set_user_attr("sampler", {"finished": _finished(study), "state": state})
 
@@ -51,7 +54,7 @@ def _study(spec, storage, dataset_name, fold):
     study = optuna.create_study(
         study_name=None if storage is None else f"{dataset_name}/fold{fold}",
         storage=storage, load_if_exists=True, direction="maximize",
-        sampler=optuna.samplers.TPESampler(seed=spec.sampler_seed))
+        sampler=spec.sampler(seed=spec.sampler_seed))
     saved = study.user_attrs.get("sampler")
     if saved is not None:
         if saved["finished"] == _finished(study):
@@ -73,7 +76,7 @@ def run_nested_cv(
 ) -> tuple[list[float], list[np.ndarray], list[np.ndarray], list[dict]]:
     """Run nested cross-validation for *model_name*.
 
-    Tuning as ``MODELS[model_name]`` says: GridSearchCV, Optuna TPE, or none.
+    Tuning as ``MODELS[model_name]`` says: GridSearchCV, Optuna, or none.
 
     With ``dataset_name``, Optuna studies are stored in ``STUDY_DIR`` and a rerun
     resumes each outer fold from its finished trials. After a code change, delete

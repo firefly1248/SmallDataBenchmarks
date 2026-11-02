@@ -3,6 +3,7 @@ plus the keyword arguments the registry binds for a variant."""
 from __future__ import annotations
 
 import numpy as np
+import optuna
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
@@ -177,9 +178,25 @@ def hgb_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols) -> flo
                                          cv=inner_cv, scoring=PR_AUC_SCORER, n_jobs=N_JOBS)))
 
 
+def lgbm_space(class_weights=("balanced", None)) -> dict:
+    """``lgbm_objective``'s plain search space as distributions, for a sampler that
+    needs it up front (ConfOpt). A test checks the two agree."""
+    return {
+        "learning_rate":     optuna.distributions.FloatDistribution(1e-3, 0.3, log=True),
+        "n_estimators":      optuna.distributions.IntDistribution(50, 500),
+        "num_leaves":        optuna.distributions.IntDistribution(8, 256),
+        "min_child_samples": optuna.distributions.IntDistribution(5, 100),
+        "subsample":         optuna.distributions.FloatDistribution(0.4, 1.0),
+        "colsample_bytree":  optuna.distributions.FloatDistribution(0.4, 1.0),
+        "reg_alpha":         optuna.distributions.FloatDistribution(1e-8, 10.0, log=True),
+        "reg_lambda":        optuna.distributions.FloatDistribution(1e-8, 10.0, log=True),
+        "class_weight":      optuna.distributions.CategoricalDistribution(list(class_weights)),
+    }
+
+
 def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
                    linear_tree=False, extra_trees=False, low_levels=None, dart=False,
-                   scoring=PR_AUC_SCORER, max_trees=500, max_lr=0.3) -> float:
+                   scoring=PR_AUC_SCORER, max_trees=500, max_lr=0.3, class_weights=("balanced", None)) -> float:
     max_leaves = 128 if linear_tree else 256
     max_child  = 50  if linear_tree else 100
     params = {
@@ -191,7 +208,7 @@ def lgbm_objective(trial, X_train, y_train, inner_cv, n_classes, cat_cols,
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.4, 1.0),
         "reg_alpha":        trial.suggest_float("reg_alpha", 1e-8, 10.0, log=True),
         "reg_lambda":       trial.suggest_float("reg_lambda", 1e-8, 10.0, log=True),
-        "class_weight":     trial.suggest_categorical("class_weight", ["balanced", None]),
+        "class_weight":     trial.suggest_categorical("class_weight", list(class_weights)),
     }
     if linear_tree:
         params["linear_lambda"] = trial.suggest_float("linear_lambda", 1e-4, 10.0, log=True)
