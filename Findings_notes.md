@@ -1199,6 +1199,106 @@ the three splits, 0.010 to 0.016 at the 90th percentile and up to 0.041;
 the noise of a mean over datasets, for 30 of them; over 108 it should be smaller and was
 not measured.
 
+## Datasets deposited after TabPFN-3 keep TabPFN-3 and TabICL ahead, by less on average
+
+A foundation model that trained on UCI++, or on synthetic data generated from it, would
+have its UCI++ lead inflated. As a check, LightGBM, CatBoost, TabICL and TabPFN-3 were
+scored on 14 binary datasets deposited after TabPFN-3's release on 2026-05-05 (TabICL's is
+2026-02-12), between 2026-05-26 and 2026-10-27, on Zenodo, Dryad, Harvard Dataverse and
+Kaggle (`datasets/external.csv`, built by `scripts/build_external.py`;
+`scripts/post_release.py` prints every test here). The deposits postdate both models; the
+data in them need not: for 7 of the 14 the records, or a paper on them, were public before
+2026-05-05. Release dates are not training cutoffs, and the weight files were not recorded
+with the runs (the cache holds `tabpfn-v3-classifier-v3_default.ckpt` and
+`tabicl-classifier-v2-20260212.ckpt`). TabPFN-3.5 and TabFM are left out to keep one pool
+for all models: their later releases would have cut it to 10 and 12 datasets. The datasets
+are mostly clinical and have 420 to 91,318 rows, two subsampled to 10,000 as in UCI++;
+DRRisk lost 2152 exact duplicates, and equine keeps one row per clinic and case. A keyword screen of
+several thousand records in those repositories, Hugging Face and UCI left 33 candidates
+first public after 2026-05-05; 14 were used, and 19 were rejected before scoring
+([`datasets/external_candidates.csv`](datasets/external_candidates.csv)): 5 without a usable
+target, 3 under 300 rows or with a label derived from dropped columns, 3 too large or
+rate-limited to download, 2 aggregate tables, 2 with rule-derived or possibly synthetic
+labels, 2 not inspectable, 1 built on public NHANES data, and 1 of 15 subjects, where random
+CV would leak the subject. As on UCI++, CV ignores group structure such as hospital or clinic.
+
+The plan, [`datasets/external_plan.md`](datasets/external_plan.md), was fixed on
+2026-10-31, after LightGBM had scored three pool datasets in a run that was stopped and
+later resumed; its last line was added after the review. It pre-registers TabPFN-3 against
+LightGBM and against CatBoost with Holm over the two, the same pairs on UCI++, the pairs
+per provenance stratum without a test, and calibration with raw p. Added after a review,
+with raw p: the TabICL pairs, the medians, the tests of the difference, the matched subset,
+the regression and the calibration follow-up.
+
+Gaps with a paired bootstrap CI over datasets and Wilcoxon's p (Holm for the two TabPFN-3
+pairs, raw for TabICL); the UCI++ column is over the 127 datasets all four models score:
+
+| pair | post-release gap [95 % CI] | median | ahead / behind | p | UCI++ mean / median |
+|---|---|---|---|---|---|
+| TabPFN-3 - LightGBM | +0.0116 [+0.0058, +0.0174] | +0.0117 | 12 / 2 | 0.008 | +0.0265 / +0.0093 |
+| TabPFN-3 - CatBoost | +0.0082 [-0.0044, +0.0171] | +0.0116 | 12 / 2 | 0.017 | +0.0229 / +0.0054 |
+| TabICL - LightGBM | +0.0169 [+0.0103, +0.0242] | +0.0155 | 14 / 0 | 0.0001 | +0.0284 / +0.0120 |
+| TabICL - CatBoost | +0.0135 [+0.0031, +0.0226] | +0.0117 | 13 / 1 | 0.011 | +0.0248 / +0.0068 |
+
+Against CatBoost one dataset, `p2p-npl` (-0.058), pulls TabPFN-3's mean down and its CI
+across zero; Wilcoxon still separates the pair. The pool scores lower than UCI++ (LightGBM
+0.573 against 0.827), partly because its positives are rarer, so gaps on the two are not
+on one scale.
+
+The plan's rule: a gap much smaller on the pool than on UCI++ would mean the benchmark gap
+leans on benchmark data. By the means the rule is met: TabPFN-3's mean gap is 44 % of its
+UCI++ size against LightGBM and 36 % against CatBoost, and the difference of means excludes
+zero for both, -0.015 [-0.026, -0.005] and -0.015 [-0.031, -0.002]. TabICL's are 60 % and
+54 %, and its difference against CatBoost, [-0.026, +0.002], includes zero. By the medians
+the rule is not met: +0.012 on the pool against +0.009 over UCI++ and +0.012 over its 54
+binary datasets, and Mann-Whitney finds no shift in the per-dataset gaps (p 0.40 to 0.87,
+with little power at n = 14).
+
+The UCI++ mean rests on a tail. Its ten largest TabPFN-3 - LightGBM gaps hold half the
+summed gap, and without them the mean is +0.014 against the pool's +0.012; the two largest
+are the hill-valley datasets, synthetic structured noise on which the boosters collapse.
+Matching on difficulty does not remove the difference, but most of what is left is those
+two. On the 35 binary UCI++ datasets where CatBoost scores below 0.95, a threshold chosen
+after the fact and applied to both sides, TabPFN-3 gains +0.044 over LightGBM (median
++0.026) against +0.012 on the 13 pool datasets that pass it, and +0.027 without
+hill-valley. A regression of the gap over all 141 datasets on a post-release indicator, log
+rows, log features, binary, minority share and CatBoost's score puts the indicator at -0.031
+[-0.057, -0.012], and at -0.018 [-0.035, -0.006] without hill-valley. These adjustments
+cover TabPFN-3 against LightGBM only.
+
+The indicator carries everything that differs between the pools, not only exposure: other
+repositories, mostly clinical data, other preparation. A smaller lead on new data fits
+leakage and fits a pool that suits the foundation models less, and these tests do not tell
+the two apart. Neither do the strata, which are drawn at TabPFN-3's date and so hold for
+TabPFN-3 only. Against LightGBM, TabPFN-3 gains +0.0114 on the 7 datasets whose data were
+public before 2026-05-05 and +0.0119 on the 7 others; against CatBoost +0.0120 and +0.0043
+(medians +0.012 and +0.011). The plan's provisional strata had 5 datasets as public before;
+steroid and Aedes moved there when their papers and records were checked, and child obesity,
+whose paper appeared after 2026-05-05, moved back after the review. No pool dataset derives
+from UCI++, so the strata cannot test synthetic data built from it, and with 14 datasets a
+missing difference would not show missing leakage.
+
+TabPFN-3's calibration is not better on the pool. On the 108 UCI++ calibration datasets it
+has lower ECE and Brier than both boosters as tuned here, on PR AUC (p < 1e-4). On the pool,
+with Holm over the eight calibration tests, nothing separates for TabPFN-3: its Brier is
+0.262 against CatBoost's 0.204 (raw p 0.01, Holm 0.08) and LightGBM's 0.241, its ECE 0.069
+against 0.040 and 0.063. Its grid picks `balance_probabilities=True` by PR AUC in 84 % of
+the pool's folds against 66 % on UCI++, which pushes probabilities toward the rarer class:
+on `dengue-mexico-deaths`, 0.6 % positives, it is picked in every fold and the mean
+predicted probability is 0.31 (Brier 0.226 against 0.012 for the other three; from the
+checkpoints). TabICL's Brier is lower than LightGBM's (0.195 against 0.241, Holm 0.002) and
+not separable from CatBoost's (0.204, Holm 0.30).
+
+Leakage columns were dropped before scoring: outcomes recorded after the target, its
+components and treatment. After a first look two more were dropped and all four models
+rerun: the equine CT columns on apical tooth infection, which nearly define the dental
+class (scores fell from 0.92-0.94 to 0.51-0.54), and a post-birth complication field in the
+meconium data (scores moved by at most 0.01). Before those drops the TabPFN-3 pairs gave
+the same 12 / 2 and Holm p 0.008 and 0.017 (checkpoints kept outside the repo). LightGBM
+failed every fit on `p2p-npl` until its feature names were made JSON-safe; only the names
+changed. `dengue-mexico-deaths` has about 15 positives per outer test fold, so its PR AUC
+of 0.04 to 0.08 is mostly noise.
+
 ## Cost does not track performance
 
 Total wall clock for the nested CV, against mean PR AUC over each model's own

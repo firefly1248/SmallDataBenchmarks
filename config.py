@@ -15,7 +15,7 @@ N_TRIALS_NN = 50
 
 # Every published AutoML number was measured at 300; a fresh run at another
 # budget writes different files than the ones the figures read.
-AUTOML_SEC = 300    # per outer fold, AutoGluon / MLJAR
+AUTOML_SEC = 300    # per outer fold, every AutoML framework
 
 MAX_DATASET_ROWS = 10_000  # subsample datasets larger than this
 
@@ -37,8 +37,8 @@ DUPLICATE_DATASETS = frozenset({
 # figures: they rank the whole field on noise in the fourth decimal.
 TRIVIAL_PR_AUC = 0.99
 
-# When each foundation model's weights became public. A dataset first published
-# after that date is a clean test of the model: it cannot have been seen or tuned on.
+# When each foundation model's weights became public. A dataset deposited after that
+# date was not in the model's training set as deposited; its records may have been public before.
 FOUNDATION_MODEL_RELEASES = {
     "tabicl": "2026-02-12", "tabpfn3": "2026-05-05", "tabfm": "2026-06-29",
     "tabpfn35": "2026-09-09", "tabpfn35fast": "2026-09-09",
