@@ -17,7 +17,7 @@ CONTEXT = "#a8a7a0"
 # the whole point of the diagram is that the test cannot resolve one there.
 # Steps are the validated blue and orange ordinal ramps for a light surface.
 FOUNDATION_RAMP = ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281"]
-AUTOML_RAMP = ["#eb6834", "#a8431b"]
+AUTOML_RAMP = ["#f08c5c", "#eb6834", "#c8541f", "#a8431b"]
 
 
 # The label every figure prints for a checkpoint key. Both notebooks read it,
@@ -49,6 +49,8 @@ FOUNDATION_MODELS = frozenset(
 AUTOML_LABELS: dict[str, str] = {
     "autogluon": "AutoGluon (sec=300)",
     "mljar":     "MLJAR (sec=300)",
+    "flaml":     "FLAML (sec=300)",
+    "lightautoml": "LightAutoML (sec=300)",
 }
 AUTOML_MODELS = frozenset(AUTOML_LABELS.values())
 
@@ -126,7 +128,7 @@ def critical_difference_diagram(
     ax.legend(handles=[plt.Line2D([], [], marker="o", linestyle="none", markersize=9,
                                   color=colour, label=name)
                        for name, colour in (("Foundation model", FOUNDATION_RAMP[2]),
-                                            ("AutoML", AUTOML_RAMP[0]),
+                                            ("AutoML", AUTOML_RAMP[1]),
                                             ("Classical", CONTEXT))],
               # The marks run top-left to bottom-right, so this corner is the
               # empty one.

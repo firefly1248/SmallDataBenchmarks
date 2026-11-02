@@ -1,6 +1,6 @@
-"""Shared sequential runner for the AutoML frameworks (AutoGluon, MLJAR).
+"""Shared sequential runner for the AutoML frameworks (AutoGluon, MLJAR, FLAML, LightAutoML).
 
-Both follow the same loop: read evaluated_datasets, resume from a name-keyed
+All follow the same loop: read evaluated_datasets, resume from a name-keyed
 checkpoint, save after each dataset, write the final output when all are done.
 """
 from __future__ import annotations
@@ -14,7 +14,7 @@ import numpy as np
 
 from benchmark.checkpoints import atomic_dump
 from benchmark.data import load_data
-from config import DUPLICATE_DATASETS
+from config import DUPLICATE_DATASETS, N_OUTER_FOLDS
 
 
 def _load_checkpoint(
@@ -81,7 +81,13 @@ def run_automl_benchmark(
 
         print(f"[{i+1}/{n_total}] {dataset_name}  shape={X.shape}")
         start = time.time()
-        nested_scores, preds, labels = evaluate_fn(X, y)
+        # One framework crash must not stop the run: the dataset is kept as NaN,
+        # as optuna_models.py does, and drops out of the complete cases.
+        try:
+            nested_scores, preds, labels = evaluate_fn(X, y)
+        except Exception as e:
+            print(f"  ERROR — {type(e).__name__}: {e}")
+            nested_scores, preds, labels = [np.nan] * N_OUTER_FOLDS, None, None
         elapsed = time.time() - start
 
         checkpoint[dataset_name] = {"scores": nested_scores, "time": elapsed,

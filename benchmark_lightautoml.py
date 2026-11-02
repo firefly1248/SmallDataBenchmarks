@@ -1,7 +1,7 @@
 """Runs in its own venv: LightAutoML pins xgboost<3 and statsmodels<=0.14.0 (see README).
 
 TabularUtilizedAutoML, the preset the OpenML AutoML Benchmark runs: it restarts its configs
-until the budget is spent, as the other AutoML frameworks here do. Binary tasks select on
+until the budget is spent. Binary tasks select on
 log loss rather than the default ROC AUC, as FLAML does; multiclass keeps its default,
 crossentropy."""
 import joblib

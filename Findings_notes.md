@@ -180,7 +180,7 @@ Scored like everything else, AutoGluon is below every foundation model and above
 every classical model: 0.8427 against CatBoost's 0.8342 over the same 131 datasets,
 0.8464 after the re-run in the next section.
 MLJAR ties CatBoost. What the September re-run adds is
-calibration: both frameworks now appear in the calibration table, near the
+calibration: AutoGluon and MLJAR now appear in the calibration table, near the
 foundation models rather than the classical ones.
 
 ## AutoGluon re-run with nothing excluded and Ray
@@ -218,6 +218,68 @@ ECE shows no detectable change (0.0391 to 0.0398, p = 0.6); Brier improves sligh
 start, no model trained, and the run stopped; resumed from the checkpoint, that
 dataset completed normally. The published files are kept as
 `results/autogluon_sec_300*.joblib.bak-no-fastai`; the re-run replaces them.
+
+## FLAML matches LightGBM and XGBoost, LightAutoML beats them, neither beats CatBoost
+
+Two more frameworks at the same 300 s per fold, one at a time on the 14-core machine with
+`n_jobs=16`. FLAML 2.7.0 selects on log loss and returns the single best model of its
+search over LightGBM, XGBoost (two variants), CatBoost, Random Forest, Extra Trees, SGD and
+L1 logistic regression; which one it returned per fold is not stored. LightAutoML 0.4.2
+runs `TabularUtilizedAutoML`, the preset of the OpenML AutoML Benchmark, which restarts its
+configurations until the budget is spent and blends a linear model, LightGBM and CatBoost;
+binary tasks select on log loss instead of its default ROC AUC, multiclass keeps
+crossentropy. Like AutoGluon and MLJAR, both get the one-hot arrays of the baseline models,
+while the single models get the categorical columns (CatBoost natively, LightGBM and
+XGBoost as ordinal codes). Both are set against the boosters tuned here on PR AUC and on
+log loss, and against each other (`scripts/automl_vs_boosters.py`,
+`results/automl_vs_boosters.csv`; exploratory, one Holm family of 13). The arrow reads
+booster → framework, and ahead / behind counts the framework's datasets:
+
+| comparison | PR AUC | ahead / behind | Holm p |
+|---|---|---|---|
+| FLAML vs CatBoost | 0.8342 → 0.8342 | 42 / 85 | 0.04 |
+| FLAML vs LightGBM | 0.8306 → 0.8342 | 59 / 68 | 1 |
+| FLAML vs XGBoost | 0.8282 → 0.8342 | 63 / 64 | 1 |
+| FLAML vs CatBoost, log loss | 0.8341 → 0.8342 | 42 / 85 | 0.008 |
+| FLAML vs LightGBM, log loss | 0.8278 → 0.8342 | 62 / 65 | 1 |
+| FLAML vs XGBoost, log loss | 0.8257 → 0.8342 | 67 / 60 | 1 |
+| LightAutoML vs CatBoost | 0.8331 → 0.8392 | 72 / 54 | 0.25 |
+| LightAutoML vs LightGBM | 0.8295 → 0.8392 | 82 / 44 | 0.002 |
+| LightAutoML vs XGBoost | 0.8271 → 0.8392 | 86 / 40 | 1e-4 |
+| LightAutoML vs CatBoost, log loss | 0.8329 → 0.8392 | 65 / 61 | 1 |
+| LightAutoML vs LightGBM, log loss | 0.8267 → 0.8392 | 91 / 35 | 1e-6 |
+| LightAutoML vs XGBoost, log loss | 0.8246 → 0.8392 | 89 / 37 | 3e-6 |
+| LightAutoML vs FLAML | 0.8330 → 0.8392 | 98 / 29 | 7e-6 |
+
+FLAML scores like a booster tuned on log loss. The test separates it from neither
+LightGBM nor XGBoost, however they are tuned. Against CatBoost the means coincide, but
+CatBoost wins on 85 of 131 datasets (Holm p 0.04, and 0.008 against CatBoost tuned on log
+loss): CatBoost wins more often, FLAML by more when it wins. On the 108 datasets of the
+all-model family of 190 pairs the same comparison does not separate (Holm p 0.70). Its ECE
+over the 108 calibration datasets, 0.0418, sits with log-loss LightGBM (0.0402) and XGBoost
+(0.0409), above log-loss CatBoost (0.0378, raw p 0.035) and well under the PR AUC-tuned
+boosters (0.063-0.069). Its time is its budget, 44.8 h over the 131 datasets, against
+4.9 h and 4.1 h for LightGBM and XGBoost tuned on log loss and 73.0 h for CatBoost; a smaller
+budget was not tried.
+
+LightAutoML beats LightGBM and XGBoost on either objective (Holm p at most 0.002) and
+FLAML on 98 of 130; the test cannot separate it from CatBoost (Holm p 0.25, raw 0.04). Its
+ECE, 0.0442, is above log-loss CatBoost's 0.0378 (raw p 4e-4); its Brier, 0.213, is below
+FLAML's 0.216 (raw p 1e-4) and level with log-loss CatBoost's 0.217 (raw p 0.20). The gain over
+the boosters is larger on the 56 binary datasets, where it only blends, than on the 74
+multiclass ones, where it also stacks a second level (+0.018 against +0.004 over
+LightGBM). Binary and multiclass datasets differ in more than that, so this does not
+isolate what the second level adds.
+
+LightAutoML stays within its budget: 36.2 h of the 43.7 h it implies, no dataset over by
+more than 10 % (max 1308 s against 1200). FLAML ran over on 126 datasets, by more than
+10 % on 3 (max 3310 s, `plant-species-leaves-shape`), 44.8 h in all. That run was paused
+by hand for 7.4 h on `cnae-9` and by the power guard for 22 and 11 min on
+`connectionist-vowel-reduced` and `thyroid-allbp`. The stored times include the pauses;
+the script subtracts them. FLAML's budget is wall clock, so the paused fold of each of
+those three datasets searched for less than 300 s. LightAutoML fails on `cnae-9`: an `IndexError` in
+its linear model's category embedding, the same on a rerun, so that dataset is NaN. It
+lies outside the 108 the figures use.
 
 ## TabNet was on the CPU the whole time
 
@@ -340,10 +402,10 @@ pair with Holm correction, over the 108 datasets every model scores. One dataset
 one observation; the four folds of a dataset share their data and would inflate the
 sample fourfold.
 
-The family is 18 models, so 153 pairs. The three GridSearch baselines from
+The family is 20 models, so 190 pairs. The three GridSearch baselines from
 `compare_baseline_models.py` are left out of it: they are the same learners as their
 tuned entries, pairs between the two versions are not comparisons this report makes,
-and carrying them would widen the family to 210 pairs and weaken every verdict.
+and carrying them would widen the family to 253 pairs and weaken every verdict.
 
 Nemenyi's critical distance is not used. It compares average ranks, and a model's
 average rank moves when an unrelated model joins the comparison, so the verdict on a
@@ -354,22 +416,26 @@ stated rather than assumed.
 | comparison | mean gap | wins | raw p | Holm p | verdict |
 |---|---|---|---|---|---|
 | TabPFN-3 over AutoGluon | +0.0092 | 80 / 108 | 2e-08 | 2e-06 | separable |
-| AutoGluon over CatBoost | +0.0126 | 74 / 108 | 2e-05 | 0.001 | separable |
+| AutoGluon over CatBoost | +0.0126 | 74 / 108 | 2e-05 | 0.002 | separable |
 | AutoGluon over MLJAR | +0.0123 | 80 / 108 | 3e-07 | 2e-05 | separable |
 | MLJAR over CatBoost | +0.0004 | 49 / 108 | 0.31 | 1 | not separable |
-| TabFM over TabPFN-3 | +0.0039 | 74 / 108 | 1e-04 | 0.006 | separable |
+| AutoGluon over LightAutoML | +0.0044 | 71 / 108 | 5e-04 | 0.03 | separable |
+| LightAutoML over FLAML | +0.0062 | 82 / 108 | 4e-06 | 3e-04 | separable |
+| LightAutoML over CatBoost | +0.0083 | 59 / 108 | 0.049 | 1 | not separable |
+| FLAML over CatBoost | +0.0021 | 35 / 108 | 0.017 | 0.70 | not separable |
+| TabFM over TabPFN-3 | +0.0039 | 74 / 108 | 1e-04 | 0.008 | separable |
 | TabFM over CatBoost | +0.0257 | 87 / 108 | 1e-12 | 1e-10 | separable |
-| TabPFN-3.5 over TabPFN-3 | +0.0037 | 72 / 108 | 2e-04 | 0.007 | separable |
-| TabPFN-3.5 over TabPFN-3.5-fast | +0.0017 | 66 / 108 | 0.002 | 0.08 | not separable |
-| TabPFN-3.5-fast over TabPFN-3 | +0.0020 | 67 / 108 | 0.026 | 0.77 | not separable |
+| TabPFN-3.5 over TabPFN-3 | +0.0037 | 72 / 108 | 2e-04 | 0.010 | separable |
+| TabPFN-3.5 over TabPFN-3.5-fast | +0.0017 | 66 / 108 | 0.002 | 0.10 | not separable |
+| TabPFN-3.5-fast over TabPFN-3 | +0.0020 | 67 / 108 | 0.026 | 0.98 | not separable |
 | TabPFN-3.5 over TabFM | -0.0001 | 38 / 108 | 0.19 | 1 | not separable |
-| CatBoost over HistGradientBoosting | +0.0065 | 69 / 108 | 8e-05 | 0.003 | separable |
-| CatBoost over Random Forest | +0.0014 | 71 / 108 | 0.003 | 0.13 | not separable |
+| CatBoost over HistGradientBoosting | +0.0065 | 69 / 108 | 8e-05 | 0.005 | separable |
+| CatBoost over Random Forest | +0.0014 | 71 / 108 | 0.003 | 0.16 | not separable |
 | CatBoost over LightGBM Linear | -0.0009 | 54 / 108 | 0.64 | 1 | not separable |
 
 The AutoML rows replace the one that used to lead this table, MLJAR over TabFM at
 +0.0295 — ROC AUC set against PR AUC, as the section above explains. On one metric
-the weakest foundation model beats AutoGluon on 80 of 108 datasets, all ten
+the weakest foundation model beats AutoGluon on 80 of 108 datasets, all twenty
 foundation-versus-AutoML pairs separate (the largest Holm p is 2e-6), and AutoGluon
 separates from CatBoost too. Against the published AutoGluon run it did not while
 CatBoost started from uniform probabilities (Holm p = 0.08); CatBoost's re-run from
@@ -377,10 +443,11 @@ the prior moved its mean by 0.0003 and took AutoGluon's wins over it from 71 to 
 108 (Holm p = 0.003). The AutoGluon re-run keeps the 74 and widens the gap.
 
 Gaps of 0.004 to 0.007, small enough to read as noise in a table of means, are
-consistent enough across datasets to survive correction for 153 comparisons.
+consistent enough across datasets to survive correction for 190 comparisons.
 CatBoost over Random Forest is the marginal case: separable at Holm p = 0.04 on the
 106 datasets of the previous version, not at 0.08 on these 108 with the corrected
-AutoML scores in the family, nor at 0.13 after CatBoost's re-run from the prior. A
+AutoML scores in the family, nor at 0.13 after CatBoost's re-run from the prior, nor
+at 0.16 once FLAML and LightAutoML joined it. A
 verdict that one revision of the population flips was never more than borderline.
 
 Two rows show the correction doing opposite things to near-identical evidence.
@@ -396,8 +463,11 @@ alone is the ranking.
 The critical-difference figure draws a bar only where every pair inside it is
 inseparable. The top bar holds TabFM, TabPFN-3.5, TabICL and TabPFN-3.5-fast;
 TabPFN-3 shares the next one with TabICL and TabPFN-3.5-fast. No bar joins a
-foundation model to anything outside the family. AutoGluon shares no bar at all,
-and CatBoost and MLJAR sit inside the gradient-booster group.
+foundation model to anything outside the family. AutoGluon shares no bar at all.
+LightAutoML shares one with CatBoost and MLJAR; FLAML shares bars with LightGBM, XGBoost
+and HistGradientBoosting but not with CatBoost. That is not a separation: the pair's own
+test gives Holm p 0.70, and no bar spans them because models ranked between them separate
+from one end.
 
 ## PR AUC cannot see calibration
 
@@ -406,7 +476,7 @@ is perfect by that measure whether its 0.9 means 0.9 or 0.6. Nothing in this
 benchmark read the probabilities themselves until now.
 
 Brier and top-label ECE over the stored out-of-fold predictions, 108 datasets
-scored by all eighteen models that kept predictions. `ECE iso` and `ECE VA`
+scored by all twenty models that kept predictions. `ECE iso` and `ECE VA`
 are the same models after
 [post-hoc repair](#post-hoc-calibration-does-not-buy-the-gap-and-it-is-not-free).
 
@@ -415,8 +485,10 @@ are the same models after
 | TabFM | 0.8596 | 0.1881 | **0.0367** | 0.0362 | 0.0440 | 0.8473 | 0.8543 |
 | AutoGluon | 0.8465 | 0.2033 | 0.0398 | 0.0393 | 0.0464 | 0.8345 | 0.8412 |
 | TabICL | 0.8574 | 0.1905 | 0.0405 | 0.0362 | 0.0470 | 0.8422 | 0.8508 |
+| FLAML | 0.8360 | 0.2159 | 0.0418 | 0.0424 | 0.0464 | 0.8207 | 0.8279 |
 | TabPFN-3.5-fast | 0.8577 | 0.2129 | 0.0427 | 0.0364 | 0.0467 | 0.8438 | 0.8518 |
 | TabPFN-3.5 | 0.8595 | 0.2103 | 0.0429 | 0.0363 | 0.0460 | 0.8463 | 0.8542 |
+| LightAutoML | 0.8422 | 0.2129 | 0.0442 | 0.0396 | 0.0471 | 0.8285 | 0.8358 |
 | TabPFN-3 | 0.8557 | 0.2127 | 0.0443 | 0.0390 | 0.0465 | 0.8403 | 0.8493 |
 | MLJAR | 0.8343 | 0.2172 | 0.0456 | 0.0397 | 0.0463 | 0.8192 | 0.8264 |
 | SVC | 0.8240 | 0.2350 | 0.0477 | 0.0436 | 0.0502 | 0.8052 | 0.8151 |
@@ -432,10 +504,13 @@ are the same models after
 | SGD | 0.7837 | 0.3254 | **0.1000** | 0.0640 | 0.0656 | 0.7515 | 0.7618 |
 
 TabFM has the lowest ECE. AutoGluon and TabICL are close behind it, and which of
-the two comes second depends on the binning; MLJAR is ahead of every classical
-model in the table, all of them tuned on PR AUC (tuned on log loss, CatBoost reaches
-0.0378; [below](#tuning-on-log-loss-buys-the-calibration-that-repair-could-not)). On this axis AutoML is closer to the foundation models than it is on
-ranking. CatBoost, tied with LightGBM Linear at the top of the classical models on
+the two comes second depends on the binning; FLAML, LightAutoML and MLJAR are ahead
+of every classical model in the table at 15 bins (at 5, SVC passes MLJAR). The classical
+models here are tuned on PR AUC, while all four frameworks select on log loss, and the
+boosters tuned on log loss reach 0.0378 to 0.0409
+([below](#tuning-on-log-loss-buys-the-calibration-that-repair-could-not)), level with or
+better than every framework. The AutoML lead on this axis is the objective, not the
+framework. CatBoost, tied with LightGBM Linear at the top of the classical models on
 PR AUC, sat near the bottom at 0.0848, level with TabNet, until it was re-run from
 the class prior (next section); it is now behind XGBoost and LightGBM. Rank by PR
 AUC and rank by calibration disagree about which classical model to reach for.
@@ -447,15 +522,16 @@ much.
 PR AUC is the mean over the four outer folds, as everywhere else in this report.
 Brier and ECE pool the folds first: a 300-row fold spread over 15 bins is mostly
 binning noise, and averaging that per fold inflates ECE by 1.3x to 1.8x. The
-ordering barely depends on the bins: against 15 equal-width bins, Spearman is 0.97
-or higher for 5 to 50 equal-width bins and for 15 equal-mass bins, and the same five
-models are on top in every case but 50 bins. Second place is the exception:
-AutoGluon holds it at 5 to 15 bins, the two are level at 20 (0.0440 and 0.0442), and
+ordering barely depends on the bins: against 15 equal-width bins, Spearman is 0.96
+or higher for 5 to 50 equal-width bins and for 15 equal-mass bins. TabFM is first in
+every case; the rest of the top five moves with the bins among AutoGluon, TabICL,
+FLAML, LightAutoML and the two TabPFN-3.5 variants, second place included:
+AutoGluon holds it at 5 to 15 bins, AutoGluon and TabICL are level at 20 (0.0440 and 0.0442), and
 TabICL holds it at 30, 50 and equal-mass.
 
 For the single models this cost nothing to measure: the per-fold probabilities and
 labels have been in `results/ckpt/<model>.joblib` all along. The AutoML runners
-stored scores only, so both frameworks were re-run to keep theirs, in
+stored scores only, so AutoGluon and MLJAR were re-run to keep theirs, in
 `results/<framework>_sec_300_ckpt.joblib`.
 
 ## CatBoost started from uniform probabilities
@@ -581,11 +657,11 @@ Three things come out of it.
 *The repair is real but small where it matters.* Random Forest gains the most
 (0.0747 to 0.0463, a 38 % cut), then SGD, HistGradientBoosting, TabNet and
 CatBoost, at 30-36 %. TabFM and AutoGluon gain least, because they had least to give
-back.
+back, and FLAML nothing: its best repair, 0.0424, is above its raw 0.0418.
 
 *It does not close the gap.* Nothing classical reaches the **untreated** TabFM at
-0.0367, and neither AutoML framework does: AutoGluon's best repair is 0.0393,
-MLJAR's 0.0397. The nearest classical model afterwards is SVC at 0.0436, and repaired
+0.0367, and no AutoML framework does: AutoGluon's best repair is 0.0393,
+LightAutoML's 0.0396, MLJAR's 0.0397. The nearest classical model afterwards is SVC at 0.0436, and repaired
 CatBoost lands at 0.0480, still worse than raw TabPFN-3 at 0.0443. "Just calibrate the
 gradient booster" does not produce a foundation model's probabilities.
 
@@ -596,7 +672,7 @@ these repaired figures in the fourth decimal. The gap that carries
 the claim is the 0.0069 between the best repaired classical model and the untreated
 foundation floor, not the tie at the line.
 
-*The ceiling costs ranking.* Isotonic loses PR AUC on all eighteen, from -0.0120
+*The ceiling costs ranking.* Isotonic loses PR AUC on all twenty, from -0.0120
 (AutoGluon) to -0.0322 (SGD). CatBoost gives up 0.0213, fifteen times its 0.0014 lead
 over Random Forest. The loss is ties, not
 reordering: on the binary datasets isotonic maps whole score intervals onto one
@@ -606,15 +682,15 @@ positives and negatives end up sharing a value.
 *Venn-ABERS halves the ranking cost, and wins on binary data.* On the binary
 datasets, where it is the method as published, it keeps a median 31 % of a fold's
 distinct positive-class scores against isotonic's 8 %. Over all 108 datasets it gives
-back PR AUC accordingly: -0.0101 from raw on average against -0.0184, better than
-isotonic on all eighteen models and on 107 of 108 datasets (Wilcoxon over datasets,
-averaged across models, p = 1e-18).
+back PR AUC accordingly: -0.0098 from raw on average against -0.0180, better than
+isotonic on all twenty models and on 106 of 108 datasets (Wilcoxon over datasets,
+averaged across models, p = 2e-18).
 
 On calibration the answer splits by task. On the 52 binary datasets Venn-ABERS beats
-isotonic on Brier for all eighteen models and 39 of the 52 datasets (p = 9e-5), and
-is level on ECE (p = 0.6). On the 56 multiclass datasets, where it runs one class
-against the rest and is renormalised, it loses on both: ECE on all eighteen models
-(p = 1e-6), Brier on fifteen (p = 0.004). Pooled, the two cancel on Brier and
+isotonic on Brier for all twenty models and 38 of the 52 datasets (p = 7e-5), and
+is level on ECE (p = 0.5). On the 56 multiclass datasets, where it runs one class
+against the rest and is renormalised, it loses on both: ECE on all twenty models
+(p = 3e-6), Brier on seventeen (p = 0.004). Pooled, the two cancel on Brier and
 leave an ECE deficit that belongs to the multiclass heuristic, not to the method.
 None of this moves the gap: the best classical ECE after Venn-ABERS is SVC at 0.0502,
 further from the untreated 0.0367 than after isotonic. The per-dataset table and these
