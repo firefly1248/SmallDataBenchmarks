@@ -24,10 +24,10 @@ part of a historical comparison, and the reason is in
    TabICL 0.8574, each over its own coverage — a spread of 0.0079 against a cost
    range of 4.3 h to 34.7 h.
 2. **TabPFN-3.5 beats TabPFN-3 on score, not on cost**: the paired test separates them
-   (Holm p = 0.007, 72 wins of 108), and it takes 17.8 h against TabPFN-3's 9.7 h,
+   (Holm p = 0.01, 72 wins of 108), and it takes 17.8 h against TabPFN-3's 9.7 h,
    re-timed one job at a time.
 3. The **fast variant halves the cost of full 3.5** for 0.0019 of mean PR AUC, which the
-   test cannot separate from full 3.5 (Holm p = 0.08). It is the cheapest way into
+   test cannot separate from full 3.5 (Holm p = 0.10). It is the cheapest way into
    the top tier on a CPU.
 4. What separates them otherwise is **coverage**. Every TabPFN version scores each
    dataset it is given; TabFM drops 20 and TabICL 4 to hard limits.
@@ -35,9 +35,9 @@ part of a historical comparison, and the reason is in
    such datasets. After the positive-class fix 3 survive, and the explanation
    built on them was an artefact. See [The blind spot that wasn't](#the-blind-spot-that-wasnt).
 6. Both vendors' speed claims fail on this workload. See [Cost](#cost-measured-not-advertised).
-7. **AutoML sits a tier below.** Every foundation model separates from both
-   frameworks; AutoGluon sits above every classical model, CatBoost included, and
-   MLJAR among the gradient boosters.
+7. **AutoML sits a tier below.** Every foundation model separates from all four
+   frameworks; AutoGluon sits above every classical model, CatBoost included,
+   LightAutoML above LightGBM and XGBoost, and FLAML and MLJAR among the gradient boosters.
    The earlier reading, AutoML level with the top, rested on AutoML being scored by
    ROC AUC. See [Against AutoML](#against-automl).
 
@@ -218,23 +218,27 @@ On the 108 datasets the figures use, scored by PR AUC like everything else:
 | comparison | mean gap | wins | Holm p |
 |---|---|---|---|
 | TabPFN-3 over AutoGluon | +0.0092 | 80 / 108 | 2e-06 |
-| AutoGluon over CatBoost | +0.0126 | 74 / 108 | 0.001 |
+| AutoGluon over CatBoost | +0.0126 | 74 / 108 | 0.002 |
 | AutoGluon over MLJAR | +0.0123 | 80 / 108 | 2e-05 |
 | MLJAR over CatBoost | +0.0004 | 49 / 108 | 1 |
+| AutoGluon over LightAutoML | +0.0044 | 71 / 108 | 0.03 |
+| LightAutoML over CatBoost | +0.0083 | 59 / 108 | 1 |
+| FLAML over CatBoost | +0.0021 | 35 / 108 | 0.70 |
 
-All ten foundation-versus-AutoML pairs separate (the largest Holm p is 2e-6); the
-row shown is TabPFN-3, the weakest foundation model, against AutoGluon. Over the 131 datasets both runs cover, AutoGluon scores
-0.8464 in 54.8 hours and MLJAR 0.8315 in 37.4, against TabPFN-3.5-fast's 0.8608 in
-9.3: the cheapest foundation model on CPU beats both at a quarter of their wall time or
-less.
+All twenty foundation-versus-AutoML pairs separate (the largest Holm p is 2e-6); the
+row shown is TabPFN-3, the weakest foundation model, against AutoGluon. Over the 131 datasets, AutoGluon scores
+0.8464 in 54.8 hours, LightAutoML 0.8392 in 36.2 (130 datasets), FLAML 0.8342 in 44.8
+and MLJAR 0.8315 in 37.4, against TabPFN-3.5-fast's 0.8608 in 9.3: the cheapest
+foundation model on CPU beats all four at about a quarter of their wall time or less.
 
 An earlier version of this section had MLJAR leading TabFM by 0.03 and six models,
 both frameworks among them, under one bar. The AutoML numbers were ROC AUC; see
 [Findings_notes.md](Findings_notes.md#the-published-automl-numbers-were-roc-auc).
 
 Two caveats remain. The AutoML budget is fixed at 300 s per fold whatever the
-dataset, so it spends far more on easy data and is capped on hard data; and AutoML
-ensembles many models, so it is a different kind of object than a single estimator.
+dataset, so it spends far more on easy data and is capped on hard data; and AutoGluon,
+MLJAR and LightAutoML ensemble many models (FLAML returns one), so they are a different kind
+of object than a single estimator.
 
 ## TabPFN-3 to TabPFN-3.5
 
@@ -249,11 +253,11 @@ datasets a run now covers:
 
 TabPFN-3's hours are the October re-time; the stored run took 63.6 h. Re-timed, v3 to
 v3.5 costs more: 1.8x the hours and twice the median per dataset, for a higher mean.
-The paired test separates 3.5 from v3 (Holm p = 0.007, 72 wins of 108).
+The paired test separates 3.5 from v3 (Holm p = 0.01, 72 wins of 108).
 
 The fast variant is a separate smaller model, not a mode of 3.5. It halves the cost
 again and gives up 0.0019 of mean PR AUC, which the test cannot separate from full
-3.5 (Holm p = 0.08) — though 3.5 does win 66 of the 108 head-to-head, so the
+3.5 (Holm p = 0.10) — though 3.5 does win 66 of the 108 head-to-head, so the
 ordering is probably real and merely small.
 
 Against TabFM the new model is an exact tie on means (-0.0001) while winning only
@@ -277,16 +281,16 @@ compare.
 1. **Default to TabPFN-3.5-fast** on CPU. Cheapest per fit of anything here, full
    coverage, and the test cannot separate it from full 3.5.
 2. **Use full TabPFN-3.5 when the extra 0.002 is worth double the compute.** It does
-   score higher, and against TabPFN-3 the gain is real (Holm p = 0.007).
+   score higher, and against TabPFN-3 the gain is real (Holm p = 0.01).
 3. **Do not reach for TabPFN-3.** The fast variant costs the same and scores higher;
    the only reason to keep it is an existing pinned environment.
 4. **TabFM only with a GPU.** Its performance lead is within noise, so the case for
    it is convenience — no tuning — not quality.
 5. **Serve foundation models in batches.** One row costs seconds, against under a
    millisecond for a gradient booster; per-request serving is a booster's job.
-6. **AutoML is not an upgrade on this data.** At a 20-minute budget per dataset both
-   frameworks land below the foundation models: AutoGluon above CatBoost,
-   MLJAR among the gradient boosters.
+6. **AutoML is not an upgrade on this data.** At a 20-minute budget per dataset all
+   four frameworks land below the foundation models: AutoGluon above CatBoost,
+   LightAutoML above LightGBM and XGBoost, FLAML and MLJAR among the gradient boosters.
 
 The earlier recommendation to always co-train a classical baseline is withdrawn. It
 rested entirely on the blind-spot table, and that table was a scoring bug.

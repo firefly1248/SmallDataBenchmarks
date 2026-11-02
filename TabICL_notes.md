@@ -14,8 +14,8 @@ TabFM and TabPFN-3 on performance, 2.7x cheaper per fit than either, and it need
 GPU. It beats tuned CatBoost on 85 % of non-trivial datasets at a median cost of
 1.7x CatBoost.
 
-It is not the strongest model in the benchmark. Both AutoML frameworks beat it, on
-about 60 % of shared datasets.
+It is not the strongest model in the benchmark, but scored by PR AUC every AutoML
+framework here is below it ([Against AutoML](FoundationModels_notes.md#against-automl)).
 
 ## Coverage
 
@@ -97,5 +97,5 @@ The co-training recommendation is withdrawn.
 1. **Default to TabICL on CPU.** No tuning, ~6 min median, beats 50-trial-Optuna
    CatBoost on 85 % of non-trivial datasets.
 2. **Switch to TabPFN-3 for wide or many-class data**, which TabICL skips.
-3. **Run AutoML instead if 20 minutes a dataset is acceptable** — MLJAR beats TabICL
-   on 61 % of shared datasets.
+3. **AutoML is not a step up** — scored by PR AUC, all four frameworks separate below
+   TabICL ([Against AutoML](FoundationModels_notes.md#against-automl)).
