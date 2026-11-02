@@ -43,6 +43,9 @@ def build_lgbm(best, n_classes, cat_cols, linear_tree=False, extra_trees=False,
     # max_drop=-1: LightGBM's default caps the drop at 50 trees per iteration, which
     # would flatten drop_rate above 50 / n_estimators.
     booster = {"boosting_type": "dart", "max_drop": -1} if dart else {"boosting_type": "gbdt"}
+    # ConfOpt's categories cannot hold None, so its search spells it "none".
+    if best.get("class_weight") == "none":
+        best = {**best, "class_weight": None}
     steps.append(("lgbm", LGBMClassifier(**best, **booster, linear_tree=linear_tree, extra_trees=extra_trees,
                                          objective=objective, subsample_freq=1,
                                          random_state=RANDOM_STATE, n_jobs=n_jobs, verbose=-1)))

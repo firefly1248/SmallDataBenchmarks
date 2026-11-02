@@ -26,6 +26,8 @@ dependencies = [
     "tabicl",
     "tabfm[pytorch]>=1.0.1",
     "flaml==2.7.0",
+    "confopt==2.0.1",
+    "optunahub==0.5.0",
 ]
 
 [dependency-groups]

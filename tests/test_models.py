@@ -15,6 +15,7 @@ from benchmark.models.grid_search import (
 from benchmark import nested_cv
 from benchmark.models.registry import MODELS
 from benchmark.nested_cv import run_nested_cv
+from config import N_TRIALS_NN
 
 
 class TestBuildGridSearch:
@@ -194,6 +195,24 @@ class TestDartVariants:
         assert {drop_key, "skip_drop"} <= set(params[0])
 
 
+class TestConfOpt:
+    """ConfOpt replaces TPE in LightGBM's search; the space and the budget stay LightGBM's.
+    Its resume and concurrent folds are tested with TPE's in TestParallelFolds."""
+
+    @pytest.mark.parametrize("key", ["lgbm_confopt", "lgbm_confopt_logloss_unweighted"])
+    def test_space_matches_the_objective(self, key):
+        X, y = TestParallelFolds._data()
+        spec = MODELS[key]
+        study = optuna.create_study(direction="maximize")
+        study.optimize(lambda t: spec.objective(t, X, y, 2, 2, []), n_trials=1)
+        assert study.trials[0].distributions == spec.sampler.args[0]
+
+    def test_none_reaches_lightgbm_as_none(self):
+        from benchmark.models.registry import build_final_model
+        pipe = build_final_model("lgbm_confopt", {"class_weight": "none"}, 2, [])
+        assert pipe.named_steps["lgbm"].class_weight is None
+
+
 class TestParallelFolds:
     """Concurrent outer folds and a resumed study must reproduce the sequential, uninterrupted search."""
 
@@ -203,12 +222,12 @@ class TestParallelFolds:
         X = pd.DataFrame(rng.normal(size=(120, 3)), columns=["a", "b", "c"])
         return X, (X.a + 0.5 * X.b > 0).astype(int).to_numpy()
 
-    @pytest.mark.parametrize("model_name", ["lgbm", "xgboost"])
+    @pytest.mark.parametrize("model_name", ["lgbm", "xgboost", "lgbm_confopt"])
     def test_parallel_equals_sequential(self, model_name, monkeypatch, tmp_path):
         from dataclasses import replace
         from benchmark.models import registry
         monkeypatch.setattr(nested_cv, "STUDY_DIR", str(tmp_path))
-        monkeypatch.setattr(nested_cv, "N_TRIALS", 12)  # past TPE's 10 random startup trials
+        monkeypatch.setattr(nested_cv, "N_TRIALS", 12)  # past the samplers' 10 random startup trials
         X, y = self._data()
         assert registry.MODELS[model_name].parallel_folds
         parallel = run_nested_cv(X, y, model_name, cat_cols=[], dataset_name="par")
@@ -218,15 +237,16 @@ class TestParallelFolds:
         assert parallel[0] == sequential[0] and parallel[3] == sequential[3]
         assert all(np.array_equal(p, q) for p, q in zip(parallel[1], sequential[1]))
 
-    def test_resumed_study_matches_uninterrupted(self, monkeypatch, tmp_path):
+    @pytest.mark.parametrize("model_name", ["xgboost", "lgbm_confopt"])
+    def test_resumed_study_matches_uninterrupted(self, model_name, monkeypatch, tmp_path):
         monkeypatch.setattr(nested_cv, "STUDY_DIR", str(tmp_path))
         X, y = self._data()
         monkeypatch.setattr(nested_cv, "N_TRIALS", 12)
-        whole = run_nested_cv(X, y, "xgboost", cat_cols=[], dataset_name="whole")
+        whole = run_nested_cv(X, y, model_name, cat_cols=[], dataset_name="whole")
         monkeypatch.setattr(nested_cv, "N_TRIALS", 5)
-        run_nested_cv(X, y, "xgboost", cat_cols=[], dataset_name="cut")
+        run_nested_cv(X, y, model_name, cat_cols=[], dataset_name="cut")
         monkeypatch.setattr(nested_cv, "N_TRIALS", 12)
-        resumed = run_nested_cv(X, y, "xgboost", cat_cols=[], dataset_name="cut")
+        resumed = run_nested_cv(X, y, model_name, cat_cols=[], dataset_name="cut")
         assert resumed[3] == whole[3] and resumed[0] == whole[0]
 
     def test_stale_sampler_state_is_not_used(self, monkeypatch, tmp_path, capsys):
@@ -350,26 +370,48 @@ class TestRegistry:
         "tabicl": None, "tabfm": None,
         "random_forest": ("rf_objective", {}), "extra_trees": ("rf_objective", {"forest": "ExtraTreesClassifier"}),
         "xgboost": ("xgb_objective", {"scoring": "PR"}), "sgd": ("sgd_objective", {}), "catboost": ("catboost_objective", {}),
-        "lgbm": ("lgbm_objective", {"scoring": "PR", "max_trees": 500}),
-        "lgbm_linear": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "linear_tree": True}),
-        "lgbm_extra": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True}),
+        "lgbm": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_linear": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "linear_tree": True}),
+        "lgbm_extra": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "extra_trees": True}),
         "hgb": ("hgb_objective", {}),
         "xgboost_logloss": ("xgb_objective", {"scoring": "LL"}),
         "catboost_logloss": ("catboost_objective", {"scoring": "LL"}),
-        "lgbm_logloss": ("lgbm_objective", {"scoring": "LL", "max_trees": 500}),
-        "lgbm_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500}),
-        "lgbm_2000": ("lgbm_objective", {"scoring": "PR", "max_trees": 2000}),
-        "lgbm_extra_2000": ("lgbm_objective", {"scoring": "PR", "max_trees": 2000, "extra_trees": True}),
-        "lgbm_onehot": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "low_levels": "onehot"}),
-        "lgbm_cat": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "low_levels": "category"}),
-        "lgbm_extra_onehot": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True,
+        "lgbm_logloss": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_2000": ("lgbm_objective", {"scoring": "PR", "max_trees": 2000, "max_lr": 0.3}),
+        "lgbm_extra_2000": ("lgbm_objective", {"scoring": "PR", "max_trees": 2000, "max_lr": 0.3, "extra_trees": True}),
+        "lgbm_onehot": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "low_levels": "onehot"}),
+        "lgbm_cat": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "low_levels": "category"}),
+        "lgbm_extra_onehot": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "extra_trees": True,
                                                  "low_levels": "onehot"}),
-        "lgbm_extra_cat": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "extra_trees": True,
+        "lgbm_extra_cat": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "extra_trees": True,
                                               "low_levels": "category"}),
         "xgboost_seed1": ("xgb_objective", {"scoring": "PR"}),
-        "lgbm_dart": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "dart": True}),
+        "lgbm_dart": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "dart": True}),
+        "lgbm_dart_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "dart": True}),
+        "lgbm_wide": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 1.0}),
+        "lgbm_dart_wide": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 1.0, "dart": True}),
         "xgboost_dart": ("xgb_objective", {"scoring": "PR", "dart": True}),
-        "lgbm_dart_logloss": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "dart": True}),
+        "lgbm_dart_logloss": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3, "dart": True}),
+        "lgbm_confopt": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3,
+                                            "class_weights": ("balanced", "none")}),
+        "lgbm_rerun": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_confopt_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3,
+                                                  "class_weights": ("balanced", "none")}),
+        "lgbm_trials100": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_confopt_trials100": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3,
+                                                      "class_weights": ("balanced", "none")}),
+        "lgbm_logloss_unweighted": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3,
+                                                       "class_weights": (None,)}),
+        "lgbm_confopt_logloss_unweighted": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3,
+                                                               "class_weights": ("none",)}),
+        "lgbm_logloss_unweighted_seed1": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3,
+                                                             "class_weights": (None,)}),
+        "lgbm_confopt_logloss_unweighted_seed1": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3,
+                                                                     "class_weights": ("none",)}),
+        "lgbm_trials100_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_confopt_trials100_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3,
+                                                            "class_weights": ("balanced", "none")}),
         "tabnet": ("tabnet_objective", {}), "ft_transformer": ("ft_transformer_objective", {}),
         "resnet": ("resnet_objective", {}),
     }
@@ -397,8 +439,10 @@ class TestRegistry:
         objective = spec.objective.func if isinstance(spec.objective, partial) else spec.objective
         assert objective.__name__ == name
         assert self._keywords(spec.objective) == keywords
-        assert spec.sampler_seed == (1 if key in ("lgbm_seed1", "xgboost_seed1") else 0)
-        assert (spec.n_trials is None) == (key not in ("tabnet", "ft_transformer", "resnet"))
+        assert spec.sampler_seed == (1 if key.endswith("_seed1") else 0)
+        assert (spec.sampler is optuna.samplers.TPESampler) == ("confopt" not in key)
+        nn = ("tabnet", "ft_transformer", "resnet")
+        assert spec.n_trials == (100 if "_trials100" in key else N_TRIALS_NN if key in nn else None)
 
     def test_limits(self):
         assert {k: s.limits for k, s in MODELS.items() if s.limits} == {
