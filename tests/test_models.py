@@ -1,6 +1,8 @@
 """Tests for benchmark.models.grid_search and the nested-CV model routing."""
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import optuna
 import pandas as pd
@@ -207,6 +209,21 @@ class TestConfOpt:
         study.optimize(lambda t: spec.objective(t, X, y, 2, 2, []), n_trials=1)
         assert study.trials[0].distributions == spec.sampler.args[0]
 
+    def test_dtaci_adapts_only_when_fixed(self):
+        """The wrapper's DtACI update never reaches the searcher it predicts with; the
+        dtaci keys route it there, so the interval widths move once conformal trials run."""
+        def objective(trial):
+            p = {n: trial._suggest(n, d) for n, d in MODELS["lgbm_confopt"].sampler.args[0].items()}
+            return -(np.log(p["learning_rate"]) + 3) ** 2 - p["num_leaves"] / 1e3
+
+        def alphas(key):
+            sampler = MODELS[key].sampler(seed=0)
+            optuna.create_study(direction="maximize", sampler=sampler).optimize(objective, n_trials=40)
+            return sampler.get_thread_searcher_copy().sampler.fetch_alphas()
+        before = MODELS["lgbm_confopt"].sampler(seed=0).get_thread_searcher_copy().sampler.fetch_alphas()
+        assert alphas("lgbm_confopt") == before
+        assert alphas("lgbm_confopt_dtaci_trials100") != before
+
     def test_none_reaches_lightgbm_as_none(self):
         from benchmark.models.registry import build_final_model
         pipe = build_final_model("lgbm_confopt", {"class_weight": "none"}, 2, [])
@@ -412,6 +429,17 @@ class TestRegistry:
         "lgbm_trials100_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
         "lgbm_confopt_trials100_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3,
                                                             "class_weights": ("balanced", "none")}),
+        "lgbm_seed2": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_seed3": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_seed4": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3}),
+        "lgbm_confopt_seed2": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "class_weights": ("balanced", "none")}),
+        "lgbm_confopt_seed3": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "class_weights": ("balanced", "none")}),
+        "lgbm_confopt_seed4": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "class_weights": ("balanced", "none")}),
+        "lgbm_confopt_dtaci_trials100": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "class_weights": ("balanced", "none")}),
+        "lgbm_confopt_dtaci_trials100_seed1": ("lgbm_objective", {"scoring": "PR", "max_trees": 500, "max_lr": 0.3, "class_weights": ("balanced", "none")}),
+        "lgbm_confopt_logloss": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3, "class_weights": ("balanced", "none")}),
+        "lgbm_confopt_logloss_seed1": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3, "class_weights": ("balanced", "none")}),
+        "lgbm_logloss_seed1": ("lgbm_objective", {"scoring": "LL", "max_trees": 500, "max_lr": 0.3}),
         "tabnet": ("tabnet_objective", {}), "ft_transformer": ("ft_transformer_objective", {}),
         "resnet": ("resnet_objective", {}),
     }
@@ -439,7 +467,7 @@ class TestRegistry:
         objective = spec.objective.func if isinstance(spec.objective, partial) else spec.objective
         assert objective.__name__ == name
         assert self._keywords(spec.objective) == keywords
-        assert spec.sampler_seed == (1 if key.endswith("_seed1") else 0)
+        assert spec.sampler_seed == (int(key[-1]) if re.search(r"_seed\d$", key) else 0)
         assert (spec.sampler is optuna.samplers.TPESampler) == ("confopt" not in key)
         nn = ("tabnet", "ft_transformer", "resnet")
         assert spec.n_trials == (100 if "_trials100" in key else N_TRIALS_NN if key in nn else None)

@@ -156,8 +156,9 @@ if __name__ == "__main__":
             }
             print(f"  {model_name}: mean={np.nanmean(scores):.4f}  time={elapsed:.1f}s")
             save_checkpoint(model_name)
-            # A timeout or error keeps its trials, so the rerun resumes them.
-            if not failed:
+            # A timeout or error keeps its trials, so the rerun resumes them. KEEP_STUDIES=1
+            # keeps them all, for the search trajectories.
+            if not failed and not os.environ.get("KEEP_STUDIES"):
                 drop_studies(model_name, dataset_name, args.run)
             if consecutive_failures[model_name] >= MAX_CONSECUTIVE_FAILURES:
                 sys.exit(f"\n{model_name} produced no result on "

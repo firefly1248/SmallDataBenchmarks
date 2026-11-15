@@ -74,7 +74,7 @@ _confopt_lock = threading.Lock()
 
 
 @cache
-def _confopt_class():
+def _confopt_class(dtaci: bool = False):
     import optunahub
     base = optunahub.load_module("samplers/confopt_sampler", ref=CONFOPT_REF).ConfOptSampler
 
@@ -96,11 +96,23 @@ def _confopt_class():
                 random.seed(draw)
                 return super().sample_relative(study, trial, search_space)
 
-    return Reseeded
+    if not dtaci:
+        return Reseeded
+
+    class Adapted(Reseeded):
+        """The wrapper fits and predicts with a per-thread copy of its searcher but sends
+        each trial's DtACI update to another one, so the interval widths never adapt. This
+        fits, predicts and updates one searcher, as confopt's own tuning loop does. The
+        adapted widths live in memory only: a resumed study starts them over."""
+
+        def get_thread_searcher_copy(self):
+            return self.searcher_object
+
+    return Adapted
 
 
-def _confopt(space: dict, seed: int):
-    return _confopt_class()(search_space=space, seed=seed)
+def _confopt(space: dict, seed: int, dtaci: bool = False):
+    return _confopt_class(dtaci)(search_space=space, seed=seed)
 
 
 def _lgbm_weights(class_weights: tuple, **kw) -> ModelSpec:
@@ -109,11 +121,11 @@ def _lgbm_weights(class_weights: tuple, **kw) -> ModelSpec:
     return replace(spec, objective=partial(spec.objective, class_weights=class_weights))
 
 
-def _lgbm_confopt(class_weights: tuple = _CONFOPT_CLASS_WEIGHTS, **kw) -> ModelSpec:
+def _lgbm_confopt(class_weights: tuple = _CONFOPT_CLASS_WEIGHTS, dtaci: bool = False, **kw) -> ModelSpec:
     """LightGBM's search with conformal quantile regression (ConfOpt) in place of TPE,
     same space and budget."""
     spec = _lgbm_weights(class_weights, **kw)
-    return replace(spec, sampler=partial(_confopt, o.lgbm_space(class_weights=class_weights)))
+    return replace(spec, sampler=partial(_confopt, o.lgbm_space(class_weights=class_weights), dtaci=dtaci))
 
 
 MODELS: dict[str, ModelSpec] = {
@@ -177,6 +189,17 @@ MODELS: dict[str, ModelSpec] = {
                                                            sampler_seed=RANDOM_STATE + 1),
     "lgbm_trials100_seed1":         replace(_lgbm(sampler_seed=RANDOM_STATE + 1), n_trials=100),
     "lgbm_confopt_trials100_seed1": replace(_lgbm_confopt(sampler_seed=RANDOM_STATE + 1), n_trials=100),
+    # Checks for the ConfOpt write-up: three more sampler seeds of each sampler, ConfOpt with
+    # its DtACI update reaching the searcher it fits, and ConfOpt on log loss with "balanced"
+    # in its space, with TPE's second log-loss seed.
+    **{f"lgbm_seed{s}": _lgbm(sampler_seed=RANDOM_STATE + s) for s in (2, 3, 4)},
+    **{f"lgbm_confopt_seed{s}": _lgbm_confopt(sampler_seed=RANDOM_STATE + s) for s in (2, 3, 4)},
+    "lgbm_confopt_dtaci_trials100":       replace(_lgbm_confopt(dtaci=True), n_trials=100),
+    "lgbm_confopt_dtaci_trials100_seed1": replace(_lgbm_confopt(dtaci=True, sampler_seed=RANDOM_STATE + 1),
+                                                  n_trials=100),
+    "lgbm_confopt_logloss":       _lgbm_confopt(scoring=LOG_LOSS_SCORER),
+    "lgbm_confopt_logloss_seed1": _lgbm_confopt(scoring=LOG_LOSS_SCORER, sampler_seed=RANDOM_STATE + 1),
+    "lgbm_logloss_seed1":         _lgbm(scoring=LOG_LOSS_SCORER, sampler_seed=RANDOM_STATE + 1),
     "tabnet":         ModelSpec(build=b.build_tabnet, objective=o.tabnet_objective, n_trials=N_TRIALS_NN),
     "ft_transformer": ModelSpec(build=b.build_ft_transformer, objective=o.ft_transformer_objective,
                                 n_trials=N_TRIALS_NN),
