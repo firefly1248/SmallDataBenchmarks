@@ -1,0 +1,2 @@
+lgbm_confopt on thyroid-newthyroid, fold 0: alphas after trials 33, 40, 50: [0.28, 0.58, 0.86], [0.28, 0.58, 0.86], [0.28, 0.58, 0.86]; changed between consecutive trials 0 times; best inner score 0.9946
+lgbm_confopt_dtaci_trials100 on thyroid-newthyroid, fold 0: alphas after trials 33, 40, 50: [0.28, 0.58, 0.86], [0.31, 0.639, 0.875], [0.383, 0.655, 0.888]; changed between consecutive trials 17 times; best inner score 0.9946

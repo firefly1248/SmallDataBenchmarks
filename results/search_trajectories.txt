@@ -1,0 +1,59 @@
+48000 trials over 480 studies
+
+Picks against the stored checkpoints (default run):
+  TPE, 50 trials: 120 of 120 folds pick the stored configuration
+  TPE, 100 trials: 120 of 120 folds pick the stored configuration
+  ConfOpt, 50 trials: 120 of 120 folds pick the stored configuration
+  ConfOpt, 100 trials: 120 of 120 folds pick the stored configuration
+  ConfOpt DtACI, 100 trials: 120 of 120 folds pick the stored configuration
+  ConfOpt DtACI seed 1, 100 trials: 120 of 120 folds pick the stored configuration
+
+Mean best inner score after k trials (dataset mean over folds, then over datasets):
+  TPE                    10: 0.8351, 33: 0.8484, 50: 0.8504, 100: 0.8527
+  ConfOpt                10: 0.8419, 33: 0.8502, 50: 0.8514, 100: 0.8541
+  ConfOpt DtACI          10: 0.8419, 33: 0.8502, 50: 0.8512, 100: 0.8536
+  ConfOpt DtACI seed 1   10: 0.7885, 33: 0.8481, 50: 0.8507, 100: 0.8530
+Trial that found the 100-trial winner:
+  TPE                    median 73, in trials 1-10 5%, 11-33 19%, 34-50 9%, 51-100 67%
+  ConfOpt                median 67, in trials 1-10 7%, 11-33 12%, 34-50 17%, 51-100 64%
+  ConfOpt DtACI          median 65, in trials 1-10 6%, 11-33 10%, 34-50 16%, 51-100 68%
+  ConfOpt DtACI seed 1   median 69, in trials 1-10 7%, 11-33 9%, 34-50 15%, 51-100 69%
+
+Pick after k trials: best inner score, fresh inner split, outer fold (dataset means):
+  TPE                     10: search 0.8351, fresh 0.8318, outer 0.8352
+  TPE                     33: search 0.8484, fresh 0.8411, outer 0.8400
+  TPE                     50: search 0.8504, fresh 0.8419, outer 0.8404
+  TPE                    100: search 0.8527, fresh 0.8433, outer 0.8417
+  ConfOpt                 10: search 0.8419, fresh 0.8391, outer 0.8400
+  ConfOpt                 33: search 0.8502, fresh 0.8438, outer 0.8420
+  ConfOpt                 50: search 0.8514, fresh 0.8438, outer 0.8431
+  ConfOpt                100: search 0.8541, fresh 0.8458, outer 0.8450
+  ConfOpt DtACI           10: search 0.8419, fresh 0.8391, outer 0.8400
+  ConfOpt DtACI           33: search 0.8502, fresh 0.8438, outer 0.8420
+  ConfOpt DtACI           50: search 0.8512, fresh 0.8439, outer 0.8426
+  ConfOpt DtACI          100: search 0.8536, fresh 0.8453, outer 0.8442
+  ConfOpt DtACI seed 1    10: search 0.7885, fresh 0.7850, outer 0.7880
+  ConfOpt DtACI seed 1    33: search 0.8481, fresh 0.8392, outer 0.8401
+  ConfOpt DtACI seed 1    50: search 0.8507, fresh 0.8433, outer 0.8414
+  ConfOpt DtACI seed 1   100: search 0.8530, fresh 0.8439, outer 0.8437
+
+G. ConfOpt with the DtACI fix against the published ConfOpt and TPE, 30 datasets:
+  seed 0, 50 trials, PR AUC: fixed - ConfOpt   n 30, mean -0.0004 [-0.0016, +0.0006], median +0.0000, trimmed -0.0002, ahead 12 / behind 12, p 0.79
+  seed 0, 50 trials, ECE: fixed - ConfOpt      n 30, mean +0.0010 [-0.0035, +0.0057], median +0.0000, trimmed +0.0008, ahead 14 / behind 11, p 0.458
+  seed 0, 50 trials, PR AUC: fixed - TPE       n 30, mean +0.0023 [-0.0015, +0.0069], median +0.0000, trimmed +0.0002, ahead 16 / behind 12, p 0.646
+  seed 0, 50 trials, ECE: fixed - TPE          n 30, mean +0.0081 [-0.0022, +0.0176], median +0.0035, trimmed +0.0091, ahead 22 / behind 8, p 0.012
+  seed 0, 100 trials, PR AUC: fixed - ConfOpt  n 30, mean -0.0008 [-0.0041, +0.0018], median +0.0000, trimmed +0.0004, ahead 15 / behind 13, p 0.493
+  seed 0, 100 trials, ECE: fixed - ConfOpt     n 30, mean -0.0006 [-0.0086, +0.0073], median +0.0003, trimmed +0.0003, ahead 15 / behind 13, p 0.937
+  seed 0, 100 trials, PR AUC: fixed - TPE      n 30, mean +0.0024 [-0.0015, +0.0081], median +0.0000, trimmed +0.0007, ahead 15 / behind 13, p 0.508
+  seed 0, 100 trials, ECE: fixed - TPE         n 30, mean +0.0023 [-0.0093, +0.0124], median +0.0007, trimmed +0.0046, ahead 16 / behind 14, p 0.452
+  seed 1, 50 trials, PR AUC: fixed - ConfOpt   n 30, mean -0.0010 [-0.0027, +0.0003], median +0.0000, trimmed -0.0004, ahead 13 / behind 13, p 0.367
+  seed 1, 50 trials, ECE: fixed - ConfOpt      n 30, mean -0.0058 [-0.0161, +0.0023], median -0.0001, trimmed -0.0018, ahead 11 / behind 16, p 0.4
+  seed 1, 50 trials, PR AUC: fixed - TPE       n 30, mean -0.0011 [-0.0050, +0.0031], median -0.0000, trimmed -0.0013, ahead 12 / behind 16, p 0.614
+  seed 1, 50 trials, ECE: fixed - TPE          n 30, mean +0.0114 [-0.0018, +0.0264], median +0.0043, trimmed +0.0069, ahead 19 / behind 11, p 0.0961
+  seed 1, 100 trials, PR AUC: fixed - ConfOpt  n 30, mean +0.0007 [-0.0020, +0.0037], median +0.0000, trimmed +0.0003, ahead 16 / behind 12, p 0.797
+  seed 1, 100 trials, ECE: fixed - ConfOpt     n 30, mean -0.0026 [-0.0106, +0.0051], median +0.0002, trimmed -0.0004, ahead 17 / behind 12, p 0.67
+  seed 1, 100 trials, PR AUC: fixed - TPE      n 30, mean +0.0003 [-0.0030, +0.0035], median -0.0000, trimmed +0.0005, ahead 13 / behind 15, p 0.779
+  seed 1, 100 trials, ECE: fixed - TPE         n 30, mean +0.0059 [-0.0032, +0.0153], median +0.0025, trimmed +0.0045, ahead 21 / behind 9, p 0.0636
+  seed 0, 100 trials, hours over the 30 datasets: fixed 1.57, published 1.61
+  seed 1, 100 trials, hours over the 30 datasets: fixed 1.53, published 1.55
+Saved results/search_trajectories.csv

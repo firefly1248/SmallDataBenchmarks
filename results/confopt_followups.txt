@@ -1,0 +1,43 @@
+B. ConfOpt - TPE, outer PR AUC at 100 trials:
+  seed 0                             n 131, mean +0.0024 [+0.0003, +0.0049], median +0.0001, trimmed +0.0006, ahead 68 / behind 58, p 0.146
+  seed 1                             n 131, mean -0.0010 [-0.0049, +0.0015], median +0.0000, trimmed +0.0004, ahead 66 / behind 61, p 0.274
+  mean of seeds                      n 131, mean +0.0007 [-0.0015, +0.0026], median +0.0000, trimmed +0.0004, ahead 64 / behind 63, p 0.251
+
+C. Seed 1 - seed 0, outer PR AUC at 50 trials:
+  ConfOpt: ahead 57, behind 69, tied 5, mean -0.0019
+  TPE: ahead 57, behind 69, tied 5, mean +0.0005
+
+D. ConfOpt - TPE at 50 trials, mean of seeds 0 and 1, by rows:
+ outer: Spearman with rows -0.15 (p 0.092)
+  small (50-540 rows)                n 44, mean +0.0025 [-0.0005, +0.0056], median +0.0006, trimmed +0.0017, ahead 27 / behind 17, p 0.212
+  medium (554-2800 rows)             n 44, mean +0.0014 [-0.0008, +0.0039], median -0.0001, trimmed +0.0003, ahead 20 / behind 23, p 0.797
+  large (2859-10000 rows)            n 43, mean -0.0005 [-0.0011, +0.0001], median -0.0000, trimmed -0.0002, ahead 17 / behind 22, p 0.253
+ search: Spearman with rows -0.17 (p 0.048)
+  small (50-540 rows)                n 44, mean +0.0022 [+0.0007, +0.0040], median +0.0003, trimmed +0.0013, ahead 26 / behind 18, p 0.0543
+  medium (554-2800 rows)             n 44, mean +0.0014 [+0.0003, +0.0027], median +0.0003, trimmed +0.0006, ahead 25 / behind 17, p 0.0183
+  large (2859-10000 rows)            n 43, mean -0.0001 [-0.0007, +0.0004], median +0.0000, trimmed +0.0001, ahead 25 / behind 14, p 0.114
+
+E. Chosen parameters over the calibration folds:
+ seed 0: median ConfOpt / TPE, share at the edge of the range ConfOpt / TPE
+  lr x trees              6.78 /      7.54
+  learning_rate          0.027 /    0.0258   7% / 3%
+  n_estimators             334 /       308   7% / 6%
+  num_leaves               128 /       137   6% / 6%
+  min_child_samples         15 /        20   23% / 15%
+  subsample              0.696 /     0.752   6% / 5%
+  colsample_bytree       0.687 /     0.736   8% / 6%
+  reg_alpha           1.26e-05 /  8.79e-05   7% / 6%
+  reg_lambda          0.000111 /  0.000394   6% / 4%
+ seed 1: median ConfOpt / TPE, share at the edge of the range ConfOpt / TPE
+  lr x trees              9.85 /      5.65
+  learning_rate         0.0382 /    0.0247   8% / 4%
+  n_estimators             288 /       297   4% / 6%
+  num_leaves                91 /       132   12% / 7%
+  min_child_samples         16 /        22   19% / 17%
+  subsample              0.737 /     0.725   6% / 6%
+  colsample_bytree       0.784 /     0.758   9% / 5%
+  reg_alpha           0.000275 /  3.38e-05   7% / 6%
+  reg_lambda          5.01e-05 /  0.000131   6% / 6%
+ Per dataset, Spearman of the ECE gap (ConfOpt - TPE) with:
+  seed 0: optimism gap -0.05 (p 0.6), lr x trees -0.27 (p 0.0046), learning_rate -0.20 (p 0.042), n_estimators -0.14 (p 0.16), num_leaves +0.07 (p 0.45), min_child_samples -0.11 (p 0.24), subsample -0.05 (p 0.64), colsample_bytree -0.07 (p 0.45), reg_alpha -0.05 (p 0.6), reg_lambda -0.15 (p 0.11)
+  seed 1: optimism gap +0.03 (p 0.79), lr x trees -0.27 (p 0.0049), learning_rate -0.27 (p 0.0048), n_estimators +0.07 (p 0.46), num_leaves -0.04 (p 0.65), min_child_samples -0.03 (p 0.78), subsample +0.02 (p 0.83), colsample_bytree +0.10 (p 0.28), reg_alpha -0.07 (p 0.48), reg_lambda -0.21 (p 0.028)

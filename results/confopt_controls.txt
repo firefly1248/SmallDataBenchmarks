@@ -1,0 +1,67 @@
+                      comparison  datasets  prauc_base  prauc_variant  ahead  behind  p_raw  p_holm
+      lgbm_confopt vs lgbm_rerun       131      0.8305         0.8328     60      65 0.6708     1.0
+lgbm_confopt_seed1 vs lgbm_seed1       131      0.8309         0.8309     65      62 0.9176     1.0
+                      comparison  ece_base  ece_variant  ece_p  brier_base  brier_variant  brier_p
+      lgbm_confopt vs lgbm_rerun    0.0676       0.0738 0.0502      0.2444         0.2497   0.0355
+lgbm_confopt_seed1 vs lgbm_seed1    0.0652       0.0833 0.0000      0.2424         0.2610   0.0000
+
+Per-dataset PR AUC gaps (paired bootstrap 95 % CI):
+  ConfOpt - TPE, seed 0              n 131, mean +0.0023 [+0.0004, +0.0044], median +0.0000, trimmed +0.0003, ahead 60 / behind 65, p 0.671
+  ConfOpt - TPE, seed 1              n 131, mean -0.0001 [-0.0018, +0.0016], median +0.0000, trimmed -0.0002, ahead 65 / behind 62, p 0.918
+  ConfOpt - TPE, mean of seeds       n 131, mean +0.0011 [-0.0001, +0.0025], median +0.0000, trimmed +0.0002, ahead 64 / behind 62, p 0.568
+  ConfOpt seed 1 - seed 0            n 131, mean -0.0019 [-0.0035, -0.0005], median -0.0001, trimmed -0.0007, ahead 57 / behind 69, p 0.131
+  TPE seed 1 - seed 0                n 131, mean +0.0005 [-0.0012, +0.0023], median -0.0000, trimmed -0.0005, ahead 57 / behind 69, p 0.359
+  ConfOpt 100 - 50 trials            n 131, mean +0.0001 [-0.0014, +0.0014], median +0.0001, trimmed +0.0007, ahead 73 / behind 49, p 0.0218
+  TPE 100 - 50 trials                n 131, mean -0.0000 [-0.0013, +0.0011], median +0.0000, trimmed -0.0000, ahead 60 / behind 64, p 0.934
+  TPE re-run - August                n 131, mean -0.0002 [-0.0004, -0.0000], median +0.0000, trimmed +0.0000, ahead 6 / behind 9, p 0.229
+  ConfOpt 100 - 50 trials, seed 1    n 131, mean -0.0003 [-0.0041, +0.0022], median +0.0002, trimmed +0.0008, ahead 75 / behind 47, p 0.00809
+  TPE 100 - 50 trials, seed 1        n 131, mean +0.0007 [-0.0003, +0.0017], median +0.0000, trimmed +0.0006, ahead 68 / behind 55, p 0.119
+  ConfOpt 100 - 50 trials, mean of seeds n 131, mean -0.0001 [-0.0021, +0.0014], median +0.0003, trimmed +0.0008, ahead 83 / behind 42, p 0.000884
+  TPE 100 - 50 trials, mean of seeds n 131, mean +0.0003 [-0.0006, +0.0013], median +0.0001, trimmed +0.0002, ahead 71 / behind 54, p 0.226
+  ConfOpt 100 - 50, seed 1, no pendigits n 130, mean +0.0013 [+0.0002, +0.0025], median +0.0002, trimmed +0.0009, ahead 75 / behind 46, p 0.00453
+  pendigits fold scores, ConfOpt seed 1: 50 trials [0.998, 0.999, 0.999, 1.0], 100 trials [0.998, 0.999, 0.174, 1.0]; collapsed pick {'learning_rate': 0.259, 'n_estimators': 482, 'num_leaves': 179, 'min_child_samples': 37, 'subsample': 0.604, 'colsample_bytree': 0.457, 'reg_alpha': 0.0, 'reg_lambda': 0.0, 'class_weight': 'none'}
+  Holm over the four 100-trial tests: ConfOpt 100 - 50 trials, seed 1 0.032, ConfOpt 100 - 50 trials 0.066, TPE 100 - 50 trials, seed 1 0.24, TPE 100 - 50 trials 0.93
+  the five largest seed-0 gaps:
+                               ConfOpt 0  ConfOpt 1  TPE 0  TPE 1
+teaching-assistant-evaluation      0.647      0.588  0.570  0.606
+colon32                            0.877      0.859  0.822  0.873
+planning-relax                     0.299      0.294  0.248  0.307
+indian-liver-patient               0.505      0.490  0.460  0.470
+blogger                            0.880      0.865  0.839  0.842
+  TPE re-run picks August's configuration in 375 of 524 folds, 500 to float precision
+
+Calibration, seed-averaged ConfOpt - TPE and per-seed Holm over the four tests:
+  ece: +0.0122, worse on 72 of 108, p 1.2e-05
+  brier: +0.0120, worse on 70 of 108, p 1.4e-05
+  ece seed 0 raw 0.0502 Holm 0.071, ece seed 1 raw 1.66e-06 Holm 6.64e-06, brier seed 0 raw 0.0355 Holm 0.071, brier seed 1 raw 9.87e-06 Holm 2.96e-05
+  ECE c1 against c0: p 0.038
+  ECE t1 against t0: p 0.59
+
+class_weight and learning rate over the calibration folds:
+  ConfOpt 0: 'balanced' 0.43, learning rate >= 0.1 0.24
+  ConfOpt 1: 'balanced' 0.43, learning rate >= 0.1 0.32
+  TPE 0: 'balanced' 0.36, learning rate >= 0.1 0.18
+  TPE 1: 'balanced' 0.33, learning rate >= 0.1 0.15
+  seed 0: Spearman of the ECE gap with the extra 'balanced' folds 0.02; never 'balanced' on 13 datasets, ECE gap +0.0074, worse on 7, p 0.68; Spearman with the log learning-rate gap -0.20
+  seed 1: Spearman of the ECE gap with the extra 'balanced' folds 0.09; never 'balanced' on 17 datasets, ECE gap +0.0114, worse on 12, p 0.089; Spearman with the log learning-rate gap -0.27
+  lgbm_logloss 'balanced' 0.23
+
+100 against 50 trials where the pick changed, mean gain per dataset (scripts/search_budget_inner.py):
+  confopt  344 folds, 125 datasets: search split +0.0033, fresh split +0.0018, outer fold +0.0002; lost on the fresh split 45.5%, reaching the outer fold 5.0%; outer up on 73 / down on 49 datasets, p 0.032; per fold Spearman with the search split 0.11, with the fresh split 0.13
+  tpe      403 folds, 126 datasets: search split +0.0040, fresh split +0.0013, outer fold -0.0000; lost on the fresh split 68.4%, reaching the outer fold -1.1%; outer up on 60 / down on 64 datasets, p 0.82; per fold Spearman with the search split 0.10, with the fresh split 0.15
+
+Hours with parallel outer folds: lgbm_rerun 3.18, lgbm_confopt 5.69, lgbm_confopt_seed1 5.42, lgbm_trials100 5.39, lgbm_confopt_trials100 9.26, lgbm_logloss_unweighted 2.35, lgbm_confopt_logloss_unweighted 5.54, lgbm_confopt_trials100_seed1 8.69, lgbm_trials100_seed1 5.28, lgbm_logloss_unweighted_seed1 2.38, lgbm_confopt_logloss_unweighted_seed1 4.63
+  seconds per dataset, median: ConfOpt 112, TPE 29, overhead 84
+
+Log loss (raw p):
+                                                                    comparison  prauc_base  prauc_variant  ahead  behind  p_raw  ece_base  ece_variant  ece_p  brier_base  brier_variant  brier_p
+                    lgbm_confopt_logloss_unweighted vs lgbm_logloss_unweighted      0.8276         0.8285     67      60 0.1448    0.0404       0.0406 0.8134      0.2241         0.2231   0.0319
+                                       lgbm_logloss vs lgbm_logloss_unweighted      0.8276         0.8278     54      72 0.6272    0.0404       0.0402 0.9584      0.2241         0.2232   0.8782
+seed 1: lgbm_confopt_logloss_unweighted_seed1 vs lgbm_logloss_unweighted_seed1      0.8278         0.8266     49      78 0.0060    0.0413       0.0416 0.4326      0.2248         0.2246   0.2012
+  log loss ConfOpt - TPE, seed 0     n 131, mean +0.0009 [-0.0002, +0.0021], median +0.0000, trimmed +0.0007, ahead 67 / behind 60, p 0.145
+  log loss ConfOpt - TPE, seed 1     n 131, mean -0.0013 [-0.0028, +0.0003], median -0.0003, trimmed -0.0013, ahead 49 / behind 78, p 0.00604
+  log loss ConfOpt - TPE, mean of seeds n 131, mean -0.0002 [-0.0011, +0.0008], median -0.0002, trimmed -0.0003, ahead 51 / behind 76, p 0.13
+  log loss ConfOpt seed 1 - seed 0   n 131, mean -0.0019 [-0.0034, -0.0004], median -0.0003, trimmed -0.0018, ahead 51 / behind 75, p 0.0016
+  log loss TPE seed 1 - seed 0       n 131, mean +0.0002 [-0.0010, +0.0017], median -0.0000, trimmed -0.0003, ahead 59 / behind 67, p 0.41
+  Holm over the six log-loss tests: PR AUC seed 1 0.036, Brier seed 0 0.16, PR AUC seed 0 0.58, Brier seed 1 0.6, ECE seed 1 0.87, ECE seed 0 0.87
+Saved results/confopt_controls.csv

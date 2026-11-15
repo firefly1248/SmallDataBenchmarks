@@ -1050,43 +1050,118 @@ LightGBM's DART (`src/boosting/dart.hpp`, 4.6.0) only subtracts and re-adds the 
 none in skipped rounds; its stored ratios follow the rows (Spearman 0.61), not the chosen drop
 rate (0.08).
 
-## ConfOpt finds no better models than TPE and calibrates worse under PR AUC selection
+## ConfOpt gains 0.0016 PR AUC over TPE, two thirds of it on five datasets, and calibrates worse under PR AUC selection
+
+Over five sampler seeds on 131 datasets, ConfOpt in place of TPE raises LightGBM's mean PR AUC
+by 0.0016, two thirds of it on five datasets of 100 to 1212 rows; under PR AUC selection its
+mean ECE is 0.009 higher, clearly so on two of the five seeds; the search takes about twice as
+long in total and four times as long on a median dataset, almost all of it ConfOpt's sampler
+run one fold at a time. On a typical dataset the switch buys no PR AUC.
 
 `lgbm_confopt` replaces LightGBM's TPE sampler with ConfOpt, a conformalized quantile
-regression search, through its OptunaHub wrapper (`samplers/confopt_sampler` at commit
-180d822, confopt 2.0.1, wrapper defaults: a quantile gradient-boosting surrogate and
-optimistic Bayesian sampling over 3000 candidates per trial). Space, budget, folds and
-objective are LightGBM's. At 50 trials, if none fails, the wrapper runs 10 random trials, 23
-guided by the uncalibrated quantile model and 17 conformal ones, since the conformal step needs
-more than 32 completed trials. Its online adjustment of the interval width (DtACI) never takes
-effect in the wrapper: it fits one copy and updates another. The wrapper's global random
-generators are reseeded per trial so that a run reproduces. What follows holds for this
-wrapper with its defaults, not for ConfOpt as its authors would tune it. Not pre-registered:
-the design grew with the results (`scripts/confopt_controls.py` prints every number here but the
-sampler's per-trial timings, measured in a separate pilot; the main comparisons are in `results/confopt_controls.csv`).
+regression search, through its OptunaHub wrapper (`samplers/confopt_sampler` at commit 180d822,
+confopt 2.0.1, wrapper defaults: a quantile gradient-boosting surrogate and optimistic Bayesian
+sampling over 3000 candidates per trial). Space, budget, folds and objective are LightGBM's. At
+50 trials, if none fails, the wrapper runs 10 random trials, 23 guided by the uncalibrated
+quantile model and 17 conformal ones, since the conformal step needs more than 32 completed
+trials. Its online adjustment of the interval width (DtACI) never takes effect in the wrapper:
+it fits one copy and updates another; a fixed version is tested below. The wrapper's global
+random generators are reseeded per trial so that a run reproduces. What follows holds for this
+wrapper with its defaults, not for ConfOpt as its authors would tune it.
 
-Each method ran with two sampler seeds on the same library versions and parallel outer folds.
-TPE seed 0 is `lgbm_rerun`, the August `lgbm` re-run on current versions (the same
-configuration in 375 of 524 folds and one equal to float precision in 125 more; mean -0.0002).
-TPE seed 1 is `lgbm_seed1`, whose re-run with parallel folds matches it in every fold. The CI
-is a paired bootstrap over the 131 datasets, p is Wilcoxon's, and Holm is over the two
-per-seed tests.
+Not pre-registered: the design grew with the results. Seeds 2 to 4, the log-loss pair with
+"balanced", the trajectories, the opening configurations, the DtACI fix and the other outer
+splits were added after a two-seed version of this section reported no difference (+0.0011
+[-0.0001, +0.0025], p 0.57), so the five-seed p below is a second look. The numbers come from
+`scripts/confopt_controls.py` (two seeds, 100 trials, timings), `confopt_seeds_logloss.py`
+(five seeds, log loss), `search_inner_all.py` (inner re-score), `search_trajectories.py`
+(trajectories, DtACI), `confopt_startup.py` (opening configurations), `confopt_splits.py`
+(outer splits) and `confopt_writeup.py` (the rest); the sampler's per-trial timings come from a
+separate pilot.
 
-| comparison | PR AUC gap [95 % CI] | 10 % trimmed mean | ahead / behind | raw p | Holm p |
+Each method ran with five sampler seeds on the same library versions. TPE seed 0 is
+`lgbm_rerun`, the August `lgbm` re-run on current versions (the same configuration in 375 of
+524 folds; in 125 more it differs only at float precision; mean -0.0002); seeds 1 to 4 are
+`lgbm_seed1` to `lgbm_seed4`. All ran with parallel outer folds except `lgbm_seed1`, whose
+re-run with parallel folds matches it in every fold. ConfOpt seed k is paired with TPE seed k
+by index only. The CI is a paired bootstrap of the mean over the 131 datasets and p is
+Wilcoxon's rank test, so the two can disagree; Holm is over the five per-seed tests.
+
+| ConfOpt - TPE | PR AUC gap [95 % CI] | 10 % trimmed mean | ahead / behind | raw p | Holm p |
 |---|---|---|---|---|---|
-| ConfOpt - TPE, seed 0 | +0.0023 [+0.0004, +0.0044] | +0.0003 | 60 / 65 | 0.67 | 1.0 |
-| ConfOpt - TPE, seed 1 | -0.0001 [-0.0018, +0.0016] | -0.0002 | 65 / 62 | 0.92 | 1.0 |
-| ConfOpt - TPE, mean of seeds | +0.0011 [-0.0001, +0.0025] | +0.0002 | 64 / 62 | 0.57 | |
-| ConfOpt seed 1 - seed 0 | -0.0019 [-0.0035, -0.0005] | -0.0007 | 57 / 69 | 0.13 | |
-| TPE seed 1 - seed 0 | +0.0005 [-0.0012, +0.0023] | -0.0005 | 57 / 69 | 0.36 | |
+| seed 0 | +0.0023 [+0.0004, +0.0044] | +0.0003 | 60 / 65 | 0.67 | 1.0 |
+| seed 1 | -0.0001 [-0.0018, +0.0016] | -0.0002 | 65 / 62 | 0.92 | 1.0 |
+| seed 2 | +0.0021 [+0.0003, +0.0039] | +0.0014 | 72 / 54 | 0.02 | 0.10 |
+| seed 3 | +0.0022 [+0.0005, +0.0041] | +0.0013 | 75 / 52 | 0.02 | 0.10 |
+| seed 4 | +0.0013 [-0.0005, +0.0032] | +0.0005 | 64 / 63 | 0.26 | 0.77 |
+| mean of the five seeds | +0.0016 [+0.0006, +0.0027] | +0.0006 | 68 / 59 | 0.04 | |
 
-On seed 0 the CI excludes zero but the signed-rank test does not: the mean rests on five
-small datasets with gaps of 0.04 to 0.08. On two of them TPE seed 0 is low (`colon32`,
-`planning-relax`), on one ConfOpt seed 0 is high (`teaching-assistant-evaluation`), and on
-`indian-liver-patient` and `blogger` both ConfOpt seeds beat both TPE seeds. ConfOpt's own seed
-moves its mean by as much.
+The three seeds added later give +0.0019 [+0.0007, +0.0032] (p 0.009) on their own. Each seed
+opens with the same random configurations on every dataset (below), so the seed is also a unit:
+Welch over each sampler's five seed means, without pairing, gives [+0.0007, +0.0025], p 0.006.
+ConfOpt's seed means spread more (SD 0.0007 against 0.0003), which five seeds cannot test. The
+gap is positive in 24 of the 25 pairings of a ConfOpt seed with a TPE seed (-0.0001 to
++0.0028). Four of ConfOpt's five seed means (0.8317 to 0.8328) are above all of TPE's (0.8300
+to 0.8309); the fifth matches TPE's best to four decimals.
 
-Doubling the budget to 100 trials, gain over the 50-trial run with Holm over the four tests:
+The gain is a mean, not a typical dataset: the median gap is 0.0000, and five datasets
+(`teaching-assistant-evaluation`, `blogger`, `hill-valley-without-noise`,
+`indian-liver-patient`, `planning-relax`; 100 to 1212 rows) gain 0.013 to 0.033 averaged over
+the seeds and carry 67 % of it (46 % of the summed gains; the five largest losses are 37 % of
+the summed losses). Without them the mean is +0.0005 (p 0.17); without them and the five
+largest losses, +0.0009 [+0.0004, +0.0014] (p 0.03; descriptive, as the trim is chosen on the
+outcome). By thirds of the row count the gap is +0.0026 (50 to 540 rows), +0.0019 (554 to 2800)
+and +0.0002 (2859 to 10000), but +0.0008, +0.0006 and +0.0002 without the five; the Spearman
+with rows is -0.16 (p 0.07). Per dataset ConfOpt's PR AUC does not vary more across seeds than
+TPE's (SD gap -0.0003, p 0.54).
+
+Re-scoring every fold's pick with the search's own objective (`scripts/search_inner_all.py`)
+shows where the gap is first seen. "Search" is the score on the inner split the pick was made
+on, "fresh" on a new inner split of the same rows (seed + 1), "outer" the held-out fold;
+ConfOpt - TPE, mean per dataset:
+
+| | search | fresh | outer |
+|---|---|---|---|
+| seed 0 | +0.0018 | +0.0015 | +0.0023 |
+| seed 1 | +0.0006 | -0.0001 | -0.0001 |
+| seeds 2 to 4 | +0.0014, +0.0022, +0.0016 | +0.0010, +0.0007, -0.0004 | +0.0021, +0.0022, +0.0013 |
+| mean of the five seeds | +0.0015 [+0.0008, +0.0024], p 0.002 | +0.0005 [-0.0007, +0.0014], p 0.005 | +0.0016 [+0.0006, +0.0027], p 0.04 |
+
+The lead reaches the outer fold: outer minus search is +0.0001 [-0.0007, +0.0008] (p 0.87), no
+detectable loss though the CI allows 0.0007, and datasets where ConfOpt leads on the search
+score are those where it leads on the outer fold (Spearman 0.39; 0.32 without the five). On a
+fresh split of the same rows the mean lead is +0.0005 [-0.0007, +0.0014], but ConfOpt stays
+ahead on 79 datasets against 51 (p 0.005). The drop in the mean is `kr-vs-k`, where five of
+ConfOpt's 20 picks score 0.46 to 0.72 on the fresh split against 0.81 to 0.82 on the search
+split, while no TPE pick loses more than 0.008; without it the fresh lead is +0.0010 [+0.0004,
++0.0016] and the drop from the search score -0.0006 (rank p 0.46). The equal search and outer
+means lean on the five datasets: without them search is +0.0009 [+0.0005, +0.0014] and outer
++0.0005 [-0.0000, +0.0011].
+
+Both samplers open with 10 random trials whose configurations depend only on the sampler seed,
+the same in every study of a run. These were scored with the search's objective on the search's
+inner split of every fold of the 131 datasets (`scripts/confopt_startup.py`, checked against
+the studies kept for three sampler seeds). ConfOpt - TPE, mean per dataset:
+
+| seed | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| best of the 10 opening configurations | +0.0028 | -0.0028 | +0.0070 | -0.0210 | +0.0104 |
+| search score of the 50-trial pick | +0.0018 | +0.0006 | +0.0014 | +0.0022 | +0.0016 |
+
+The opening gap varies from -0.021 to +0.010 across the five seeds (SD 0.012), on a few
+datasets (medians -0.0007 to +0.0006), while the final search gap stays between +0.0006 and
++0.0022: the five opening draws do not set the final lead, and ConfOpt improves on its own
+opening more than TPE does on 80 datasets against 48 (p 0.001). Within a seed the start carries
+over, partly by construction since a final score is never below its opening: on seeds 0, 2 and
+4 the final lead, on the search score and on the outer fold, sits where ConfOpt opened ahead
+(search +0.0024 to +0.0030); elsewhere it is -0.0001 to +0.0006 (all p ≥ 0.26), so on those
+seeds the start may be the whole of it. On seed 0, in the 100-trial studies kept for 30
+datasets (`scripts/search_trajectories.py`), the inner lead is largest right after the random
+trials (+0.0068 after 10, +0.0010 at 50); the first 50 trials of each study pick the stored
+50-trial configuration in all 120 folds.
+
+Doubling the budget to 100 trials (seeds 0 and 1 only), gain over the 50-trial run with Holm
+over the four tests:
 
 | search | seed | mean gain [95 % CI] | 10 % trimmed mean | ahead / behind | raw p | Holm p |
 |---|---|---|---|---|---|---|
@@ -1099,68 +1174,90 @@ ConfOpt gains on more datasets than it loses on both seeds (83 / 42 averaged ove
 0.0009), but its mean does not move. The seed-1 mean carries one collapsed fold: at 100 trials
 `pendigits` fold 2 picks a learning rate of 0.26 with 482 trees and scores 0.17 against 0.999
 at 50 trials (the dataset that also collapses under DART); without it the seed-1 gain is
-+0.0013 [+0.0002, +0.0025]. TPE gains nothing measurable on either seed.
++0.0013 [+0.0002, +0.0025]. TPE gains nothing measurable on either seed, but the two samplers'
+gains do not differ (+0.0001 and -0.0010, p 0.42 and 0.53). At 100 trials ConfOpt - TPE is
++0.0024 (p 0.15) and -0.0010 (p 0.27) on the outer folds; the inner lead on these two seeds is
++0.0012 (p 0.003) at 50 trials and +0.0007 (p 0.51) at 100, a narrowing of -0.0005 (p 0.0003).
+Per dataset the 50-to-100 gain on the search split (+0.0021 to +0.0031 per sampler and seed)
+loses 40 to 68 % on a fresh split of the same rows, and what survives there (all p < 0.0001)
+does not show in the outer mean (-0.0003 to +0.0007), for either sampler. Fewer than 50 trials
+were not tested.
 
-Both searches are deterministic, so a 100-trial run repeats its 50-trial run's first 50
-trials, and where the pick changed (on seed 0, 344 ConfOpt folds and 403 TPE folds) the new
-pick scores at least as high on the inner split by construction. Re-scoring both seed-0 picks
-with the search's own objective (`scripts/search_budget_inner.py`; seed 1 was not re-scored)
-splits that gain into what the selection saw and what it did not, mean per dataset:
-
-| search | inner split the pick was made on | fresh inner split | outer fold |
-|---|---|---|---|
-| ConfOpt | +0.0033 | +0.0018 | +0.0002 |
-| TPE | +0.0040 | +0.0013 | 0.0000 |
-
-On a fresh split of the same rows 46 % of ConfOpt's inner gain and 68 % of TPE's disappear:
-that part was selection on the split's noise. Almost none of the rest reaches new rows, 5 % of
-the inner gain for ConfOpt and none for TPE. Per fold the inner gain
-predicts the outer one weakly (Spearman 0.10 to 0.15). Fewer than 50 trials were not tested.
+A fixed wrapper, which updates the same searcher it fits (`lgbm_confopt_dtaci_trials100`),
+makes the interval widths adapt (on one fold the alphas move from 0.28, 0.58, 0.86 to 0.38,
+0.66, 0.89 in 17 steps over 50 trials, against none for the published wrapper;
+`scripts/confopt_dtaci_demo.py`). On the 30 datasets, seeds 0 and 1, at 50 and 100 trials, it
+differs from the published wrapper by at most 0.0010 in mean PR AUC and 0.006 in mean ECE (all
+p ≥ 0.36) and takes the same time (1.57 and 1.53 h against 1.61 and 1.55 h). Its ECE CIs reach
+±0.01, too wide to exclude an effect as large as the calibration gap below, but the fixed
+wrapper is still above TPE in ECE (+0.008 and +0.011, p 0.01 and 0.10, at 50 trials; +0.002 and
++0.006, p 0.45 and 0.06, at 100): the data do not show that the inert DtACI causes it.
 
 Under PR AUC selection, calibration is where the samplers differ. Over the 108 calibration
 datasets:
 
-| | ConfOpt seed 0 | ConfOpt seed 1 | TPE seed 0 | TPE seed 1 |
+| | seed 0 | seed 1 | seed 2 | seed 3 | seed 4 |
+|---|---|---|---|---|---|
+| ECE, ConfOpt / TPE | 0.0738 / 0.0676 | 0.0833 / 0.0652 | 0.0734 / 0.0719 | 0.0709 / 0.0705 | 0.0837 / 0.0647 |
+| raw p | 0.050 | 2e-6 | 0.68 | 0.91 | 5e-6 |
+| Brier, ConfOpt / TPE | 0.2497 / 0.2444 | 0.2610 / 0.2424 | 0.2454 / 0.2486 | 0.2465 / 0.2457 | 0.2560 / 0.2401 |
+
+Averaged over the five seeds ConfOpt's ECE is 0.077 against 0.068 (+0.0091 [+0.0054, +0.0128],
+worse on 82 of 108 datasets, p 3e-8) and its Brier score 0.0075 higher (p 9e-6). Per seed the
+loss is clear on seeds 1 and 4 (Holm p 8e-6 and 2e-5 over the five) and not on 0, 2 and 3 (Holm
+0.15, 1, 1); with the seed as the unit, Welch over the seed means gives +0.0091 [+0.0016,
++0.0165], p 0.025. The size depends on both samplers' seeds: ConfOpt's mean ECE is 0.071 to
+0.084, TPE's 0.065 to 0.072, and the gap is positive in 24 of the 25 seed pairings (-0.001 to
++0.019). On the 30 datasets of `scripts/split_seeds.py`, ConfOpt seed 0 against TPE seeds 0 and
+1, the ECE gap is +0.007 and +0.012 on the default split, +0.006 and +0.010 on split seed 2 and
+-0.001 and -0.001 on split seed 1, with CIs of about ±0.01; 30 datasets cannot show whether the
+split matters, nor resolve a PR AUC gap of 0.0016 (CIs ±0.002 to ±0.005).
+
+The cause is not identified. Per dataset the ECE gap does not follow the gap in optimism,
+search score minus outer score (Spearman -0.05 to +0.13 on the five seeds, all p > 0.16), so a
+strong link to overfitting the inner split is unlikely; on seed 4 alone it follows the
+search-score lead (Spearman +0.32, p 0.0009; -0.04 to +0.14 on the others).
+`class_weight="balanced"` does not explain it across seeds: ConfOpt picks it more often than
+TPE on seeds 0, 1 and 3 (43 to 47 % of the folds against 29 to 36 %), less on seed 2 (29 %
+against 45 %) and as often on seed 4 (31 % against 33 %), yet seed 3 has no ECE gap and seed 4
+the largest; on the 9 datasets where none of the ten runs picks it on any fold the five-seed
+gap is +0.012, worse on all 9 (p 0.004). Within a seed it may contribute: the gap follows the
+extra "balanced" folds on seeds 2 and 4 (Spearman +0.26 and +0.27, p 0.006 and 0.005), not on
+0, 1 and 3 (+0.02 to +0.09). On all five seeds the gap is weakly associated with less total
+boosting, learning rate times trees (Spearman -0.21 to -0.27, p 0.005 to 0.03), but ConfOpt's
+median boosting is lower than TPE's only on seed 0 (6.8 against 7.5) and the association is as
+strong on seeds 2 and 3, which have no mean gap, so it explains neither the mean gap nor its
+spread across seeds.
+
+Selected on log loss, the calibration gap closes on seed 1 and mostly on seed 0; whether the PR
+AUC gain depends on the selection metric, two seeds cannot say. Two log-loss pairs ran, seeds 0
+and 1 only, after these results: with "balanced" in both spaces, as in the PR AUC runs, and
+with it removed from both. ConfOpt / TPE, raw p of the paired gap:
+
+| class weights | seed | PR AUC | ECE | Brier |
 |---|---|---|---|---|
-| ECE | 0.0738 | 0.0833 | 0.0676 | 0.0652 |
-| Brier | 0.2497 | 0.2610 | 0.2444 | 0.2424 |
+| "balanced" allowed | 0 | 0.8282 / 0.8278 (p 0.21) | 0.0424 / 0.0402 (p 0.27) | 0.2230 / 0.2232 (p 0.13) |
+| "balanced" allowed | 1 | 0.8266 / 0.8275 (p 0.14) | 0.0412 / 0.0410 (p 0.72) | 0.2238 / 0.2246 (p 0.71) |
+| none | 0 | 0.8285 / 0.8276 (p 0.14) | 0.0406 / 0.0404 (p 0.81) | 0.2231 / 0.2241 (p 0.03) |
+| none | 1 | 0.8266 / 0.8278 (p 0.006) | 0.0416 / 0.0413 (p 0.43) | 0.2246 / 0.2248 (p 0.20) |
 
-Averaged over the seeds ConfOpt's ECE is 0.079 against 0.066, worse on 72 of 108 datasets
-(raw p 1e-5), and its Brier score is 0.012 higher (p 1e-5). Per seed the loss is significant on
-seed 1 (ECE raw p 2e-6, Brier 1e-5) and borderline on seed 0 (0.050 and 0.035; 0.071 for both
-with Holm over the four tests).
+With "balanced" allowed, moving from PR AUC to log-loss selection changes the ConfOpt - TPE ECE
+gap by -0.011 [-0.017, -0.006] (p 0.0004): -0.018 on seed 1, the seed with the clear gap, and
+-0.004 with a CI including zero on seed 0, where a gap of +0.0022 [+0.0001, +0.0045] (rank p
+0.27) remains. The PR AUC gap on these two seeds is +0.0011 [-0.0001, +0.0025] under PR AUC
+selection and changes by -0.0014 [-0.0031, +0.0001] (p 0.53). Without class weights, on seed 1
+ConfOpt is behind on 78 datasets and ahead on 49 (p 0.006, Holm 0.04 over the six tests of that
+pair) with a mean of -0.0013 [-0.0029, +0.0004]; on seed 0 its Brier score is lower (raw p
+0.03, Holm 0.16). Allowing "balanced" changes nothing measurable for either sampler on log loss
+(all twelve gaps within ±0.002, all p > 0.18).
 
-The cause is not identified. The loss does not track how often ConfOpt picks
-`class_weight="balanced"`: it does so in 43 % of the calibration folds on both seeds (TPE 36 %
-and 33 %), yet its ECE loss is three times larger on seed 1, and per dataset the gap does not
-follow the extra "balanced" folds (Spearman 0.02 and 0.09). Where neither sampler ever picks
-"balanced", ConfOpt is worse by 0.007 (13 datasets, 7 of them worse, p 0.68) and 0.011 (17, 12
-worse, p 0.09), too few to say whether the class weight contributes. Nor is it the learning
-rate: ConfOpt picks 0.1 or more more often (24 % and 32 % of the folds against 18 % and 15 %),
-but per dataset the gap shrinks as its learning rate rises above TPE's (Spearman -0.20 and
--0.27).
-
-Selected on log loss with "balanced" removed from both searches, a run chosen after seeing
-these results, the calibration gap closes on both seeds: ECE 0.0406 against 0.0404 (raw p
-0.81) on seed 0 and 0.0416 against 0.0413 (p 0.43) on seed 1, Brier 0.2231 against 0.2241
-(p 0.03, Holm 0.16 over the six log-loss tests) and 0.2246 against 0.2248 (p 0.20). PR AUC
-ties on seed 0 (0.8285 against 0.8276, p 0.14) and is lower for ConfOpt on seed 1 (0.8266
-against 0.8278, 49 ahead, 78 behind, raw p 0.006, Holm 0.04), a loss the PR AUC-selected pair
-does not show on that seed. Averaged over the seeds the gap is -0.0002 [-0.0011, +0.0008]
-(p 0.13): ConfOpt's own seed moves its PR AUC by 0.0019 under either objective, TPE's by
-0.0005 and 0.0002, so two seeds cannot say whether log loss costs ConfOpt PR AUC. For TPE on log loss, allowing
-"balanced" makes no measurable difference on seed 0: `lgbm_logloss` picks it in 23 % of the
-calibration folds and calibrates as well (ECE 0.0402 against 0.0404, p 0.96). ConfOpt on log
-loss with "balanced" was not run.
-
-ConfOpt's sampler costs about 21 s per 50-trial study, measured on three datasets: 0.01 s per
+ConfOpt's sampler costs about 20 s per 50-trial study, measured on three datasets: 0.01 s per
 random trial, 0.2 s per uncalibrated one and 0.9 s per conformal one, and the reseeding lock
-serializes it across the four folds. On a median dataset ConfOpt takes 112 s against TPE's
-29 s (seed 0). Over 131 datasets it adds 2.5 h on seed 0 (5.69 against 3.18 h) and 1.5 h on seed 1
-(5.42 against 3.95 h for `lgbm_seed1` re-timed with parallel folds, pauses removed). At 100
-trials it adds 3.9 and 3.4 h on the two seeds, on log loss 3.2 and 2.3 h (a manual pause of
-about 6.4 h removed from TPE's seed-1 run). TPE's two seeds differ by 0.8 h themselves, so each
-overhead is uncertain by about as much.
+serializes it across the four folds. At 50 trials ConfOpt's search takes 5.2 to 5.7 h over the
+131 datasets against TPE's 2.6 to 4.0 h (seed 1 re-timed with parallel folds), and 3.4 to 4.0
+times as long on a median dataset (105 to 112 s against 26 to 34 s). TPE's own five runs differ
+by 1.4 h, so the ratio of totals, 1.4 to 2.1, is approximate. At 100 trials ConfOpt takes 9.3
+and 8.7 h against TPE's 5.4 and 5.3 h.
 
 ## Another outer split keeps the verdicts, not the order of close models
 

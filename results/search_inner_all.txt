@@ -1,0 +1,58 @@
+7336 rows, 6765 distinct configurations to score; missing: none
+Scored in 56.7 min
+
+Checks:
+  outer ConfOpt - TPE at 50 trials, seed 0: +0.0023 (confopt_controls.csv +0.0023)
+  outer ConfOpt - TPE at 50 trials, seed 1: -0.0001 (confopt_controls.csv -0.0001)
+  search and fresh against search_budget_inner.csv, 747 folds: largest difference 5.0e-07
+  search at 100 trials below 50 trials: 0 of 5240 folds
+  rows 7336 of 7336
+
+ConfOpt - TPE per dataset (mean over its folds):
+ search, 50 trials
+  seed 0                                   n 131, mean +0.0018 [+0.0010, +0.0027], median +0.0001, trimmed +0.0008, ahead 77 / behind 48, p 8.9e-05
+  seed 1                                   n 131, mean +0.0006 [-0.0004, +0.0016], median +0.0000, trimmed +0.0002, ahead 62 / behind 63, p 0.529
+  seed 2                                   n 131, mean +0.0014 [+0.0005, +0.0024], median +0.0000, trimmed +0.0006, ahead 69 / behind 57, p 0.0145
+  seed 3                                   n 131, mean +0.0022 [+0.0010, +0.0038], median +0.0000, trimmed +0.0006, ahead 68 / behind 58, p 0.0141
+  seed 4                                   n 131, mean +0.0016 [+0.0007, +0.0027], median +0.0001, trimmed +0.0006, ahead 73 / behind 52, p 0.0032
+  mean of seeds 0 and 1                    n 131, mean +0.0012 [+0.0005, +0.0020], median +0.0001, trimmed +0.0004, ahead 76 / behind 49, p 0.00315
+  mean of seeds 0 to 4                     n 131, mean +0.0015 [+0.0008, +0.0024], median +0.0000, trimmed +0.0005, ahead 66 / behind 60, p 0.00235
+ fresh, 50 trials
+  seed 0                                   n 131, mean +0.0015 [+0.0004, +0.0026], median +0.0001, trimmed +0.0011, ahead 74 / behind 55, p 0.014
+  seed 1                                   n 131, mean -0.0001 [-0.0013, +0.0010], median +0.0000, trimmed +0.0000, ahead 69 / behind 59, p 0.684
+  seed 2                                   n 131, mean +0.0010 [-0.0006, +0.0024], median +0.0002, trimmed +0.0010, ahead 75 / behind 53, p 0.00352
+  seed 3                                   n 131, mean +0.0007 [-0.0019, +0.0027], median +0.0000, trimmed +0.0008, ahead 75 / behind 53, p 0.0481
+  seed 4                                   n 131, mean -0.0004 [-0.0024, +0.0013], median -0.0000, trimmed +0.0001, ahead 63 / behind 66, p 0.924
+  mean of seeds 0 and 1                    n 131, mean +0.0007 [-0.0002, +0.0015], median +0.0000, trimmed +0.0003, ahead 71 / behind 58, p 0.157
+  mean of seeds 0 to 4                     n 131, mean +0.0005 [-0.0007, +0.0014], median +0.0000, trimmed +0.0005, ahead 79 / behind 51, p 0.00467
+ outer, 50 trials
+  seed 0                                   n 131, mean +0.0023 [+0.0005, +0.0045], median +0.0000, trimmed +0.0003, ahead 61 / behind 65, p 0.678
+  seed 1                                   n 131, mean -0.0001 [-0.0018, +0.0017], median +0.0000, trimmed -0.0002, ahead 65 / behind 62, p 0.918
+  seed 2                                   n 131, mean +0.0021 [+0.0004, +0.0039], median +0.0001, trimmed +0.0014, ahead 72 / behind 55, p 0.0224
+  seed 3                                   n 131, mean +0.0022 [+0.0005, +0.0040], median +0.0002, trimmed +0.0013, ahead 75 / behind 52, p 0.0206
+  seed 4                                   n 131, mean +0.0013 [-0.0004, +0.0033], median +0.0000, trimmed +0.0005, ahead 64 / behind 63, p 0.258
+  mean of seeds 0 and 1                    n 131, mean +0.0011 [-0.0002, +0.0025], median +0.0000, trimmed +0.0002, ahead 65 / behind 62, p 0.57
+  mean of seeds 0 to 4                     n 131, mean +0.0016 [+0.0006, +0.0027], median +0.0000, trimmed +0.0006, ahead 68 / behind 59, p 0.042
+ search, 100 trials
+  seed 0                                   n 131, mean +0.0010 [+0.0004, +0.0017], median +0.0000, trimmed +0.0003, ahead 63 / behind 62, p 0.0662
+  seed 1                                   n 131, mean +0.0003 [-0.0003, +0.0010], median -0.0000, trimmed -0.0001, ahead 51 / behind 74, p 0.434
+  mean of seeds 0 and 1                    n 131, mean +0.0007 [+0.0001, +0.0012], median -0.0000, trimmed +0.0001, ahead 59 / behind 66, p 0.513
+ fresh, 100 trials
+  seed 0                                   n 131, mean +0.0017 [+0.0009, +0.0025], median +0.0001, trimmed +0.0010, ahead 78 / behind 50, p 0.000477
+  seed 1                                   n 131, mean -0.0001 [-0.0010, +0.0008], median -0.0000, trimmed +0.0001, ahead 60 / behind 68, p 0.96
+  mean of seeds 0 and 1                    n 131, mean +0.0008 [+0.0002, +0.0014], median +0.0001, trimmed +0.0005, ahead 72 / behind 57, p 0.0066
+ outer, 100 trials
+  seed 0                                   n 131, mean +0.0024 [+0.0004, +0.0050], median +0.0001, trimmed +0.0006, ahead 69 / behind 58, p 0.147
+  seed 1                                   n 131, mean -0.0010 [-0.0048, +0.0015], median +0.0000, trimmed +0.0004, ahead 66 / behind 61, p 0.274
+  mean of seeds 0 and 1                    n 131, mean +0.0007 [-0.0016, +0.0026], median +0.0000, trimmed +0.0004, ahead 64 / behind 63, p 0.251
+
+Holm over the two per-seed search tests at 50 trials: seed 0 0.000178, seed 1 0.529
+Yardstick, seed 1 - seed 0 on search at 50 trials:
+  confopt                                  n 131, mean -0.0013 [-0.0020, -0.0006], median -0.0001, trimmed -0.0008, ahead 45 / behind 80, p 0.000196
+  confopt mean search score per seed: 0 0.8377, 1 0.8364, 2 0.8372, 3 0.8375, 4 0.8372; SD 0.0005
+  tpe                                      n 131, mean -0.0001 [-0.0008, +0.0007], median -0.0000, trimmed -0.0001, ahead 57 / behind 68, p 0.271
+  tpe mean search score per seed: 0 0.8359, 1 0.8359, 2 0.8358, 3 0.8352, 4 0.8356; SD 0.0003
+Share of the search gap left on fresh and outer, mean of seeds:
+  50 trials: fresh 57%, outer 95%
+  100 trials: fresh 119%, outer 104%
+Saved results/search_inner_all.csv

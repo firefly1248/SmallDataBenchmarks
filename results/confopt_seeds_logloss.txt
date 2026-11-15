@@ -1,0 +1,65 @@
+I. ConfOpt - TPE at 50 trials per sampler seed:
+  seed 0, PR AUC                               n 131, mean +0.0023 [+0.0004, +0.0044], median +0.0000, trimmed +0.0003, ahead 60 / behind 65, p 0.671
+  seed 0, ece                                  n 108, mean +0.0062 [+0.0000, +0.0127], median +0.0014, trimmed +0.0047, ahead 64 / behind 44, p 0.0502
+  seed 0, brier                                n 108, mean +0.0053 [-0.0010, +0.0116], median +0.0014, trimmed +0.0041, ahead 60 / behind 48, p 0.0355
+  seed 1, PR AUC                               n 131, mean -0.0001 [-0.0018, +0.0016], median +0.0000, trimmed -0.0002, ahead 65 / behind 62, p 0.918
+  seed 1, ece                                  n 108, mean +0.0181 [+0.0109, +0.0266], median +0.0048, trimmed +0.0112, ahead 75 / behind 33, p 1.66e-06
+  seed 1, brier                                n 108, mean +0.0186 [+0.0110, +0.0274], median +0.0025, trimmed +0.0112, ahead 73 / behind 35, p 9.87e-06
+  seed 2, PR AUC                               n 131, mean +0.0021 [+0.0003, +0.0039], median +0.0001, trimmed +0.0014, ahead 72 / behind 54, p 0.022
+  seed 2, ece                                  n 108, mean +0.0016 [-0.0052, +0.0085], median -0.0005, trimmed +0.0005, ahead 47 / behind 61, p 0.679
+  seed 2, brier                                n 108, mean -0.0031 [-0.0102, +0.0042], median -0.0006, trimmed -0.0027, ahead 45 / behind 63, p 0.136
+  seed 3, PR AUC                               n 131, mean +0.0022 [+0.0005, +0.0041], median +0.0002, trimmed +0.0013, ahead 75 / behind 52, p 0.0206
+  seed 3, ece                                  n 108, mean +0.0004 [-0.0048, +0.0057], median +0.0000, trimmed -0.0004, ahead 54 / behind 54, p 0.912
+  seed 3, brier                                n 108, mean +0.0008 [-0.0049, +0.0062], median +0.0006, trimmed +0.0019, ahead 60 / behind 48, p 0.318
+  seed 4, PR AUC                               n 131, mean +0.0013 [-0.0005, +0.0032], median +0.0000, trimmed +0.0005, ahead 64 / behind 63, p 0.258
+  seed 4, ece                                  n 108, mean +0.0190 [+0.0101, +0.0285], median +0.0050, trimmed +0.0136, ahead 75 / behind 33, p 4.8e-06
+  seed 4, brier                                n 108, mean +0.0159 [+0.0088, +0.0234], median +0.0038, trimmed +0.0116, ahead 76 / behind 32, p 7.86e-06
+ mean over the five seeds:
+  PR AUC                                       n 131, mean +0.0016 [+0.0006, +0.0027], median +0.0000, trimmed +0.0006, ahead 68 / behind 59, p 0.042
+  ece                                          n 108, mean +0.0091 [+0.0054, +0.0128], median +0.0037, trimmed +0.0074, ahead 82 / behind 26, p 3.44e-08
+  brier                                        n 108, mean +0.0075 [+0.0041, +0.0112], median +0.0026, trimmed +0.0056, ahead 76 / behind 32, p 8.81e-06
+ spread across seeds:
+  ConfOpt  mean PR AUC per seed [0.8328, 0.8309, 0.8324, 0.8322, 0.8317], SD 0.0007; mean ECE per seed [0.0738, 0.0833, 0.0734, 0.0709, 0.0837], SD 0.0060
+  TPE      mean PR AUC per seed [0.8305, 0.8309, 0.8303, 0.83, 0.8303], SD 0.0003; mean ECE per seed [0.0676, 0.0652, 0.0719, 0.0705, 0.0647], SD 0.0032
+  per-dataset SD across seeds, ConfOpt - TPE   n 131, mean -0.0003 [-0.0007, +0.0002], median +0.0000, trimmed -0.0002, ahead 65 / behind 62, p 0.543
+
+J. Selected on log loss with 'balanced' in both spaces:
+  seed 0, ConfOpt - TPE, PR AUC                n 131, mean +0.0004 [-0.0015, +0.0025], median +0.0002, trimmed +0.0003, ahead 76 / behind 50, p 0.209
+  seed 0, ConfOpt - TPE, ece                   n 108, mean +0.0022 [+0.0001, +0.0045], median +0.0000, trimmed +0.0011, ahead 59 / behind 49, p 0.274
+  seed 0, ConfOpt - TPE, brier                 n 108, mean -0.0002 [-0.0018, +0.0015], median -0.0002, trimmed -0.0005, ahead 45 / behind 63, p 0.125
+  seed 1, ConfOpt - TPE, PR AUC                n 131, mean -0.0009 [-0.0022, +0.0004], median -0.0000, trimmed -0.0007, ahead 57 / behind 69, p 0.144
+  seed 1, ConfOpt - TPE, ece                   n 108, mean +0.0002 [-0.0020, +0.0024], median -0.0001, trimmed -0.0001, ahead 52 / behind 56, p 0.724
+  seed 1, ConfOpt - TPE, brier                 n 108, mean -0.0008 [-0.0029, +0.0011], median +0.0000, trimmed -0.0000, ahead 57 / behind 51, p 0.708
+ selected on log loss without class weights in both spaces:
+  seed 0, ConfOpt - TPE, PR AUC                n 131, mean +0.0009 [-0.0002, +0.0021], median +0.0000, trimmed +0.0007, ahead 67 / behind 60, p 0.145
+  seed 0, ConfOpt - TPE, ece                   n 108, mean +0.0002 [-0.0024, +0.0028], median -0.0000, trimmed +0.0002, ahead 53 / behind 55, p 0.813
+  seed 0, ConfOpt - TPE, brier                 n 108, mean -0.0010 [-0.0024, +0.0004], median -0.0003, trimmed -0.0011, ahead 45 / behind 63, p 0.0319
+  seed 1, ConfOpt - TPE, PR AUC                n 131, mean -0.0013 [-0.0029, +0.0004], median -0.0003, trimmed -0.0013, ahead 49 / behind 78, p 0.00604
+  seed 1, ConfOpt - TPE, ece                   n 108, mean +0.0002 [-0.0026, +0.0028], median +0.0001, trimmed +0.0006, ahead 58 / behind 50, p 0.433
+  seed 1, ConfOpt - TPE, brier                 n 108, mean -0.0001 [-0.0021, +0.0017], median +0.0001, trimmed +0.0005, ahead 62 / behind 46, p 0.201
+ what 'balanced' changes on log loss, per sampler:
+  ConfOpt seed 0, balanced - unweighted, PR AUC n 131, mean -0.0003 [-0.0014, +0.0009], median -0.0000, trimmed -0.0004, ahead 57 / behind 69, p 0.227
+  ConfOpt seed 0, balanced - unweighted, ece   n 108, mean +0.0018 [-0.0005, +0.0042], median +0.0001, trimmed +0.0011, ahead 58 / behind 50, p 0.19
+  ConfOpt seed 0, balanced - unweighted, brier n 108, mean -0.0001 [-0.0021, +0.0017], median +0.0001, trimmed +0.0005, ahead 60 / behind 48, p 0.288
+  ConfOpt seed 1, balanced - unweighted, PR AUC n 131, mean +0.0000 [-0.0016, +0.0017], median +0.0001, trimmed +0.0004, ahead 68 / behind 58, p 0.256
+  ConfOpt seed 1, balanced - unweighted, ece   n 108, mean -0.0004 [-0.0026, +0.0019], median -0.0000, trimmed -0.0005, ahead 54 / behind 54, p 0.663
+  ConfOpt seed 1, balanced - unweighted, brier n 108, mean -0.0009 [-0.0028, +0.0010], median -0.0000, trimmed -0.0002, ahead 53 / behind 55, p 0.821
+  TPE seed 0, balanced - unweighted, PR AUC    n 131, mean +0.0003 [-0.0018, +0.0023], median -0.0001, trimmed -0.0001, ahead 54 / behind 72, p 0.627
+  TPE seed 0, balanced - unweighted, ece       n 108, mean -0.0002 [-0.0032, +0.0026], median +0.0000, trimmed -0.0001, ahead 54 / behind 54, p 0.958
+  TPE seed 0, balanced - unweighted, brier     n 108, mean -0.0009 [-0.0027, +0.0011], median +0.0000, trimmed -0.0003, ahead 57 / behind 51, p 0.878
+  TPE seed 1, balanced - unweighted, PR AUC    n 131, mean -0.0003 [-0.0018, +0.0011], median -0.0000, trimmed +0.0000, ahead 61 / behind 66, p 0.929
+  TPE seed 1, balanced - unweighted, ece       n 108, mean -0.0004 [-0.0027, +0.0019], median -0.0003, trimmed -0.0001, ahead 49 / behind 59, p 0.659
+  TPE seed 1, balanced - unweighted, brier     n 108, mean -0.0002 [-0.0026, +0.0020], median +0.0001, trimmed +0.0006, ahead 58 / behind 50, p 0.257
+ what log loss changes against PR AUC selection, per sampler:
+  ConfOpt seed 0, log loss - PR AUC, PR AUC    n 131, mean -0.0046 [-0.0075, -0.0021], median -0.0007, trimmed -0.0017, ahead 44 / behind 82, p 0.000584
+  ConfOpt seed 0, log loss - PR AUC, ece       n 108, mean -0.0314 [-0.0412, -0.0226], median -0.0139, trimmed -0.0213, ahead 12 / behind 96, p 2.04e-15
+  ConfOpt seed 0, log loss - PR AUC, brier     n 108, mean -0.0267 [-0.0351, -0.0190], median -0.0095, trimmed -0.0194, ahead 21 / behind 87, p 7.88e-13
+  ConfOpt seed 1, log loss - PR AUC, PR AUC    n 131, mean -0.0043 [-0.0072, -0.0019], median -0.0003, trimmed -0.0018, ahead 49 / behind 78, p 0.00136
+  ConfOpt seed 1, log loss - PR AUC, ece       n 108, mean -0.0422 [-0.0555, -0.0310], median -0.0211, trimmed -0.0302, ahead 8 / behind 100, p 9.6e-17
+  ConfOpt seed 1, log loss - PR AUC, brier     n 108, mean -0.0372 [-0.0487, -0.0270], median -0.0115, trimmed -0.0278, ahead 17 / behind 91, p 7.67e-14
+  TPE seed 0, log loss - PR AUC, PR AUC        n 131, mean -0.0026 [-0.0053, -0.0002], median -0.0004, trimmed -0.0015, ahead 44 / behind 82, p 0.00408
+  TPE seed 0, log loss - PR AUC, ece           n 108, mean -0.0273 [-0.0358, -0.0197], median -0.0130, trimmed -0.0194, ahead 14 / behind 94, p 1.09e-13
+  TPE seed 0, log loss - PR AUC, brier         n 108, mean -0.0212 [-0.0279, -0.0152], median -0.0090, trimmed -0.0157, ahead 21 / behind 87, p 3.45e-12
+  TPE seed 1, log loss - PR AUC, PR AUC        n 131, mean -0.0034 [-0.0060, -0.0011], median -0.0002, trimmed -0.0016, ahead 46 / behind 80, p 0.0081
+  TPE seed 1, log loss - PR AUC, ece           n 108, mean -0.0243 [-0.0334, -0.0160], median -0.0100, trimmed -0.0166, ahead 18 / behind 90, p 1.76e-11
+  TPE seed 1, log loss - PR AUC, brier         n 108, mean -0.0178 [-0.0243, -0.0118], median -0.0075, trimmed -0.0130, ahead 20 / behind 88, p 9.19e-11

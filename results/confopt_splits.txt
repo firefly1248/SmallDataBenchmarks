@@ -1,0 +1,13 @@
+30 datasets; ConfOpt - TPE per outer split seed:
+  split 0, PR AUC vs TPE seed 0 (lgbm_rerun) n 30, mean +0.0027 [-0.0013, +0.0079], median -0.0000, trimmed +0.0001, ahead 13 / behind 15, p 1
+  split 0, ECE vs TPE seed 0 (lgbm_rerun) n 30, mean +0.0071 [-0.0031, +0.0167], median +0.0021, trimmed +0.0056, ahead 18 / behind 12, p 0.191
+  split 0, PR AUC vs TPE seed 1 (lgbm_seed1) n 30, mean +0.0006 [-0.0024, +0.0041], median +0.0000, trimmed -0.0007, ahead 15 / behind 13, p 0.814
+  split 0, ECE vs TPE seed 1 (lgbm_seed1) n 30, mean +0.0124 [+0.0019, +0.0249], median +0.0028, trimmed +0.0082, ahead 22 / behind 8, p 0.0345
+  split 1, PR AUC vs TPE seed 0 (lgbm) n 30, mean +0.0005 [-0.0010, +0.0021], median +0.0001, trimmed +0.0004, ahead 17 / behind 11, p 0.522
+  split 1, ECE vs TPE seed 0 (lgbm)    n 30, mean -0.0012 [-0.0095, +0.0076], median -0.0019, trimmed -0.0030, ahead 13 / behind 17, p 0.477
+  split 1, PR AUC vs TPE seed 1 (lgbm_seed1) n 30, mean -0.0015 [-0.0058, +0.0024], median -0.0001, trimmed -0.0009, ahead 12 / behind 16, p 0.295
+  split 1, ECE vs TPE seed 1 (lgbm_seed1) n 30, mean -0.0010 [-0.0107, +0.0081], median +0.0013, trimmed +0.0007, ahead 19 / behind 11, p 0.57
+  split 2, PR AUC vs TPE seed 0 (lgbm) n 30, mean +0.0022 [-0.0009, +0.0064], median +0.0000, trimmed +0.0005, ahead 15 / behind 13, p 0.614
+  split 2, ECE vs TPE seed 0 (lgbm)    n 30, mean +0.0056 [-0.0042, +0.0165], median +0.0009, trimmed +0.0018, ahead 18 / behind 12, p 0.428
+  split 2, PR AUC vs TPE seed 1 (lgbm_seed1) n 30, mean +0.0028 [-0.0001, +0.0065], median +0.0002, trimmed +0.0012, ahead 18 / behind 10, p 0.171
+  split 2, ECE vs TPE seed 1 (lgbm_seed1) n 30, mean +0.0102 [+0.0020, +0.0208], median +0.0016, trimmed +0.0062, ahead 19 / behind 11, p 0.0803

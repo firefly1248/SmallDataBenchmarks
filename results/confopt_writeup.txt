@@ -1,0 +1,105 @@
+A. Outer PR AUC, ConfOpt - TPE
+  Holm over the five seeds: seed 3 raw 0.0206 Holm 0.103, seed 2 raw 0.0220 Holm 0.103, seed 4 raw 0.2581 Holm 0.774, seed 0 raw 0.6708 Holm 1.000, seed 1 raw 0.9176 Holm 1.000
+  seeds 2 to 4 (added later)                   n 131, mean +0.0019 [+0.0007, +0.0032], median +0.0001, trimmed +0.0010, ahead 74 / behind 54, p 0.0089
+  t interval over the five per-seed means: +0.0016 [+0.0003, +0.0028]
+  prauc: all 25 pairings, positive 24, range -0.0001 to +0.0028
+    per-seed means ConfOpt [0.83277, 0.83086, 0.83244, 0.8322, 0.83167], TPE [0.83046, 0.83091, 0.83034, 0.82996, 0.83035]
+  ece: all 25 pairings, positive 24, range -0.0010 to +0.0190
+    per-seed means ConfOpt [0.07378, 0.08334, 0.07344, 0.07085, 0.08367], TPE [0.06757, 0.06523, 0.07186, 0.07046, 0.06468]
+
+B. Where the five-seed gain sits
+  five largest: teaching-assistant-evaluation (151 rows) +0.0332, blogger (100 rows) +0.0331, hill-valley-without-noise (1212 rows) +0.0322, indian-liver-patient (583 rows) +0.0271, planning-relax (182 rows) +0.0127
+  their share of the summed gain 67%
+  without the five largest gains               n 126, mean +0.0005 [-0.0000, +0.0011], median +0.0000, trimmed +0.0004, ahead 63 / behind 59, p 0.174
+  without the five largest gains and losses    n 121, mean +0.0009 [+0.0004, +0.0014], median +0.0000, trimmed +0.0006, ahead 63 / behind 54, p 0.0303
+  small (50-540 rows): +0.0026, p 0.085; without the five +0.0008
+  medium (554-2800 rows): +0.0019, p 0.13; without the five +0.0006
+  large (2859-10000 rows): +0.0002, p 0.82; without the five +0.0002
+  Spearman with rows -0.16 (p 0.069)
+
+C. Inner re-score, ConfOpt - TPE averaged over the five seeds
+  fresh - search                               n 131, mean -0.0010 [-0.0022, -0.0002], median +0.0000, trimmed -0.0001, ahead 68 / behind 62, p 0.377
+  outer - search                               n 131, mean +0.0001 [-0.0007, +0.0008], median +0.0000, trimmed -0.0000, ahead 67 / behind 59, p 0.871
+  Spearman of the search gap with the outer gap 0.39 (p 4e-06); without the five 0.32
+  search, without the five largest gains       n 126, mean +0.0009 [+0.0005, +0.0014], median +0.0000, trimmed +0.0004, ahead 61 / behind 60, p 0.015
+  fresh, without the five largest gains        n 126, mean +0.0002 [-0.0009, +0.0011], median +0.0000, trimmed +0.0005, ahead 75 / behind 50, p 0.0114
+  outer, without the five largest gains        n 126, mean +0.0005 [-0.0000, +0.0011], median +0.0000, trimmed +0.0004, ahead 62 / behind 59, p 0.17
+
+D. Opening configurations (best of 10 per fold, mean over folds)
+  best of 10, mean of the five seeds           n 131, mean -0.0007 [-0.0035, +0.0021], median -0.0001, trimmed -0.0003, ahead 54 / behind 74, p 0.202
+  seed 0: opened ahead on 85, final search +0.0024 / +0.0006 (ahead / not), outer +0.0031 / +0.0008
+  seed 1: opened ahead on 47, final search +0.0003 / +0.0007 (ahead / not), outer +0.0011 / -0.0007
+  seed 2: opened ahead on 69, final search +0.0027 / -0.0001 (ahead / not), outer +0.0036 / +0.0004
+  seed 3: opened ahead on 44, final search +0.0021 / +0.0023 (ahead / not), outer +0.0022 / +0.0023
+  seed 4: opened ahead on 64, final search +0.0030 / +0.0004 (ahead / not), outer +0.0024 / +0.0003
+
+E. Calibration over the 108 datasets, per seed
+  seed 0: ECE gap +0.0062; 'balanced' 0.43 / 0.36; optimism rho -0.05 (p 0.6), extra balanced rho +0.02 (p 0.84), log lr x trees rho -0.27 (p 0.0046); neither picks 'balanced' on 13: ECE gap +0.0074
+  seed 1: ECE gap +0.0181; 'balanced' 0.43 / 0.33; optimism rho +0.03 (p 0.79), extra balanced rho +0.09 (p 0.37), log lr x trees rho -0.27 (p 0.0049); neither picks 'balanced' on 17: ECE gap +0.0114
+  seed 2: ECE gap +0.0016; 'balanced' 0.29 / 0.45; optimism rho +0.02 (p 0.81), extra balanced rho +0.26 (p 0.0059), log lr x trees rho -0.21 (p 0.032); neither picks 'balanced' on 13: ECE gap +0.0077
+  seed 3: ECE gap +0.0004; 'balanced' 0.47 / 0.29; optimism rho +0.04 (p 0.68), extra balanced rho +0.07 (p 0.47), log lr x trees rho -0.22 (p 0.022); neither picks 'balanced' on 15: ECE gap +0.0092
+  seed 4: ECE gap +0.0190; 'balanced' 0.31 / 0.33; optimism rho +0.13 (p 0.17), extra balanced rho +0.27 (p 0.005), log lr x trees rho -0.23 (p 0.019); neither picks 'balanced' on 19: ECE gap +0.0387
+
+F. Change in the ConfOpt - TPE gap from PR AUC to log-loss selection ('balanced' allowed)
+  prauc, seed 0                                n 131, mean -0.0019 [-0.0050, +0.0006], median +0.0002, trimmed +0.0003, ahead 74 / behind 52, p 0.337
+  prauc, seed 1                                n 131, mean -0.0008 [-0.0029, +0.0012], median -0.0000, trimmed -0.0006, ahead 60 / behind 67, p 0.215
+  prauc, mean of seeds 0 and 1                 n 131, mean -0.0014 [-0.0031, +0.0001], median +0.0000, trimmed -0.0002, ahead 62 / behind 65, p 0.527
+  ece, seed 0                                  n 108, mean -0.0040 [-0.0106, +0.0023], median -0.0003, trimmed -0.0026, ahead 52 / behind 56, p 0.313
+  ece, seed 1                                  n 108, mean -0.0179 [-0.0264, -0.0104], median -0.0048, trimmed -0.0113, ahead 36 / behind 72, p 2.83e-05
+  ece, mean of seeds 0 and 1                   n 108, mean -0.0110 [-0.0168, -0.0059], median -0.0035, trimmed -0.0069, ahead 41 / behind 67, p 0.000364
+
+G. Time at 50 trials (TPE seed 1 has sequential folds; its parallel re-time is 3.95 h, scripts/dart_controls.py)
+  seed 0: ConfOpt 5.69 h, TPE 3.18 h, median per-dataset ratio 4.0, median seconds 112 / 29
+  seed 1: ConfOpt 5.42 h, TPE 4.75 h, median per-dataset ratio 2.8, median seconds 112 / 41
+  seed 2: ConfOpt 5.36 h, TPE 2.62 h, median per-dataset ratio 3.8, median seconds 105 / 28
+  seed 3: ConfOpt 5.46 h, TPE 2.75 h, median per-dataset ratio 3.9, median seconds 110 / 26
+  seed 4: ConfOpt 5.21 h, TPE 2.58 h, median per-dataset ratio 4.0, median seconds 107 / 28
+
+H. 100 - 50 trials per dataset on the three scores (seeds 0 and 1)
+  confopt  seed 0: search +0.0021, fresh +0.0011, outer +0.0001; lost on the fresh split 47%, fresh p 8.4e-05
+  confopt  seed 1: search +0.0029, fresh +0.0017, outer -0.0003; lost on the fresh split 40%, fresh p 7.7e-07
+  tpe      seed 0: search +0.0030, fresh +0.0009, outer -0.0000; lost on the fresh split 68%, fresh p 9.2e-06
+  tpe      seed 1: search +0.0031, fresh +0.0017, outer +0.0007; lost on the fresh split 46%, fresh p 1.4e-06
+
+I. Checks added after the second review
+  prauc: Welch over the 5 + 5 seed means +0.0016 [+0.0007, +0.0025], p 0.006; SD of seed means ConfOpt 0.0007, TPE 0.0003
+  ece: Welch over the 5 + 5 seed means +0.0091 [+0.0016, +0.0165], p 0.025; SD of seed means ConfOpt 0.0060, TPE 0.0032
+  ECE per seed, Holm over five: seed 1 raw 1.7e-06 Holm 8.3e-06, seed 4 raw 4.8e-06 Holm 1.9e-05, seed 0 raw 0.05 Holm 0.15, seed 2 raw 0.68 Holm 1, seed 3 raw 0.91 Holm 1
+  Brier per seed, ConfOpt / TPE: 0.2497 / 0.2444, 0.2610 / 0.2424, 0.2454 / 0.2486, 0.2465 / 0.2457, 0.2560 / 0.2401
+  log loss with 'balanced', seed 0, ConfOpt / TPE: PR AUC 0.8282 / 0.8278, ECE 0.0424 / 0.0402, Brier 0.2230 / 0.2232
+  log loss with 'balanced', seed 1, ConfOpt / TPE: PR AUC 0.8266 / 0.8275, ECE 0.0412 / 0.0410, Brier 0.2238 / 0.2246
+ Fresh split and kr-vs-k (five-seed means)
+ seed  fold  search  fresh  outer
+    4     0   0.819  0.463  0.877
+    3     0   0.813  0.460  0.875
+    3     1   0.821  0.644  0.854
+    2     2   0.810  0.633  0.864
+    0     3   0.814  0.718  0.851
+    1     0   0.806  0.799  0.868
+  kr-vs-k, TPE's largest fold drop from search to fresh -0.008
+  kr-vs-k fresh - search, ConfOpt - TPE: -0.0563
+  fresh, without kr-vs-k                       n 130, mean +0.0010 [+0.0004, +0.0016], median +0.0000, trimmed +0.0006, ahead 79 / behind 50, p 0.00257
+  fresh - search, without kr-vs-k              n 130, mean -0.0006 [-0.0012, -0.0000], median +0.0000, trimmed -0.0001, ahead 68 / behind 61, p 0.458
+ Opening
+  gain over own opening, ConfOpt - TPE         n 131, mean +0.0022 [-0.0007, +0.0051], median +0.0003, trimmed +0.0009, ahead 80 / behind 48, p 0.00147
+  opening gap per seed SD 0.0124; final search gap per seed [0.0018, 0.0006, 0.0014, 0.0022, 0.0016]
+  seed 0 where not ahead (46), search: +0.0006, p 0.31
+  seed 0 where not ahead (46), outer: +0.0008, p 0.39
+  seed 2 where not ahead (62), search: -0.0001, p 0.86
+  seed 2 where not ahead (62), outer: +0.0004, p 0.51
+  seed 4 where not ahead (67), search: +0.0004, p 0.42
+  seed 4 where not ahead (67), outer: +0.0003, p 0.26
+ Calibration causes
+  ECE, five-seed gap where no run picks 'balanced' n 9, mean +0.0124 [+0.0061, +0.0191], median +0.0114, trimmed +0.0124, ahead 9 / behind 0, p 0.00391
+  seed 0: neither picks 'balanced' on 13: median ECE gap +0.0042, p 0.68; median lr x trees 6.8 / 7.5; ECE gap vs search lead rho +0.03 (p 0.75)
+  seed 1: neither picks 'balanced' on 17: median ECE gap +0.0056, p 0.089; median lr x trees 9.8 / 5.7; ECE gap vs search lead rho -0.04 (p 0.71)
+  seed 2: neither picks 'balanced' on 13: median ECE gap +0.0041, p 0.27; median lr x trees 9.5 / 8.4; ECE gap vs search lead rho +0.14 (p 0.14)
+  seed 3: neither picks 'balanced' on 15: median ECE gap +0.0049, p 0.15; median lr x trees 9.4 / 7.0; ECE gap vs search lead rho +0.01 (p 0.94)
+  seed 4: neither picks 'balanced' on 19: median ECE gap +0.0047, p 0.02; median lr x trees 7.1 / 6.3; ECE gap vs search lead rho +0.32 (p 0.00086)
+ 100 against 50 trials
+  inner lead, 100 - 50 trials                  n 131, mean -0.0005 [-0.0009, -0.0001], median -0.0002, trimmed -0.0004, ahead 40 / behind 85, p 0.000311
+  outer 50-to-100 gain, ConfOpt - TPE, seed 0  n 131, mean +0.0001 [-0.0017, +0.0020], median +0.0001, trimmed +0.0003, ahead 71 / behind 55, p 0.415
+  outer 50-to-100 gain, ConfOpt - TPE, seed 1  n 131, mean -0.0010 [-0.0050, +0.0018], median +0.0000, trimmed +0.0003, ahead 64 / behind 59, p 0.53
+ TPE seed 1 against its parallel re-time
+  identical best_params in 524 of 524 folds; median seconds 34; median ratio ConfOpt seed 1 / re-time 3.4
+  five largest gains: 46% of the summed gains; five largest losses 37% of the summed losses
