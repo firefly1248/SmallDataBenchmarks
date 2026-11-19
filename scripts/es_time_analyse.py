@@ -234,7 +234,8 @@ def analyse():
     fits = pd.concat([joblib.load(f) for pop in DATASETS for f in sorted((OUT / pop).glob("*.joblib"))],
                      ignore_index=True)
     check_complete(fits)
-    summary = {pop: pd.read_csv(PREPARED / f"_summary_{pop}.csv").set_index("dataset") for pop in DATASETS}
+    summary = {pop: pd.read_csv(PREPARED / f"_summary_{pop}.csv").set_index("dataset").loc[DATASETS[pop]]
+               for pop in DATASETS}
     report(fits, meta["delta"], summary)
     w = cells(fits)
     per_dataset_table(w).round(6).to_csv(OUT / "per_dataset.csv", index=False)
