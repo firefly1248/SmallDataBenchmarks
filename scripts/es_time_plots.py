@@ -1,4 +1,5 @@
-"""es_time_plots: the plan's three scatter plots (thin E2) and the unseen-level table, exploratory.
+"""es_time_plots: the plan's three scatter plots (thin E2) and the unseen-level table, registered diagnostics
+("Descriptive diagnostics"); the script was written after the run. Only the Spearman values are exploratory.
 
 H1 against label persistence; H2 against the EF stopping set's minority-share gap to the test block and to the
 older 90 %. Persistence is one value per dataset, so the Spearman values use the nine dataset means. The table

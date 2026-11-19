@@ -155,3 +155,11 @@ results/optuna/
 *.bak-*
 *.log.part*
 .venv-lama/
+
+# es_time: prepared data (unchecked licences), stored fits, publication drafts
+results/es_time/prepared/
+results/es_time/thin/
+results/es_time/dense/
+results/es_time/explore/
+results/es_time/publish/
+drafts/
