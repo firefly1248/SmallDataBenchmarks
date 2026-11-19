@@ -10,8 +10,10 @@ nohim     H1 to H4 (thin E2) without himalaya, and without himalaya and the low-
 forest    publish/forest.csv (estimate, bounds, label, delta per hypothesis; all nine datasets and without himalaya)
           and publish/per_dataset_points.csv
 check     every number of publish/post_facts.md against the line of its source file
+public    the outputs that hold no number derived from himalaya, for committing when its licence does not allow
+          publishing them: public/no_himalaya.txt, public/forest.csv, public/per_dataset_points.csv
 
-Usage: python -m scripts.es_time_publish manifest | nohim | forest | check
+Usage: python -m scripts.es_time_publish manifest | nohim | forest | check | public
 """
 import json
 import sys
@@ -21,7 +23,8 @@ import numpy as np
 import pandas as pd
 
 from scripts.es_time import DATASETS, OUT, PREPARED, ROOT, sha256
-from scripts.es_time_analyse import HYP, TIE, cells, diff, flagged, label, per_dataset, pooled, split_halves
+from scripts.es_time_analyse import DESCRIPTIVE, HYP, TIE, cells, diff, flagged, fmt, label, per_dataset, pooled, split_halves
+from scripts.es_time_explore import EXP, cell_frame
 
 PUBLISH = OUT / "publish"
 SOURCES = {"analysis.txt": OUT / "analysis.txt", "explore.txt": ROOT / "results/es_time_explore.txt",
@@ -161,6 +164,78 @@ def check():
     sys.exit(1 if bad else 0)
 
 
+def public():
+    """Everything below is computed from the eight thin datasets without himalaya and the six dense ones; the nine-dataset
+    block and the side-by-side table of `nohim` are not written."""
+    fits, _ = fits_cells()
+    fits = fits[fits.dataset != "himalaya"]
+    w = cells(fits)
+    d_reg = json.load(open(OUT / "delta.json"))["delta"]
+    groups, low = sets()
+    groups.pop("all nine datasets (registered set)")
+    lines = ["Without himalaya (exploratory; the registered estimators, 98.75 % t-interval; nothing here is a verdict)",
+             f"thin: {len(groups['without himalaya'])} datasets, dense: {fits[fits['pop'] == 'dense'].dataset.nunique()} datasets; "
+             f"low-signal datasets: {', '.join(low)}", f"registered delta {d_reg:.5f} (delta.json)", ""]
+    forest_rows, points = [], []
+    for name, names in groups.items():
+        d_new = delta_for(fits, names)
+        r = rows(w, names, d_reg, d_new)
+        lines.append(f"{name} (n {len(names)}), thin E2: delta recomputed by the A/A procedure on these datasets {d_new:.5f}")
+        for h, x in r.items():
+            lines += [f" {h} {HYP[h][0].upper()} - {HYP[h][1].upper()}: {x['estimate']:+.4f} [{x['lo']:+.4f}, {x['hi']:+.4f}], "
+                      f"half-width {x['half']:.4f}; ahead {x['ahead']} / behind {x['behind']} / tied {x['tied']}",
+                      f"    leave-one-out flags: registered delta {', '.join(x['flag_reg']) or 'none'}; recomputed delta "
+                      f"{', '.join(x['flag_new']) or 'none'}",
+                      f"    label (i) registered delta: {x['label_reg']}",
+                      f"    label (ii) recomputed delta: {x['label_new']}"]
+        lines.append("")
+        if name == "without himalaya":
+            for h, x in rows(w, names, d_reg, d_reg).items():
+                forest_rows.append(dict(hypothesis=h, first=HYP[h][0], second=HYP[h][1], estimate=x["estimate"], lower=x["lo"],
+                                        upper=x["hi"], label=x["label_reg"], delta=d_reg, n=len(names)))
+                points += [dict(hypothesis=h, dataset=d, value=v) for d, v in x["per"].items()]
+    names = groups["without himalaya"]
+    lines.append("Descriptive differences, thin E2 (no label):")
+    lines += [f"  {n}: {fmt(per_dataset(diff(w, a, b), 'thin', 'e2').loc[names])}" for n, (a, b) in DESCRIPTIVE.items()]
+    for pop, scheme, title in (("thin", "e1", "thin E1"), ("dense", "e2", "dense E2")):
+        keep = names if pop == "thin" else DATASETS["dense"]
+        lines += ["", title]
+        for h, (a, b) in HYP.items():
+            per = per_dataset(diff(w, a, b), pop, scheme).loc[keep]
+            lines.append(f"  {h} {a.upper()} - {b.upper()}: {fmt(per)}; ahead {int((per >= TIE).sum())} / behind "
+                         f"{int((per <= -TIE).sum())}; flag: {', '.join(flagged(per, d_reg)) or 'none'}")
+    rows_ = [r for f in sorted((EXP / "curve").glob("*.joblib")) for r in joblib.load(f) if r["dataset"] != "himalaya"]
+    d = cell_frame(rows_, None)
+    for pop in ("thin", "dense"):
+        x = d.xs(pop, level="pop")
+        lines += ["", f"Curve at T's pick, {pop} E2 ({x.index.get_level_values('dataset').nunique()} datasets): t = T's drawn count, "
+                      "er = ER_T count, ef = EF_T count, val = count that maximises the mean AP of the three inner validation blocks"]
+        for a, b in (("val", "t"), ("val", "er"), ("t", "er"), ("er", "ef"), ("val", "ef")):
+            per = (x[a] - x[b]).groupby("dataset").mean()
+            lines.append(f"  {a} - {b}: {fmt(per)}; ahead {int((per >= TIE).sum())} / behind {int((per <= -TIE).sum())}")
+    dr = pd.concat([joblib.load(f) for f in sorted((EXP / "dr").glob("*.joblib"))], ignore_index=True)
+    dr = dr[dr.dataset != "himalaya"]
+    key = ["pop", "scheme", "dataset", "seed", "cut", "block", "cand"]
+    inner = fits[fits.stage == "inner"].pivot_table(index=key, columns="arm", values="ap")
+    m = inner.join(dr.set_index(key).ap.rename("dr"))
+    assert m.dr.notna().all()
+    lines += ["", "Inner fits, same candidate and block in both arms (refit = plain fit on all rows with the count of the ES fit)"]
+    for pop, scheme in (("thin", "e2"), ("thin", "e1"), ("dense", "e2")):
+        x = m.xs((pop, scheme), level=("pop", "scheme"))
+        lines.append(f" {pop} {scheme} ({x.index.get_level_values('dataset').nunique()} datasets)")
+        for n, (a, b) in {"d_own - dr": ("d_own", "dr"), "d_own - ef": ("d_own", "ef"), "dr - er": ("dr", "er"),
+                          "ef - er": ("ef", "er")}.items():
+            per = (x[a] - x[b]).groupby("dataset").mean()
+            lines.append(f"  {n}: {fmt(per)}; ahead {int((per >= TIE).sum())} / behind {int((per <= -TIE).sum())}")
+    target = OUT / "public"
+    target.mkdir(exist_ok=True)
+    (target / "no_himalaya.txt").write_text("\n".join(lines) + "\n")
+    pd.DataFrame(forest_rows).round(6).to_csv(target / "forest.csv", index=False)
+    pd.DataFrame(points).round(6).to_csv(target / "per_dataset_points.csv", index=False)
+    assert "himalaya" not in "\n".join(lines).replace("Without himalaya", "").replace("without himalaya", "")
+    print("\n".join(lines))
+
+
 if __name__ == "__main__":
     command = sys.argv[1] if len(sys.argv) > 1 else ""
-    {"manifest": manifest, "nohim": nohim, "forest": forest, "check": check}.get(command, lambda: print(__doc__))()
+    {"manifest": manifest, "nohim": nohim, "forest": forest, "check": check, "public": public}.get(command, lambda: print(__doc__))()

@@ -1,0 +1,5 @@
+hypothesis,first,second,estimate,lower,upper,label,delta,n
+H1,d_t,dr_t,-0.001771,-0.010977,0.007436,no difference found,0.006226,8
+H2,d,ef,0.006265,-0.011527,0.024057,no difference found,0.006226,8
+H3,t,d_own,0.00459,-0.002632,0.011812,no difference found,0.006226,8
+H4,t,er,0.002633,-0.002926,0.008192,no difference found,0.006226,8
