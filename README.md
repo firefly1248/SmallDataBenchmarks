@@ -163,6 +163,10 @@ Running AutoGluon reliably in a long CPU benchmark required several non-obvious 
 
 MLJAR and FLAML ran without workarounds; LightAutoML needs its own environment and fails on one dataset. AutoGluon scores higher than all three (Holm p at most 0.03 on the 108 datasets).
 
+### Follow-up projects
+
+[tfm-drift](https://github.com/firefly1248/tfm-drift) tests, with a pre-registered plan, whether the foundation-model lead survives injected and real temporal drift. No primary test was rejected.
+
 ## Data
 
 A subset of UCI++: "a huge collection of preprocessed datasets for supervised classification problems in ARFF format"
