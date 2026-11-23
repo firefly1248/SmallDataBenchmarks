@@ -1,5 +1,5 @@
-hypothesis,first,second,estimate,lower,upper,label,delta,n
-H1,d_t,dr_t,-0.001771,-0.010977,0.007436,no difference found,0.006226,8
-H2,d,ef,0.006265,-0.011527,0.024057,no difference found,0.006226,8
-H3,t,d_own,0.00459,-0.002632,0.011812,no difference found,0.006226,8
-H4,t,er,0.002633,-0.002926,0.008192,no difference found,0.006226,8
+hypothesis,first,second,estimate,lower,upper,label,delta_recomputed,n
+H1,d_t,dr_t,-0.002155,-0.013269,0.00896,no difference found,0.00866,7
+H2,d,ef,0.007335,-0.013914,0.028584,no difference found,0.00866,7
+H3,t,d_own,0.004904,-0.003806,0.013615,no difference found,0.00866,7
+H4,t,er,0.002623,-0.004154,0.0094,no difference found,0.00866,7

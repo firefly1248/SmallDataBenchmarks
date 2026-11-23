@@ -1,7 +1,10 @@
 """es_time_explore: two exploratory additions to the es_time run, outside the plan (labelled exploratory).
 
-curve   test AP at every tree count of T's pick on the E2 final window (thin and dense), the same curve on
-        the three inner validation blocks, and the count read off them (a count tuned on time splits)
+curve   test AP at every number of boosting iterations 1..500 of T's pick on the E2 final window (thin and dense),
+        the same curve on the three inner validation blocks, and the count read off them (a count tuned on time
+        splits). The index is the iteration, as n_estimators and the early-stopping best iteration are: an
+        iteration with no valid split adds no tree, so the model after n iterations holds fewer than n trees. The
+        first version indexed by the tree count and disagreed with the stored scores in 7 of 225 cells.
 dr      plain refit of every inner candidate with the ER count of the same inner fit (configuration-level H1)
 report  both analyses from the stored files
 
@@ -23,15 +26,16 @@ EXP = OUT / "explore"
 
 
 def curve(ctx, params, fit, target):
-    """AP of the target block after every tree count 1..MAX_TREES of one fit on `fit` (ranking by raw score)."""
+    """AP of the target block after every number of iterations 1..MAX_TREES of one fit on `fit` (ranking by raw score)."""
     (a, b), (ta, tb) = fit, target
     X, y = ctx["X"], ctx["y"]
-    model = make(params, ctx["seed"], MAX_TREES).fit(X.iloc[a:b], y[a:b])
+    trees_after = []
+    model = make(params, ctx["seed"], MAX_TREES).fit(
+        X.iloc[a:b], y[a:b], callbacks=[lambda env: trees_after.append(env.model.current_iteration())])
     Xt = X.iloc[ta:tb]
     built = model.booster_.current_iteration()
     raw = np.cumsum([model.predict(Xt, raw_score=True, start_iteration=i, num_iteration=1) for i in range(built)], axis=0)
-    out = np.array([ap(y[ta:tb], raw[min(k, built) - 1]) for k in range(1, MAX_TREES + 1)])
-    return out
+    return np.array([ap(y[ta:tb], raw[max(min(trees_after[k - 1], built), 1) - 1]) for k in range(1, MAX_TREES + 1)])
 
 
 def curve_unit(pop, name, seed):

@@ -1,89 +1,80 @@
-Without himalaya (exploratory; the registered estimators, 98.75 % t-interval; nothing here is a verdict)
-thin: 8 datasets, dense: 6 datasets; low-signal datasets: f1-dnf, nycflights, bank-full
-registered delta 0.00623 (delta.json)
+Published datasets, without himalaya and f1-dnf (exploratory; the registered estimators, 98.75 % t-interval; nothing here is a verdict)
+thin: 7 datasets, dense: 5 datasets; low-signal datasets: nycflights, bank-full
 
-without himalaya (n 8), thin E2: delta recomputed by the A/A procedure on these datasets 0.00727
- H1 D_T - DR_T: -0.0018 [-0.0110, +0.0074], half-width 0.0092; ahead 4 / behind 4 / tied 0
-    leave-one-out flags: registered delta bank-full; recomputed delta bank-full
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
- H2 D - EF: +0.0063 [-0.0115, +0.0241], half-width 0.0178; ahead 5 / behind 3 / tied 0
-    leave-one-out flags: registered delta wildlife, elec; recomputed delta f1-dnf, nycflights, bank-full
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
- H3 T - D_OWN: +0.0046 [-0.0026, +0.0118], half-width 0.0072; ahead 7 / behind 1 / tied 0
-    leave-one-out flags: registered delta none; recomputed delta none
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
- H4 T - ER: +0.0026 [-0.0029, +0.0082], half-width 0.0056; ahead 5 / behind 2 / tied 1
-    leave-one-out flags: registered delta none; recomputed delta none
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
+without himalaya and f1-dnf (n 7), thin E2: delta recomputed by the A/A procedure on these datasets 0.00866
+ H1 D_T - DR_T: -0.0022 [-0.0133, +0.0090], half-width 0.0111; ahead 3 / behind 4 / tied 0
+    leave-one-out flags (recomputed delta): bank-full
+    label (recomputed delta): no difference found
+ H2 D - EF: +0.0073 [-0.0139, +0.0286], half-width 0.0212; ahead 5 / behind 2 / tied 0
+    leave-one-out flags (recomputed delta): nycflights, bank-full
+    label (recomputed delta): no difference found
+ H3 T - D_OWN: +0.0049 [-0.0038, +0.0136], half-width 0.0087; ahead 6 / behind 1 / tied 0
+    leave-one-out flags (recomputed delta): none
+    label (recomputed delta): no difference found
+ H4 T - ER: +0.0026 [-0.0042, +0.0094], half-width 0.0068; ahead 4 / behind 2 / tied 1
+    leave-one-out flags (recomputed delta): none
+    label (recomputed delta): no difference found
 
-without himalaya and the low-signal datasets (n 5), thin E2: delta recomputed by the A/A procedure on these datasets 0.01367
+without himalaya and f1-dnf and the low-signal datasets (n 5), thin E2: delta recomputed by the A/A procedure on these datasets 0.01367
  H1 D_T - DR_T: +0.0007 [-0.0128, +0.0142], half-width 0.0135; ahead 3 / behind 2 / tied 0
-    leave-one-out flags: registered delta wildlife; recomputed delta wildlife
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
+    leave-one-out flags (recomputed delta): wildlife
+    label (recomputed delta): no difference found
  H2 D - EF: +0.0127 [-0.0182, +0.0436], half-width 0.0309; ahead 5 / behind 0 / tied 0
-    leave-one-out flags: registered delta elec; recomputed delta hotels, nba, nebraska-weather
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
+    leave-one-out flags (recomputed delta): hotels, nba, nebraska-weather
+    label (recomputed delta): no difference found
  H3 T - D_OWN: +0.0032 [-0.0097, +0.0161], half-width 0.0129; ahead 4 / behind 1 / tied 0
-    leave-one-out flags: registered delta none; recomputed delta none
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
+    leave-one-out flags (recomputed delta): none
+    label (recomputed delta): no difference found
  H4 T - ER: +0.0029 [-0.0083, +0.0140], half-width 0.0112; ahead 3 / behind 1 / tied 1
-    leave-one-out flags: registered delta none; recomputed delta none
-    label (i) registered delta: no difference found
-    label (ii) recomputed delta: no difference found
+    leave-one-out flags (recomputed delta): none
+    label (recomputed delta): no difference found
 
 Descriptive differences, thin E2 (no label):
-  D - DR: -0.0052 [-0.0171, +0.0068] (n 8)
-  T - EF: +0.0125 [-0.0110, +0.0360] (n 8)
-  D - D_own: -0.0016 [-0.0066, +0.0033] (n 8)
-  DR - ER: +0.0016 [-0.0040, +0.0071] (n 8)
-  D_T9 - D_T: +0.0002 [-0.0008, +0.0011] (n 8)
+  D - DR: -0.0068 [-0.0198, +0.0063] (n 7)
+  T - EF: +0.0146 [-0.0127, +0.0419] (n 7)
+  D - D_own: -0.0024 [-0.0076, +0.0028] (n 7)
+  DR - ER: +0.0021 [-0.0043, +0.0085] (n 7)
+  D_T9 - D_T: +0.0002 [-0.0009, +0.0014] (n 7)
 
 thin E1
-  H1 D_T - DR_T: +0.0001 [-0.0018, +0.0021] (n 8); ahead 4 / behind 4; flag: wildlife, f1-dnf, elec
-  H2 D - EF: +0.0087 [-0.0038, +0.0212] (n 8); ahead 7 / behind 1; flag: wildlife
-  H3 T - D_OWN: +0.0025 [-0.0027, +0.0077] (n 8); ahead 5 / behind 3; flag: none
-  H4 T - ER: +0.0030 [-0.0024, +0.0084] (n 8); ahead 5 / behind 3; flag: none
+  H1 D_T - DR_T: -0.0000 [-0.0023, +0.0023] (n 7); ahead 3 / behind 4; flag: hotels, nba, nycflights, bank-full
+  H2 D - EF: +0.0090 [-0.0063, +0.0242] (n 7); ahead 6 / behind 1; flag: wildlife, elec
+  H3 T - D_OWN: +0.0031 [-0.0029, +0.0090] (n 7); ahead 5 / behind 2; flag: none
+  H4 T - ER: +0.0032 [-0.0034, +0.0098] (n 7); ahead 4 / behind 3; flag: none
 
 dense E2
-  H1 D_T - DR_T: -0.0035 [-0.0106, +0.0036] (n 6); ahead 0 / behind 6; flag: none
-  H2 D - EF: +0.0009 [-0.0026, +0.0045] (n 6); ahead 5 / behind 1; flag: none
-  H3 T - D_OWN: +0.0020 [-0.0048, +0.0089] (n 6); ahead 4 / behind 2; flag: none
-  H4 T - ER: +0.0007 [-0.0076, +0.0089] (n 6); ahead 5 / behind 1; flag: wildlife
+  H1 D_T - DR_T: -0.0036 [-0.0134, +0.0062] (n 5); ahead 0 / behind 5; flag: none
+  H2 D - EF: +0.0018 [-0.0008, +0.0043] (n 5); ahead 5 / behind 0; flag: none
+  H3 T - D_OWN: +0.0014 [-0.0075, +0.0103] (n 5); ahead 3 / behind 2; flag: none
+  H4 T - ER: +0.0006 [-0.0109, +0.0120] (n 5); ahead 4 / behind 1; flag: wildlife
 
-Curve at T's pick, thin E2 (8 datasets): t = T's drawn count, er = ER_T count, ef = EF_T count, val = count that maximises the mean AP of the three inner validation blocks
-  val - t: -0.0004 [-0.0050, +0.0043] (n 8); ahead 4 / behind 4
-  val - er: -0.0006 [-0.0066, +0.0053] (n 8); ahead 4 / behind 4
-  t - er: -0.0003 [-0.0051, +0.0045] (n 8); ahead 6 / behind 2
-  er - ef: +0.0018 [-0.0074, +0.0109] (n 8); ahead 4 / behind 4
-  val - ef: +0.0011 [-0.0086, +0.0109] (n 8); ahead 5 / behind 2
+Curve at T's pick, thin E2 (7 datasets): t = T's drawn count, er = ER_T count, ef = EF_T count, val = count that maximises the mean AP of the three inner validation blocks
+  val - t: -0.0004 [-0.0060, +0.0052] (n 7); ahead 3 / behind 4
+  val - er: -0.0009 [-0.0081, +0.0064] (n 7); ahead 3 / behind 4
+  t - er: -0.0005 [-0.0064, +0.0055] (n 7); ahead 5 / behind 2
+  er - ef: +0.0022 [-0.0090, +0.0133] (n 7); ahead 4 / behind 3
+  val - ef: +0.0013 [-0.0106, +0.0131] (n 7); ahead 5 / behind 2
 
-Curve at T's pick, dense E2 (6 datasets): t = T's drawn count, er = ER_T count, ef = EF_T count, val = count that maximises the mean AP of the three inner validation blocks
-  val - t: +0.0004 [-0.0058, +0.0066] (n 6); ahead 2 / behind 3
-  val - er: -0.0004 [-0.0083, +0.0075] (n 6); ahead 1 / behind 4
-  t - er: -0.0007 [-0.0027, +0.0012] (n 6); ahead 1 / behind 5
-  er - ef: +0.0035 [-0.0036, +0.0106] (n 6); ahead 6 / behind 0
-  val - ef: +0.0031 [-0.0050, +0.0112] (n 6); ahead 4 / behind 2
+Curve at T's pick, dense E2 (5 datasets): t = T's drawn count, er = ER_T count, ef = EF_T count, val = count that maximises the mean AP of the three inner validation blocks
+  val - t: +0.0003 [-0.0083, +0.0089] (n 5); ahead 1 / behind 3
+  val - er: -0.0005 [-0.0115, +0.0105] (n 5); ahead 1 / behind 4
+  t - er: -0.0008 [-0.0036, +0.0019] (n 5); ahead 1 / behind 4
+  er - ef: +0.0036 [-0.0062, +0.0134] (n 5); ahead 5 / behind 0
+  val - ef: +0.0031 [-0.0081, +0.0143] (n 5); ahead 3 / behind 2
 
 Inner fits, same candidate and block in both arms (refit = plain fit on all rows with the count of the ES fit)
- thin e2 (8 datasets)
-  d_own - dr: +0.0015 [-0.0015, +0.0046] (n 8); ahead 6 / behind 2
-  d_own - ef: +0.0068 [-0.0004, +0.0140] (n 8); ahead 8 / behind 0
-  dr - er: +0.0019 [-0.0016, +0.0054] (n 8); ahead 6 / behind 2
-  ef - er: -0.0034 [-0.0106, +0.0039] (n 8); ahead 2 / behind 5
- thin e1 (8 datasets)
-  d_own - dr: +0.0004 [-0.0016, +0.0024] (n 8); ahead 5 / behind 3
-  d_own - ef: +0.0081 [+0.0009, +0.0153] (n 8); ahead 8 / behind 0
-  dr - er: +0.0011 [-0.0014, +0.0036] (n 8); ahead 6 / behind 2
-  ef - er: -0.0066 [-0.0123, -0.0010] (n 8); ahead 0 / behind 8
- dense e2 (6 datasets)
-  d_own - dr: -0.0020 [-0.0072, +0.0031] (n 6); ahead 1 / behind 3
-  d_own - ef: +0.0057 [+0.0002, +0.0113] (n 6); ahead 6 / behind 0
-  dr - er: +0.0029 [-0.0023, +0.0081] (n 6); ahead 5 / behind 1
-  ef - er: -0.0049 [-0.0102, +0.0005] (n 6); ahead 1 / behind 5
+ thin e2 (7 datasets)
+  d_own - dr: +0.0020 [-0.0013, +0.0053] (n 7); ahead 6 / behind 1
+  d_own - ef: +0.0060 [-0.0021, +0.0141] (n 7); ahead 7 / behind 0
+  dr - er: +0.0020 [-0.0023, +0.0062] (n 7); ahead 5 / behind 2
+  ef - er: -0.0021 [-0.0092, +0.0050] (n 7); ahead 2 / behind 4
+ thin e1 (7 datasets)
+  d_own - dr: +0.0004 [-0.0020, +0.0029] (n 7); ahead 4 / behind 3
+  d_own - ef: +0.0075 [-0.0009, +0.0159] (n 7); ahead 7 / behind 0
+  dr - er: +0.0012 [-0.0018, +0.0043] (n 7); ahead 5 / behind 2
+  ef - er: -0.0058 [-0.0119, +0.0002] (n 7); ahead 0 / behind 7
+ dense e2 (5 datasets)
+  d_own - dr: -0.0018 [-0.0088, +0.0052] (n 5); ahead 1 / behind 2
+  d_own - ef: +0.0064 [-0.0002, +0.0131] (n 5); ahead 5 / behind 0
+  dr - er: +0.0033 [-0.0036, +0.0102] (n 5); ahead 4 / behind 1
+  ef - er: -0.0050 [-0.0124, +0.0024] (n 5); ahead 1 / behind 4

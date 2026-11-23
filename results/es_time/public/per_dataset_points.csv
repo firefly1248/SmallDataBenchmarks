@@ -1,7 +1,6 @@
 hypothesis,dataset,value
 H1,hotels,-0.000455
 H1,wildlife,0.011128
-H1,f1-dnf,0.000916
 H1,nba,0.000697
 H1,elec,-0.008583
 H1,nebraska-weather,0.000765
@@ -9,7 +8,6 @@ H1,nycflights,-0.003051
 H1,bank-full,-0.015584
 H2,hotels,0.004545
 H2,wildlife,0.015248
-H2,f1-dnf,-0.001224
 H2,nba,0.000597
 H2,elec,0.039575
 H2,nebraska-weather,0.003534
@@ -17,7 +15,6 @@ H2,nycflights,-0.006146
 H2,bank-full,-0.006007
 H3,hotels,0.001493
 H3,wildlife,-0.006071
-H3,f1-dnf,0.00239
 H3,nba,0.006027
 H3,elec,0.012211
 H3,nebraska-weather,0.00241
@@ -25,7 +22,6 @@ H3,nycflights,0.005368
 H3,bank-full,0.012893
 H4,hotels,0.003309
 H4,wildlife,0.011981
-H4,f1-dnf,0.002704
 H4,nba,9.3e-05
 H4,elec,-0.003667
 H4,nebraska-weather,0.002762
